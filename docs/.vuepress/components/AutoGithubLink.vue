@@ -1,7 +1,9 @@
 <template>
     <div class="auto-github-link">
-        <a :href="link" target="_blank" rel="noopener noreferrer">Check out the code!</a>
-        <OutboundLink/>
+        <a :href="link" target="_blank" rel="noopener noreferrer">{{ this.$lang == "English" ? "Check out the code!" :
+                "查看源码！"
+        }}</a>
+        <OutboundLink />
     </div>
 </template>
 
@@ -11,7 +13,7 @@ export default {
     name: "AutoGithubLink",
     computed: {
         link() {
-            return GITHUB_REPO + this.$page.path;
+            return GITHUB_REPO + this.$page.path.replace("/zh/", "/");
         }
     }
 }
