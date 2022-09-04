@@ -1,10 +1,8 @@
-# Dependencies and the window
+# 依赖与窗口
+部分读者可能已经熟悉如何在 Rust 中打开窗口程序，且有偏好的窗口管理库。但本教程是为所有人设计的，所以这也是我们需要涉及的内容。所幸如果你知道自己在做什么，就可以跳过这部分。有一点你得了解，无论使用什么样的窗口解决方案，都需要实现  [raw-window-handle](https://github.com/rust-windowing/raw-window-handle) 库定义的抽象接口。
 
-## Boring, I know
-Some of you reading this are very experienced with opening up windows in Rust and probably have your favorite windowing library, but this guide is designed for everybody, so it's something that we need to cover. Luckily, you don't need to read this if you know what you're doing. One thing that you do need to know is that whatever windowing solution you use needs to support the [raw-window-handle](https://github.com/rust-windowing/raw-window-handle) crate.
-
-## What crates are we using?
-For the beginner stuff, we're going to keep things very simple, we'll add things as we go, but I've listed the relevant `Cargo.toml` bits below.
+## 我们要使用哪些库（crate）?
+我们将尽量保持基础部分的简单性。后续我们会逐渐添加依赖，先列出相关的 `Cargo.toml` 依赖项如下：
 
 ```toml
 [dependencies]
@@ -14,21 +12,20 @@ log = "0.4"
 wgpu = "0.13"
 ```
 
-## Using Rust's new resolver
-As of version 0.10, wgpu requires cargo's [newest feature resolver](https://doc.rust-lang.org/cargo/reference/resolver.html#feature-resolver-version-2), which is the default in the 2021 edition (any new project started with Rust version 1.56.0 or newer). However, if you are still using the 2018 edition, you must include `resolver = "2"` in either the `[package]` section of `Cargo.toml` if you are working on a single crate, or the `[workspace]` section of the root `Cargo.toml` in a workspace.
+## 使用 Rust 的新版解析器
+自 0.10 版本起，wgpu 需要使用 cargo 的 [新版特性解析器](https://doc.rust-lang.org/cargo/reference/resolver.html#feature-resolver-version-2)，这在 Rust 的 2021 edition（即任何基于 Rust 1.56.0 或更新版本的新项目）中是默认启用的。但如果你仍在使用 2018 edition，那么就需要在单项目 `Cargo.toml` 的 `[package]` 配置中，或者在工作区的根级 `Cargo.toml` 的 `[workspace]` 配置中添加 `resolver = "2"` 项。
 
-## env_logger
-It is very important to enable logging via `env_logger::init();`.
-When wgpu hits any error it panics with a generic message, while logging the real error via the log crate.
-This means if you don't include `env_logger::init()`, wgpu will fail silently, leaving you very confused!  
-(This has been done in the code below)
+## 关于 env_logger
+通过 `env_logger::init()` 来启用日志是非常重要的。当 wgpu 遇到各类错误时，它都会用一条通用性的消息抛出 panic，并通过日志库来记录实际的错误信息。
+也就是说，如果不添加 `env_logger::init()`，wgpu 将静默地退出，从而使你非常困惑！<br> 
+(下面的代码中已经启用)
 
-## Create a new project
-run ```cargo new project_name``` where project_name is the name of the project.  
-(In the example below I have used 'tutorial1_window')
+## 创建一个新项目
+运行 `cargo new xxx`，xxx 是指你的项目名称。<br>
+(下面的例子中我使用了 `tutorial1_window`)
 
-## The code
-There's not much going on here yet, so I'm just going to post the code in full. Just paste this into your `lib.rs` or equivalent.
+## 示例代码
+这一部分没有什么特别之处，所以这里直接完整地贴出代码。只需将其粘贴到你的 `lib.rs` 或类似位置即可：
 
 ```rust
 use winit::{
@@ -65,7 +62,7 @@ pub fn run() {
 
 ```
 
-All this does is create a window, and keep it open until the user closes it, or presses escape. Next, we'll need a `main.rs` to run the code. It's quite simple, it just imports `run()` and, well, runs it!
+上述代码所做的全部工作就是创建了一个窗口，并在用户关闭或按下 escape 键前使其保持打开。接下来，我们需要在 `main.rs` 中运行这些代码。很简单，只需导入 `run()`，然后运行!
 
 ```rust
 use tutorial1_window::run;
@@ -75,37 +72,35 @@ fn main() {
 }
 ```
 
-(Where 'tutorial1_window' is the name of the project you created with cargo earlier)  
+(其中 `tutorial1_window` 是你之前用 cargo 创建的项目的名称)
 
-If you only want to support desktops, that's all you have to do! In the next tutorial, we'll start using wgpu!
+如果只打算支持桌面环境，这就是全部你所要做的！在下一个教程中，我们将真正开始使用 wgpu！
 
-## Added support for the web
+## 添加对 web 的支持
+如果讲完了这个关于 WebGPU 的教程，却没有讲到在 web 上使用它，那么这个教程就是不完整的。幸运的是，一旦你设置好了，让一个 wgpu 应用程序在浏览器中运行并不难。
 
-If I go through this tutorial about WebGPU and never talk about using it on the web, then I'd hardly call this tutorial complete. Fortunately getting a wgpu application running in a browser is not too difficult once you get things set up.
-
-Let's start with the changes we need to make to are `Cargo.toml`:
+让我们从修改 `Cargo.toml` 开始：
 
 ```toml
 [lib]
 crate-type = ["cdylib", "rlib"]
 ```
-
-These lines tell cargo that we want to allow our crate to build a native Rust static library (rlib) and a C/C++ compatible library (cdylib). We need rlib if we want to run wgpu in a desktop environment. We need cdylib to create the Web Assembly that the browser will run.
+这几行告诉 cargo 允许我们的项目建立一个本地的 Rust 静态库（rlib）和一个 C/C++ 兼容库（cdylib）。 我们需要 rlib 来在桌面环境中运行 wgpu，需要 cdylib 来创建在浏览器中运行的 Web Assembly。
 
 <div class="note">
 
 ## Web Assembly
 
-Web Assembly i.e. WASM, is a binary format supported by most modern browsers that allows lower-level languages such as Rust to run on a web page. This allows us to write the bulk of our application in Rust and use a few lines of Javascript to get it running in a web browser.
+Web Assembly 即 WASM，是大多数现代浏览器支持的二进制格式，它允许 Rust 等底层语言在网页上运行。这允许我们用 Rust 编写应用程序的绝大部分，并使用几行 Javascript 来令它在 Web 浏览器中运行。
 
 </div>
 
-Now, all we need are some more dependencies that are specific to running in WASM:
+现在，我们仅需添加一些专门用于在 WASM 中运行的依赖项：
 
 ```toml
 [dependencies]
 cfg-if = "1"
-# the other regular dependencies...
+# 其他常规依赖...
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 console_error_panic_hook = "0.1.6"
@@ -120,59 +115,58 @@ web-sys = { version = "0.3", features = [
 ]}
 ```
 
-The [cfg-if](https://docs.rs/cfg-if) crate adds a macro that makes using platform-specific code more manageable.
+[cfg-if](https://docs.rs/cfg-if)提供了一个宏，使得更加容易管理特定平台的代码。
 
-The `[target.'cfg(target_arch = "wasm32")'.dependencies]` line tells cargo to only include these dependencies if we are targeting the `wasm32` architecture. The next few dependencies just make interfacing with javascript a lot easier.
+`[target.'cfg(target_arch = "wasm32")'.dependencies]` 行告诉 cargo，如果我们的目标是 wasm32 架构，则只包括这些依赖项。接下来的几个依赖项只是让我们与 javascript 的交互更容易。
 
-* [console_error_panic_hook](https://docs.rs/console_error_panic_hook) configures the `panic!` macro to send errors to the javascript console. Without this when you encounter panics, you'll be left in the dark about what caused them.
-* [console_log](https://docs.rs/console_log) implements the [log](https://docs.rs/log) API. It sends all logs to the javascript console. It can be configured to only send logs of a particular log level. This is also great for debugging.
-* We need to enable WebGL feature on wgpu if we want to run on most current browsers. Support is in the works for using the WebGPU api directly, but that is only possible on experimental versions of browsers such as Firefox Nightly and Chrome Canary.<br>
-  You're welcome to test this code on these browsers (and the wgpu devs would appreciate it as well), but for sake of simplicity, I'm going to stick to using the WebGL feature until the WebGPU api gets to a more stable state.<br>
-  If you want more details check out the guide for compiling for the web on [wgpu's repo](https://github.com/gfx-rs/wgpu/wiki/Running-on-the-Web-with-WebGPU-and-WebGL)
-* [wasm-bindgen](https://docs.rs/wasm-bindgen) is the most important dependency in this list. It's responsible for generating the boilerplate code that will tell the browser how to use our crate. It also allows us to expose methods in Rust that can be used in Javascript, and vice-versa.<br>
-  I won't get into the specifics of wasm-bindgen, so if you need a primer (or just a refresher) check out [this](https://rustwasm.github.io/wasm-bindgen/)
-* [web-sys](https://docs.rs/web-sys) is a crate that includes many methods and structures that are available in a normal javascript application: `get_element_by_id`, `append_child`. The features listed are only the bare minimum of what we need currently.
+* [console_error_panic_hook](https://docs.rs/console_error_panic_hook) 配置 `panic!` 宏以将错误发送到 javascript 控制台。如果没有这个，当遇到程序崩溃时，你就会对导致崩溃的原因一无所知。
+* [console_log](https://docs.rs/console_log) 实现了 [log](https://docs.rs/log) API。它将所有日志发送到 javascript 控制台。它还可以配置为仅发送特定级别的日志，这非常适合用于调试。
+* 如果我们想在大多数当前浏览器上运行，就需要在 wgpu 上启用 WebGL 功能。正在支持直接使用 WebGPU API，但目前只在 Firefox Nightly 和 Chrome Canary 等浏览器的实验版本上可用。<br>
+  欢迎你在这些浏览器上测试这段代码（wgpu 的开发者也会很感激），但为了简单起见，我打算坚持使用 WebGL 功能，直到 WebGPU API 达到一个更稳定的状态。<br>
+  如果你想了解更多详细信息，请查看 [wgpu 源码仓库](https://github.com/gfx-rs/wgpu/wiki/Running-on-the-Web-with-WebGPU-and-WebGL)上的 web 编译指南
+* [wasm-bindgen](https://docs.rs/wasm-bindgen) 是此列表中最重要的依赖项。它负责生成样板代码，告诉浏览器如何使用我们的项目。它还允许我们在 Rust 中公开可在 Javascript 中使用的函数，反之亦然。<br>
+  我不会详细介绍 wasm-bindgen，所以如果你需要入门（或者是复习），请查看 [这里](https://rustwasm.github.io/wasm-bindgen/)
+* [web-sys](https://docs.rs/web-sys) 是一个包含了许多在 javascript 程序中可用的函数和结构的工具箱，如：`get_element_by_id`、`append_child`。列出的功能只是我们目前最低限度需要的功能。
 
-## More code
+## 更多示例代码
 
-First, we need to import `wasm-bindgen` in `lib.rs`:
+首先, 我们需要在 `lib.rs` 内引入 `wasm-bindgen` :
 
 ```rust
 #[cfg(target_arch="wasm32")]
 use wasm_bindgen::prelude::*;
 ```
 
-Next, we need to tell wasm-bindgen to run our `run()` function when the WASM is loaded:
+接下来，需要告诉 wasm-bindgen 在 WASM 被加载后执行我们的 `run()` 函数。
 
 ```rust
 #[cfg_attr(target_arch="wasm32", wasm_bindgen(start))]
 pub async fn run() {
-    // snipped...
+    // 省略的代码...
 }
 ```
 
-Then we need to toggle what logger we are using based on if we are in WASM land or not. Add the following to the top of the run function replacing the `env_logger::init()` line:
+然后我们需要根据是否在 WASM 环境来切换我们正在使用的日志库。在 run 函数内添加以下内容替换 `env_logger::init()`  行。
 
 ```rust
 cfg_if::cfg_if! {
     if #[cfg(target_arch = "wasm32")] {
         std::panic::set_hook(Box::new(console_error_panic_hook::hook));
-        console_log::init_with_level(log::Level::Warn).expect("Couldn't initialize logger");
+        console_log::init_with_level(log::Level::Warn).expect("无法初始化日志库");
     } else {
         env_logger::init();
     }
 }
 ```
 
-This will set up `console_log` and `console_error_panic_hook` in a web build, and will initialize `env_logger` in a normal build. This is important as `env_logger` doesn't support Web Assembly at the moment.
+这将在 web 构建中设置 `console_log` 和 `console_error_panic_hook`，或在普通构建中初始化 `env_logger`。这很重要，因为 `env_logger` 目前不支持 Web Assembly。
 
-Next, after we create our event loop and window, we need to add a canvas to the HTML document that we will host our application:
+接下来，在创建了事件循环与窗口之后，我们需要在应用程序所在的 HTML 网页中添加一个画布：
 
 ```rust
 #[cfg(target_arch = "wasm32")]
 {
-    // Winit prevents sizing with CSS, so we have to set
-    // the size manually when on web.
+    // Winit 不允许用 CSS 调整大小，所以在 web 环境里我们必须手动设置大小。
     use winit::dpi::PhysicalSize;
     window.set_inner_size(PhysicalSize::new(450, 400));
     
@@ -185,50 +179,50 @@ Next, after we create our event loop and window, we need to add a canvas to the 
             dst.append_child(&canvas).ok()?;
             Some(())
         })
-        .expect("Couldn't append canvas to document body.");
+        .expect("无法将画布添加到网页上");
 }
 ```
 
 <div class="note">
 
-The `"wasm-example"` id is specific to my project (aka. this tutorial). You can substitute this for whatever id you're using in your HTML. Alternatively, you could add the canvas directly to the `<body>` as they do in the wgpu repo. This part is ultimately up to you.
+`"wasm-example"` 这个 ID 是针对我的项目（也就是本教程）的。你可以你在 HTML 中使用任何 ID 来代替，或者，你也可以直接将画布添加到 `<body>` 中，就像他们在 wgpu 源码仓库中所做的那样，这部分最终由你决定。
 
 </div>
 
-That's all the web-specific code we need for now. The next thing we need to do is build the Web Assembly itself.
+这就是我们现在需要的所有 web 专用代码。接下来要做的就是构建 Web Assembly 本身。
 
 ## Wasm Pack
 
-Now you can build a wgpu application with just wasm-bindgen, but I ran into some issues doing that. For one, you need to install wasm-bindgen on your computer as well as include it as a dependency. The version you install as a dependency **needs** to exactly match the version you installed, otherwise, your build will fail.
+你可以只用 wasm-bindgen 来构建一个 wgpu 应用程序，但我在这样做的时候遇到了一些问题。首先，你需要在电脑上安装 wasm-bindgen，并将其作为一个依赖项。作为依赖关系的版本 **需要** 与你安装的版本完全一致，否则构建将会失败。
 
-To get around this shortcoming, and to make the lives of everyone reading this easier, I opted to add [wasm-pack](https://rustwasm.github.io/docs/wasm-pack/) to the mix. Wasm-pack handles installing the correct version of wasm-bindgen for you, and it supports building for different types of web targets as well: browser, NodeJS, and bundlers such as webpack.
+为了克服这个缺点，并使阅读这篇教程的每个人生活变得更容易，我选择在组合中加入 [wasm-pack](https://rustwasm.github.io/docs/wasm-pack/)。Wasm-pack 可以为你安装正确的 wasm-bindgen 版本，而且它还支持为不同类型的 web 目标进行构建：浏览器、NodeJS 和 webpack 等打包工具。
 
-To use wasm-pack, first, you need to [install it](https://rustwasm.github.io/wasm-pack/installer/).
+使用 wasm-pack 前，你需要先 [安装](https://rustwasm.github.io/wasm-pack/installer/)。
 
-Once you've done that, we can use it to build our crate. If you only have one crate in your project, you can just use `wasm-pack build`. If you're using a workspace, you'll have to specify what crate you want to build. Imagine your crate is a directory called `game`, you would use:
+完成安装后，就可以用它来构建我们的项目了。如果你的项目中只有一个库（crate），可以直接使用 `wasm-pack build`。如果你使用的是工作区（workspace），就必须指定你要构建的库。想象一下你的库是一个名为 `game` 的目录，你就会使用：
 
 ```bash
 wasm-pack build game
 ```
 
-Once wasm-pack is done building you'll have a `pkg` directory in the same directory as your crate. This has all the javascript code needed to run the WASM code. You'd then import the WASM module in javascript:
+一旦 wasm-pack 完成构建，在你的库（crate）目录下就会有一个 `pkg` 目录，运行 WASM 代码所需的所有 javascript 代码都在这里。然后在 javascript 中导入 WASM 模块：
 
 ```js
 const init = await import('./pkg/game.js');
 init().then(() => console.log("WASM Loaded"));
 ```
 
-This site uses [Vuepress](https://vuepress.vuejs.org/), so I load the WASM in a Vue component. How you handle your WASM will depend on what you want to do. If you want to check out how I'm doing things take a look at [this](https://github.com/sotrh/learn-wgpu/blob/master/docs/.vuepress/components/WasmExample.vue).
+这个网站使用了 [Vuepress](https://vuepress.vuejs.org/)，所以我是在 Vue 组件中加载 WASM。你如何处理 WASM 将取决于你想做什么。如果你想看看我是怎么做的，可以查看 [这里](https://github.com/sotrh/learn-wgpu/blob/master/docs/.vuepress/components/WasmExample.vue)。
 
 <div class="note">
 
-If you intend to use your WASM module in a plain HTML website, you'll need to tell wasm-pack to target the web:
+如果打算在一个普通的 HTML 网站中使用你的 WASM 模块，只需告诉 wasm-pack 以 web 为构建目标：
 
 ```bash
 wasm-pack build --target web
 ```
 
-You'll then need to run the WASM code in an ES6 Module:
+然后就可以在一个 ES6 模块中运行 WASM 代码:
 
 ```html
 <!DOCTYPE html>
@@ -260,7 +254,7 @@ You'll then need to run the WASM code in an ES6 Module:
 
 </div>
 
-Press the button below and you will see the code running!
+点击下面的按钮查看示例代码运行!
 
 <WasmExample example="tutorial1_window"></WasmExample>
 

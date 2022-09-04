@@ -1,13 +1,13 @@
-# Buffers and Indices
+# 缓冲区与索引
 
-## We're finally talking about them!
-You were probably getting sick of me saying stuff like "we'll get to that when we talk about buffers". Well now's the time to finally talk about buffers, but first...
+## 终于要讨论它们了!
+你可能已经厌倦了我老说 "我们会在讨论缓冲区（buffer）的时候再详细介绍" 之类的话。现在终于到了谈论缓冲区的时候了，但首先...
 
-## What is a buffer?
-A buffer is a blob of data on the GPU. A buffer is guaranteed to be contiguous, meaning that all the data is stored sequentially in memory. Buffers are generally used to store simple things like structs or arrays, but they can store more complex stuff such as graph structures like trees (provided all the nodes are stored together and don't reference anything outside of the buffer). We are going to use buffers a lot, so let's get started with two of the most important ones: the vertex buffer, and the index buffer.
+## 什么是缓冲区?
+缓冲区（buffer）是 GPU 上的一个数据块。缓冲区被保证是连续的，这意味着所有数据在内存中都是按顺序存储。缓冲区常用于存储结构或数组等简单的数据，但也可以存储更复杂的数据，如树等图结构（只要所有节点都存储在一起，且不引用缓冲区以外的任何数据）。我们会经常用到缓冲区，所以让我们从最重要的两个开始：顶点缓冲区（vertex buffer）和索引缓冲区（index buffer）。
 
-## The vertex buffer
-Previously we've stored vertex data directly in the vertex shader. While that worked fine to get our bootstraps on, it simply won't do for the long term. The types of objects we need to draw will vary in size, and recompiling the shader whenever we need to update the model would massively slow down our program. Instead, we are going to use buffers to store the vertex data we want to draw. Before we do that though we need to describe what a vertex looks like. We'll do this by creating a new struct.
+## 顶点缓冲区
+之前我们是直接在顶点着色器中存储的顶点数据。这在学习的起始阶段很有效，但这不是长远之计，因为需要绘制的对象的类型会有不同的大小，且每当需要更新模型时就得重新编译着色器，这会大大减慢我们的程序。我们将改为使用缓冲区（vertex buffer）来存储想要绘制的顶点数据。在此之前，我们需要创建一个新的结构来描述顶点。
 
 ```rust
 // lib.rs
@@ -19,9 +19,9 @@ struct Vertex {
 }
 ```
 
-Our vertices will all have a position and a color. The position represents the x, y, and z of the vertex in 3d space. The color is the red, green, and blue values for the vertex. We need the `Vertex` to be `Copy` so we can create a buffer with it.
+我们的每个顶点都会有一个位置（position）和颜色（color）字段。位置代表顶点在三维空间中的 x、y 和 z 坐标。颜色是顶点的红、绿、蓝三通道色值。我们需要令 `Vertex` 支持 `Copy` trait，这样就可以用它创建一个缓冲区。
 
-Next, we need the actual data that will make up our triangle. Below `Vertex` add the following.
+接下来，我们需要构成三角形的实际数据。在 `Vertex` 下面添加以下代码。
 
 ```rust
 // lib.rs
@@ -32,9 +32,9 @@ const VERTICES: &[Vertex] = &[
 ];
 ```
 
-We arrange the vertices in counter-clockwise order: top, bottom left, bottom right. We do it this way partially out of tradition, but mostly because we specified in the `primitive` of the `render_pipeline` that we want the `front_face` of our triangle to be `wgpu::FrontFace::Ccw` so that we cull the back face. This means that any triangle that should be facing us should have its vertices in counter-clockwise order.
+我们按逆时针顺序排列顶点：上、左下、右下。这样做的部分理由是出于惯例，但主要是因为我们在 `render_pipeline` 的 `primitive` 中指定了三角形的 `front_face` 是 `wgpu::FrontFace::Ccw`，这样就可以做背面剔除。这意味着任何面向我们的三角形的顶点都应该是按逆时针顺序排列。
 
-Now that we have our vertex data, we need to store it in a buffer. Let's add a `vertex_buffer` field to `State`.
+现在我们有了顶点数据，需要将其存储在一个缓冲区中。让我们给 `State` 添加再一个 `vertex_buffer` 字段。
 
 ```rust
 // lib.rs
@@ -42,14 +42,14 @@ struct State {
     // ...
     render_pipeline: wgpu::RenderPipeline,
 
-    // NEW!
+    // 新添加!
     vertex_buffer: wgpu::Buffer,
 
     // ...
 }
 ```
 
-Now let's create the buffer in `new()`.
+现在让我们在 `new()` 函数中创建顶点缓冲区。
 
 ```rust
 // new()
@@ -62,21 +62,21 @@ let vertex_buffer = device.create_buffer_init(
 );
 ```
 
-To access the `create_buffer_init` method on `wgpu::Device` we'll have to import the [DeviceExt](https://docs.rs/wgpu/latest/wgpu/util/trait.DeviceExt.html#tymethod.create_buffer_init) extension trait. For more information on extension traits, check out [this article](http://xion.io/post/code/rust-extension-traits.html).
+为了访问 `wgpu::Device` 上的 `create_buffer_init` 方法，我们须导入 [DeviceExt](https://docs.rs/wgpu/latest/wgpu/util/trait.DeviceExt.html#tymethod.create_buffer_init) 扩展抽象接口（trait）。关于扩展抽象接口的更多信息，请查看 [这篇文章](http://xion.io/post/code/rust-extension-traits.html)。
 
-To import the extension trait, put this line somewhere near the top of `lib.rs`.
+要导入扩展抽象接口，只需在 `lib.rs` 的顶部放上这一行。
 
 ```rust
 use wgpu::util::DeviceExt;
 ```
 
-You'll note that we're using [bytemuck](https://docs.rs/bytemuck/1.2.0/bytemuck/) to cast our `VERTICES` as a `&[u8]`. The `create_buffer_init()` method expects a `&[u8]`, and `bytemuck::cast_slice` does that for us. Add the following to your `Cargo.toml`.
+你应该注意到我们使用了 [bytemuck](https://docs.rs/bytemuck/1.2.0/bytemuck/) 来将 `VERTICES` 转换为 `&[u8]`。`create_buffer_init()` 函数的参数类型是 `&[u8]`，而 `bytemuck::cast_slice` 为我们实现了此类型转换。为此需在 `Cargo.toml` 中添加以下依赖项。
 
 ```toml
 bytemuck = { version = "1.4", features = [ "derive" ] }
 ```
 
-We're also going to need to implement two traits to get `bytemuck` to work. These are [bytemuck::Pod](https://docs.rs/bytemuck/1.3.0/bytemuck/trait.Pod.html) and [bytemuck::Zeroable](https://docs.rs/bytemuck/1.3.0/bytemuck/trait.Zeroable.html). `Pod` indicates that our `Vertex` is "Plain Old Data", and thus can be interpreted as a `&[u8]`. `Zeroable` indicates that we can use `std::mem::zeroed()`. We can modify our `Vertex` struct to derive these methods.
+我们还需要实现两个抽象接口来使 `bytemuck` 工作。它们是 [bytemuck::Pod](https://docs.rs/bytemuck/1.3.0/bytemuck/trait.Pod.html) 和 [bytemuck::Zeroable](https://docs.rs/bytemuck/1.3.0/bytemuck/trait.Zeroable.html)。 `Pod` 表示 `Vertex` 是 ["Plain Old Data"](https://zh.wikipedia.org/wiki/POD_(程序设计)) 数据类型，因此可以被解释为 `&[u8]` 类型。`Zeroable` 表示可以对其使用 `std::mem::zeroed()`。我们可以修改 `Vertex` 结构来派生这些接口。
 
 ```rust
 #[repr(C)]
@@ -89,7 +89,7 @@ struct Vertex {
 
 <div class="note">
 
-If your struct includes types that don't implement `Pod` and `Zeroable`, you'll need to implement these traits manually. These traits don't require us to implement any methods, so we just need to use the following to get our code to work.
+如果结构里包含了没有实现 `Pod` 和 `Zeroable` 的类型，就需要手动实现这些抽象接口。这些抽象接口不需要我们实现任何方法，只需像下面这样来让代码工作。 
 
 ```rust
 unsafe impl bytemuck::Pod for Vertex {}
@@ -98,7 +98,7 @@ unsafe impl bytemuck::Zeroable for Vertex {}
 
 </div>
 
-Finally, we can add our `vertex_buffer` to our `State` struct.
+最终我们可以把 `vertex_buffer` 添加到 `State` 结构中了。
 
 ```rust
 Self {
@@ -112,11 +112,11 @@ Self {
 }
 ```
 
-## So what do I do with it?
-We need to tell the `render_pipeline` to use this buffer when we are drawing, but first, we need to tell the `render_pipeline` how to read the buffer. We do this using `VertexBufferLayout`s and the `vertex_buffers` field that I promised we'd talk about when we created the `render_pipeline`.
+## 接下来怎么做？
+我们需要告诉 `render_pipeline` 在绘制时使用这个缓冲区，但首先需要告诉 `render_pipeline` 如何读取此缓冲区。我们使用`VertexBufferLayout` 和 `vertex_buffers` 字段来做这件事，我保证在创建`render_pipeline'时我们会讨论这个问题。
 
-A `VertexBufferLayout` defines how a buffer is represented in memory. Without this, the render_pipeline has no idea how to map the buffer in the shader. Here's what the descriptor for a buffer full of `Vertex` would look like.
-
+`VertexBufferLayout` 定义了缓冲区在内存中的表示方式。render_pipeline 需要它来在着色器中映射缓冲区。下面是填充了顶点的一个缓冲区的描述符（descriptor）
+。
 ```rust
 wgpu::VertexBufferLayout {
     array_stride: std::mem::size_of::<Vertex>() as wgpu::BufferAddress, // 1.
@@ -136,18 +136,19 @@ wgpu::VertexBufferLayout {
 }
 ```
 
-1. The `array_stride` defines how wide a vertex is. When the shader goes to read the next vertex, it will skip over `array_stride` number of bytes. In our case, array_stride will probably be 24 bytes.
-2. `step_mode` tells the pipeline how often it should move to the next vertex. This seems redundant in our case, but we can specify `wgpu::VertexStepMode::Instance` if we only want to change vertices when we start drawing a new instance. We'll cover instancing in a later tutorial.
-3. Vertex attributes describe the individual parts of the vertex. Generally, this is a 1:1 mapping with a struct's fields, which is true in our case.
-4. This defines the `offset` in bytes until the attribute starts. For the first attribute, the offset is usually zero. For any later attributes, the offset is the sum over `size_of` of the previous attributes' data.
-5. This tells the shader what location to store this attribute at. For example `@location(0) x: vec3<f32>` in the vertex shader would correspond to the `position` field of the `Vertex` struct, while `@location(1) x: vec3<f32>` would be the `color` field.
-6. `format` tells the shader the shape of the attribute. `Float32x3` corresponds to `vec3<f32>` in shader code. The max value we can store in an attribute is `Float32x4` (`Uint32x4`, and `Sint32x4` work as well). We'll keep this in mind for when we have to store things that are bigger than `Float32x4`.
+1. `array_stride` 定义了一个顶点所占的字节数。当着色器读取下一个顶点时，它将跳过 `array_stride` 的字节数。在我们的例子中，array_stride 是 24 个字节。
+2. `step_mode` 告诉管线此缓冲区中的数组数据中的每个元素代表的是每个顶点还是每个实例的数据，如果只想在开始绘制一个新实例时改变顶点，就可以设置为 `wgpu::VertexStepMode::Instance`。在后面的教程里我们会讲解实例化绘制。
+3. `attributes` 描述顶点的各个属性（attribute）的布局。一般来说，这与结构的字段是 1:1 映射的，在我们的案例中也是如此。
+4. `offset` 定义了属性在一个顶点元素中的字节偏移量。对于第一个属性，偏移量通常为零。其后属性的偏移量应为在其之前各属性的 `size_of` 之和。
+5. `shader_location` 告诉着色器要在什么位置存储这个属性。例如 `@location(0) x: vec3<f32>` 在顶点着色器中对应于 `Vertex` 结构的 `position` 字段，而 `@location(1) x: vec3<f32>` 对应 `color` 字段。
+6. `format` 告诉着色器该属性的数据格式。`Float32x3`对应于着色器代码中的 `vec3<f32>`。我们可以在一个属性中存储的最大值是`Float32x4`（`Uint32x4` 和 `Sint32x4` 也可以）。当我们需要存储比 `Float32x4` 更大的东西时请记住这一点。
 
-For you visual learners, our vertex buffer looks like this.
 
-![A figure of the VertexBufferLayout](./vb_desc.png)
+对于视觉学习者来说，我们的顶点缓冲区看起来是这样的：
 
-Let's create a static method on `Vertex` that returns this descriptor.
+![A figure of the VertexBufferLayout](../../../beginner/tutorial4-buffer/vb_desc.png)
+
+让我们在 `Vertex` 上创建一个静态函数来返回此描述符。
 
 ```rust
 // lib.rs
@@ -175,7 +176,8 @@ impl Vertex {
 
 <div class="note">
 
-Specifying the attributes as we did now is quite verbose. We could use the `vertex_attr_array` macro provided by wgpu to clean things up a bit. With it our `VertexBufferLayout` becomes
+像上边那样指定属性是非常冗长的。我们可以使用 wgpu 提供的 `vertex_attr_array` 宏来清理一下。现在 `VertexBufferLayout` 变成了
+这样：
 
 ```rust
 wgpu::VertexBufferLayout {
@@ -185,7 +187,7 @@ wgpu::VertexBufferLayout {
 }
 ```
 
-While this is definitely nice, Rust sees the result of `vertex_attr_array` as a temporary value, so a tweak is required to return it from a function. We could change the lifetime on `wgpu::VertexBufferLayout` to `'static`, or [make it `const`](https://github.com/gfx-rs/wgpu/discussions/1790#discussioncomment-1160378). You can see an example below:
+这无疑很棒，但 Rust 认为 `vertex_attr_array` 的结果是一个临时值，所以需要进行调整才能从一个函数中返回。我们可以将`wgpu::VertexBufferLayout` 的生命周期改为 `'static`，或者 [使其成为 `const`](https://github.com/gfx-rs/wgpu/discussions/1790#discussioncomment-1160378)。示例如下：
 
 ```rust
 impl Vertex {
@@ -204,11 +206,11 @@ impl Vertex {
 }
 ```
 
-Regardless I feel it's good to show how the data gets mapped, so I'll forgo using this macro for now.
+不管怎么说，我觉得展示数据如何被映射是件好事，所以我暂时不会使用这个宏。
 
 </div>
 
-Now we can use it when we create the `render_pipeline`.
+现在我们可以在创建 `render_pipeline` 时使用它了。
 
 ```rust
 let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
@@ -223,21 +225,21 @@ let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescrip
 });
 ```
 
-One more thing: we need to actually set the vertex buffer in the render method otherwise our program will crash.
+还有件事：我们需要在渲染函数中实际设置顶点缓冲区，否则程序会崩溃。
 
 ```rust
 // render()
 render_pass.set_pipeline(&self.render_pipeline);
-// NEW!
+// 新添加!
 render_pass.set_vertex_buffer(0, self.vertex_buffer.slice(..));
 render_pass.draw(0..3, 0..1);
 ```
 
-`set_vertex_buffer` takes two parameters. The first is what buffer slot to use for this vertex buffer. You can have multiple vertex buffers set at a time.
+`set_vertex_buffer` 函数接收两个参数，第一个参数是顶点缓冲区要使用的缓冲槽。你可以连续设置多个顶点缓冲区。
 
-The second parameter is the slice of the buffer to use. You can store as many objects in a buffer as your hardware allows, so `slice` allows us to specify which portion of the buffer to use. We use `..` to specify the entire buffer.
+第二个参数是要使用的缓冲区的数据片断。你可以在硬件允许的情况下在一个缓冲区中存储尽可能多的对象，所以 `slice` 允许我们指定使用缓冲区的哪一部分。我们用 `...` 来指定整个缓冲区。
 
-Before we continue, we should change the `render_pass.draw()` call to use the number of vertices specified by `VERTICES`. Add a `num_vertices` to `State`, and set it to be equal to `VERTICES.len()`.
+在继续之前，我们需要修改 `render_pass.draw()` 的调用来使用 `VERTICES` 所指定的顶点数量。在 `State` 中添加一个`num_vertices`，令其值等于 `VERTICES.len()`：
 
 ```rust
 // lib.rs
@@ -267,14 +269,14 @@ impl State {
 }
 ```
 
-Then use it in the draw call.
+然后在绘制命令中使用它。
 
 ```rust
 // render
 render_pass.draw(0..self.num_vertices, 0..1);
 ```
 
-Before our changes will have any effect, we need to update our vertex shader to get its data from the vertex buffer. We'll also have it include the vertex color as well.
+在我们的修改生效之前，还需要更新顶点着色器，以便从顶点缓冲区中获取数据。
 
 ```wgsl
 // Vertex shader
@@ -307,16 +309,17 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
 }
 ```
 
-If you've done things correctly, you should see a triangle that looks something like this.
+如果你做的正确无误，应该能看到一个下边这样的三角形：
 
-![A colorful triangle](./triangle.png)
+![A colorful triangle](../../../beginner/tutorial4-buffer/triangle.png)
 
-## The index buffer
-We technically don't *need* an index buffer, but they still are plenty useful. An index buffer comes into play when we start using models with a lot of triangles. Consider this pentagon.
+## 索引缓冲区
+从技术上讲，目前的示例并不 *需要* 索引缓冲区，但它们仍然很有用。当开始使用有大量三角形的模型时，索引缓冲区就会发挥作用。考虑一下下边的五边形：
 
-![A pentagon made of 3 triangles](./pentagon.png)
+![A pentagon made of 3 triangles](../../../beginner/tutorial4-buffer/pentagon.png)
 
-It has a total of 5 vertices and 3 triangles. Now if we wanted to display something like this using just vertices we would need something like the following.
+
+它总共有 5 个顶点和 3 个三角形。现在，如果我们想只用顶点来显示这样的东西，我们就需要以下顶点数据。
 
 ```rust
 const VERTICES: &[Vertex] = &[
@@ -334,9 +337,10 @@ const VERTICES: &[Vertex] = &[
 ];
 ```
 
-You'll note though that some of the vertices are used more than once. C, and B get used twice, and E is repeated 3 times. Assuming that each float is 4 bytes, then that means of the 216 bytes we use for `VERTICES`, 96 of them are duplicate data. Wouldn't it be nice if we could list these vertices once? Well, we can! That's where an index buffer comes into play.
+你会注意到有些顶点被使用了不止一次。C 和 B 顶点被使用了两次，而 E 顶点被重复使用了 3 次。假设每个浮点数是 4 个字节，那么这意味着在我们用于 `VERTICES` 的 216 个字节中，有 96 个字节是重复的数据。如果能只把这些顶点列出来一次不是很好吗？我们可以做到这一点! 这就是索引缓冲区发挥作用的地方。
 
-Basically, we store all the unique vertices in `VERTICES` and we create another buffer that stores indices to elements in `VERTICES` to create the triangles. Here's an example of that with our pentagon.
+大体上来说，我们在 `VERTICES` 中存储所有唯一的顶点，我们创建另一个缓冲区，将索引存储在 `VERTICES` 中的元素以创建三角形。下面还是以五边形为例：
+
 
 ```rust
 // lib.rs
@@ -355,9 +359,9 @@ const INDICES: &[u16] = &[
 ];
 ```
 
-Now with this setup, our `VERTICES` take up about 120 bytes and `INDICES` is just 18 bytes given that `u16` is 2 bytes wide. In this case, wgpu automatically adds 2 extra bytes of padding to make sure the buffer is aligned to 4 bytes, but it's still just 20 bytes. All together our pentagon is 134 bytes in total. That means we saved 82 bytes! It may not seem like much, but when dealing with tri counts in the hundreds of thousands, indexing saves a lot of memory.
+现在这种设置下，`VERTICES` 占用了 120 个字节，而 `INDICES` 只有 18 个字节，因为 `u16` 类型是 2 个字节长。在这种情况下，wgpu 会自动增加 2 个字节的填充，以确保缓冲区被对齐到 4 个字节，但它仍然只有 20 个字节。五边形总共是 140 字节，这意味着我们节省了 76 个字节! 这可能看起来不多，但当处理数十万的三角形时，索引可以节省大量的内存。
 
-There are a couple of things we need to change in order to use indexing. The first is we need to create a buffer to store the indices. In `State`'s `new()` method, create the `index_buffer` after you create the `vertex_buffer`. Also, change `num_vertices` to `num_indices` and set it equal to `INDICES.len()`.
+为了使用索引，有几处我们需要修改。首先需要创建一个缓冲区来存储索引。在 `State` 的 `new()` 函数中，创建了 `vertex_buffer` 之后创建 `index_buffer`。同时将 `num_vertices` 改为`num_indices`，令其值等于 `INDICES.len()`。
 
 ```rust
 let vertex_buffer = device.create_buffer_init(
@@ -367,7 +371,7 @@ let vertex_buffer = device.create_buffer_init(
         usage: wgpu::BufferUsages::VERTEX,
     }
 );
-// NEW!
+// 新添加!
 let index_buffer = device.create_buffer_init(
     &wgpu::util::BufferInitDescriptor {
         label: Some("Index Buffer"),
@@ -378,7 +382,7 @@ let index_buffer = device.create_buffer_init(
 let num_indices = INDICES.len() as u32;
 ```
 
-We don't need to implement `Pod` and `Zeroable` for our indices, because `bytemuck` has already implemented them for basic types such as `u16`. That means we can just add `index_buffer` and `num_indices` to the `State` struct.
+我们不需要为索引实现 `Pod` 和 `Zeroable`，因为 `bytemuck` 已经为 `u16` 等基本类型实现了它们。我们只需将 `index_buffer` 和 `num_indices` 添加到 `State` 结构中。
 
 ```rust
 struct State {
@@ -389,13 +393,13 @@ struct State {
     size: winit::dpi::PhysicalSize<u32>,
     render_pipeline: wgpu::RenderPipeline,
     vertex_buffer: wgpu::Buffer,
-    // NEW!
+    // 新添加!
     index_buffer: wgpu::Buffer, 
     num_indices: u32,
 }
 ```
 
-And then populate these fields in the constructor:
+然后在构造函数中填充这些字段：
 
 ```rust
 Self {
@@ -406,13 +410,13 @@ Self {
     size,
     render_pipeline,
     vertex_buffer,
-    // NEW!
+    // 新添加!
     index_buffer,
     num_indices,
 }
 ```
 
-All we have to do now is update the `render()` method to use the `index_buffer`.
+我们现在所要做的就是更新 `render()` 函数来使用 `index_buffer`。
 
 ```rust
 // render()
@@ -428,19 +432,24 @@ A couple things to note:
 
 With all that you should have a garishly magenta pentagon in your window.
 
-![Magenta pentagon in window](./indexed-pentagon.png)
+有几点需要注意：
+1. 命令名称是 `set_index_buffer` 而不是 `set_index_buffers`。你一次只能设置一个索引缓冲区。
+2. 当使用索引缓冲区时，需使用 `draw_indexed` 来绘制。`draw` 命令会忽略索引缓冲区。还需确保你使用的是索引数（`num_indices`）而非顶点数，否则你的模型要么画错，要么因为没有足够的索引数而导致恐慌（`panic`）。
 
-## Color Correction
+完成这些应该就能看到窗口里有一个洋红色的五边形了。
 
-If you use a color picker on the magenta pentagon, you'll get a hex value of #BC00BC. If you convert this to RGB values you'll get (188, 0, 188). Dividing these values by 255 to get them into the [0, 1] range we get roughly (0.737254902, 0, 0.737254902). This is not the same as what we are using for our vertex colors, which is (0.5, 0.0, 0.5). The reason for this has to do with color spaces.
+![Magenta pentagon in window](../../../beginner/tutorial4-buffer/indexed-pentagon.png)
 
-Most monitors use a color space known as sRGB. Our surface is (most likely depending on what is returned from `surface.get_preferred_format()`) using an sRGB texture format. The sRGB format stores colors according to their relative brightness instead of their actual brightness. The reason for this is that our eyes don't perceive light linearly. We notice more differences in darker colors than we do in lighter colors.
+## 颜色校正
 
-You get an approximation of the correct color using the following formula: `srgb_color = (rgb_color / 255) ^ 2.2`. Doing this with an RGB value of (188, 0, 188) will give us (0.511397819, 0.0, 0.511397819). A little off from our (0.5, 0.0, 0.5). While you could tweak the formula to get the desired values, you'll likely save a lot of time by using textures instead as they are stored as sRGB by default, so they don't suffer from the same color inaccuracies that vertex colors do. We'll cover textures in the next lesson.
+如果在洋红色五角星上使用取色器，你会得到一个 #BC00BC 的十六进制值。如果把它转换成 RGB 值会得到（188, 0, 188），将这些值除以 255 使其映射进 [0，1] 范围，大致会得到（0.737254902，0，0.737254902）。这与我们赋给顶点颜色的值不同，后者是（0.5, 0.0, 0.5）。其原因与色彩空间有关。
 
-## Challenge
-Create a more complex shape than the one we made (aka. more than three triangles) using a vertex buffer and an index buffer. Toggle between the two with the space key.
+大多数显示器使用的颜色空间被称为 sRGB。我们的展示平面（很可能取决于从 `surface.get_preferred_format()` 返回的格式）使用 sRGB 纹理格式。sRGB 格式是根据颜色的相对亮度而不是实际亮度来存储的。其原因是我们的眼睛对光线的感知不是线性的。我们注意到较深的颜色比较浅的颜色有更多差异。
 
+可以用下面的公式得到一个正确颜色的近似值。`srgb_color = (rgb_color / 255) ^ 2.2`。在 RGB 值为 (188, 0, 188) 的情况下，我们将得到 (0.511397819, 0.0, 0.511397819)。与我们的（0.5, 0.0, 0.5）有点偏差。虽然你可以通过调整公式来获得所需的数值，但使用纹理可能会节省很多时间，因为它们默认是以 sRGB 方式存储的，所以不会像顶点颜色那样出现颜色不准确的情况。我们会在下一课中介绍纹理。
+
+## 挑战
+使用顶点缓冲区和索引缓冲区创建一个比教程里做的更复杂的形状（也就是三个以上的三角形）。并用空格键在两者之间切换。
 
 <WasmExample example="tutorial4_buffer"></WasmExample>
 

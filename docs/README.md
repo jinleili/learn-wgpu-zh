@@ -1,28 +1,24 @@
-# Introduction
+# 介绍
 
-## What is wgpu?
-[Wgpu](https://github.com/gfx-rs/wgpu) is a Rust implementation of the [WebGPU API spec](https://gpuweb.github.io/gpuweb/). WebGPU is a specification published by the GPU for the Web Community Group. It aims to allow web code access to GPU functions in a safe and reliable manner. It does this by mimicking the Vulkan API, and translating that down to whatever API the host hardware is using (ie. DirectX, Metal, Vulkan).
+## 什么是 wgpu？
+[wgpu](https://github.com/gfx-rs/wgpu) 是 [WebGPU API 标准](https://gpuweb.github.io/gpuweb/)的 Rust 实现。WebGPU 是由 W3C Web GPU 社区小组所发布的规范，目标是允许网页代码以安全可靠的方式访问 GPU 功能。它通过借鉴 Vulkan API，并将其转换为宿主硬件上使用的各式 API（如DirectX、Metal、Vulkan）来实现这一目标。
 
-Wgpu is still in development, so some of this doc is subject to change.
+wgpu 仍在开发中，所以本教程中的部分内容可能会发生变化。
 
-## Why Rust?
-Wgpu actually has C bindings to allow you to write C/C++ code with it, as well as use other languages that interface with C. That being said, wgpu is written in Rust, and it has some convenient Rust bindings that don't have to jump through any hoops. On top of that, I've been enjoying writing in Rust.
+## 为何要用 Rust？
+wgpu 实际上提供了 C 语言绑定，你可以写 C/C++ 或其他能与 C 互通的语言来使用它。尽管如此，wgpu 本身是用 Rust 实现的，它便利的 Rust 绑定能减少你使用时的阻碍。更重要的是，我一直在享受用 Rust 编程的乐趣。
 
-You should be fairly familiar with Rust before using this tutorial as I won't go into much detail on Rust syntax. If you're not super comfortable with Rust you can review the [Rust tutorial](https://www.rust-lang.org/learn). You should also be familiar with [Cargo](https://doc.rust-lang.org/cargo/).
+在学习本教程之前你需要先熟悉 Rust，因为我不会对 Rust 的语法进行详细介绍。如果你对 Rust 还不太熟悉，可以回顾一下 [Rust 教程](https://www.rust-lang.org/learn)。另外你还需要熟悉 [Cargo](https://doc.rust-lang.org/cargo)。
 
-I'm using this project to learn wgpu myself, so I might miss some important details, or explain things badly. I'm always open to constructive feedback.
+我自己正在利用这个项目学习 wgpu，所以可能会错过一些重要的细节，或者解释得不够好。我始终愿意接受建设性的反馈。
 
-## Contribution and Support
+## 贡献与支持
 
-* I accept pull requests ([GitHub repo](https://github.com/sotrh/learn-wgpu)) for fixing issues with this tutorial such as typos, incorrect information, and other inconsistencies.
-* Due to wgpu's rapidly changing api, I'm not accepting any new pull requests for showcase demos.
-* If you want to support me directly, check out my [patreon](https://www.patreon.com/sotrh)!
+* 我接受 PR（[GitHub repo](https://github.com/sotrh/learn-wgpu)）以修复本教程的问题，如错别字、错误信息和其他不一致之处。
+* 由于 wgpu 的 API 变化很快，因此不接受任何用于展示新 demo 的 PR。
+* 如果想直接支持我，请查看 [patreon](https://www.patreon.com/sotrh)！
 
-## Translations
-
-* [中文版](https://doodlewind.github.io/learn-wgpu-cn)
-
-## Special thanks to these patrons!
+## 特别感谢以下赞助者!
 
 - David Laban
 - Gunstein Vatnar

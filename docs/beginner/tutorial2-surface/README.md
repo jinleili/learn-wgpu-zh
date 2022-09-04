@@ -1,7 +1,7 @@
-# The Surface
+# 展示平面 (Surface)
 
-## First, some housekeeping: State
-For convenience, we're going to pack all the fields into a struct and create some methods for it.
+## 封装 State
+为方便起见，我们将所有字段封装在一个 struct 内，并在其上添加一些函数：
 
 ```rust
 // lib.rs
@@ -16,7 +16,7 @@ struct State {
 }
 
 impl State {
-    // Creating some of the wgpu types requires async code
+    // 创建某些 wgpu 类型需要使用异步代码
     async fn new(window: &Window) -> Self {
         todo!()
     }
@@ -39,10 +39,10 @@ impl State {
 }
 ```
 
-I'm glossing over `State`s fields, but they'll make more sense as I explain the code behind these methods.
+我省略了 `State` 的字段概述，在后续章节中解释这些函数背后的代码时，它们才会变得更有意义。
 
-## State::new()
-The code for this is pretty straightforward, but let's break it down a bit.
+## 实例化 State
+这段代码很简单，但我们还是把它分解一下。
 
 ```rust
 impl State {
@@ -50,8 +50,8 @@ impl State {
     async fn new(window: &Window) -> Self {
         let size = window.inner_size();
 
-        // The instance is a handle to our GPU
-        // Backends::all => Vulkan + Metal + DX12 + Browser WebGPU
+        // instance 变量是 GPU 的句柄
+        // Backends::all 对应 Vulkan、Metal、DX12、WebGL 等所有后端图形驱动
         let instance = wgpu::Instance::new(wgpu::Backends::all());
         let surface = unsafe { instance.create_surface(window) };
         let adapter = instance.request_adapter(
@@ -63,53 +63,52 @@ impl State {
         ).await.unwrap();
 ```
 
-### Instance and Adapter
+### Instance 与 Adapter（适配器）
 
-The `instance` is the first thing you create when using wgpu. Its main purpose
-is to create `Adapter`s and `Surface`s.
+`instance` 是使用 wgpu 时所需创建的第一个对象，其主要用途是创建 `Adapter` 和 `Surface`。
 
-The `adapter` is a handle to our actual graphics card. You can use this to get information about the graphics card such as its name and what backend the adapter uses. We use this to create our `Device` and `Queue` later. Let's discuss the fields of `RequestAdapterOptions`.
+`adapter` 是指向实际显卡的句柄。我们可以用它获取关于显卡的信息，例如显卡名称与其所适配到的后端图形驱动等。稍后我们会用它来创建 `Device` 和 `Queue`。让我们先讨论一下 `RequestAdapterOptions` 所涉及的字段。
 
-* `power_preference` has two variants: `LowPower`, and `HighPerformance`. `LowPower` will pick an adapter that favors battery life, such as an integrated GPU. `HighPerformance` will pick an adapter for more power-hungry yet more performant GPU's such as a dedicated graphics card. WGPU will favor `LowPower` if there is no adapter for the `HighPerformance` option.
-* The `compatible_surface` field tells wgpu to find an adapter that can present to the supplied surface.
-* The `force_fallback_adapter` forces wgpu to pick an adapter that will work on all hardware. This usually means that the rendering backend will use a "software" system, instead of hardware such as a GPU.
+* `power_preference` 枚举有两个可选项：`LowPower` 和 `HighPerformance`。 `LowPower` 对应偏向于高电池续航的适配器（如集成显卡），`HighPerformance` 对应高功耗高性能的适配器（如独立显卡）。如果不存在符合 `HighPerformance` 选项的适配器，wgpu 将选择 `LowPower`。
+* `compatible_surface` 字段告诉 wgpu 找到与所传入的展示平面（surface）兼容的适配器。
+* `force_fallback_adapter` 强制 wgpu 选择一个能在所有硬件上工作的适配器。这通常意味着渲染后端将使用一个“软渲染”系统，而非 GPU 这样的硬件。
 
 <div class="note">
 
-The options I've passed to `request_adapter` aren't guaranteed to work for all devices, but will work for most of them. If wgpu can't find an adapter with the required permissions, `request_adapter` will return `None`. If you want to get all adapters for a particular backend you can use `enumerate_adapters`. This will give you an iterator that you can loop over to check if one of the adapters works for your needs.
+此处传递给 `request_adapter` 的参数不能保证对所有设备都有效，但是应该对大多数设备都有效。如果 wgpu 找不到符合要求的适配器，`request_adapter` 将返回 `None`。如果你想获取某个特定后端的所有适配器，可以使用 `enumerate_adapters`，它会返回一个迭代器，你可以遍历检查其中是否有满足需求的适配器。
 
 ```rust
 let adapter = instance
     .enumerate_adapters(wgpu::Backends::all())
     .filter(|adapter| {
-        // Check if this adapter supports our surface
+        // 检查该适配器是否兼容我们的展示平面
         surface.get_preferred_format(&adapter).is_some()
     })
     .next()
     .unwrap()
 ```
 
-Another thing to note is that `Adapter`s are locked to a specific backend. If you are on Windows and have 2 graphics cards you'll have at least 4 adapters available to use, 2 Vulkan and 2 DirectX.
+需要注意的另一件事是，适配器是固定在特定图形后端的。假如你使用的是 Windows 且有 2 个显卡（集成显卡 + 独立显卡），则至少有 4 个适配器可供使用，分别有 2 个固定在 Vulkan 和 DirectX 后端。
 
-For more fields you can use to refine your search, [check out the docs](https://docs.rs/wgpu/latest/wgpu/struct.Adapter.html).
+更多可用于优化适配器搜索的函数，请 [查看文档](https://docs.rs/wgpu/latest/wgpu/struct.Adapter.html)。
 
 </div>
 
 
-### The Surface
+### 展示平面 (Surface)
 
-The `surface` is the part of the window that we draw to. We need it to draw directly to the screen. Our `window` needs to implement [raw-window-handle](https://crates.io/crates/raw-window-handle)'s `HasRawWindowHandle` trait to create a surface. Fortunately, winit's `Window` fits the bill. We also need it to request our `adapter`.
+`surface` 是我们绘制到窗口的部分，需要它来直接绘制到屏幕上。窗口程序需要实现 [raw-window-handle](https://crates.io/crates/raw-window-handle) 库的 `HasRawWindowHandle` 抽象接口 (trait) 来创建展示平面。所幸 winit 的 `Window` 符合这个要求。我们还需要展示平面来请求适配器 (adapter)。
 
-### Device and Queue
+### 逻辑设备与命令队列
 
-Let's use the `adapter` to create the device and queue.
+让我们使用适配器来创建逻辑设备 (Device) 和命令队列 (Queue)。
 
 ```rust
         let (device, queue) = adapter.request_device(
             &wgpu::DeviceDescriptor {
                 features: wgpu::Features::empty(),
-                // WebGL doesn't support all of wgpu's features, so if
-                // we're building for the web we'll have to disable some.
+                // WebGL 后端并不支持 wgpu 的所有功能，
+                // 所以如果要以 web 为构建目标，就必须禁用一些功能。
                 limits: if cfg!(target_arch = "wasm32") {
                     wgpu::Limits::downlevel_webgl2_defaults()
                 } else {
@@ -117,23 +116,23 @@ Let's use the `adapter` to create the device and queue.
                 },
                 label: None,
             },
-            None, // Trace path
+            None, // 追踪 API 调用路径
         ).await.unwrap();
 ```
 
-The `features` field on `DeviceDescriptor`, allows us to specify what extra features we want. For this simple example, I've decided not to use any extra features.
+`DeviceDescriptor`上的 `features` 字段允许我们指定想要的扩展功能。对于这个简单的例子，我决定不使用任何额外的功能。
 
 <div class="note">
 
-The graphics card you have limits the features you can use. If you want to use certain features you may need to limit what devices you support or provide workarounds.
+显卡会限制可用的扩展功能，所以如果想使用某些功能，你可能需要限制支持的设备或提供变通函数。
 
-You can get a list of features supported by your device using `adapter.features()`, or `device.features()`.
+你可以使用 `adapter.features()` 或 `device.features()` 获取设备支持的扩展功能列表。
 
-You can view a full list of features [here](https://docs.rs/wgpu/latest/wgpu/struct.Features.html).
+你可以查看完整的 [扩展功能列表](https://docs.rs/wgpu/latest/wgpu/struct.Features.html)。
 
 </div>
 
-The `limits` field describes the limit of certain types of resources that we can create. We'll use the defaults for this tutorial, so we can support most devices. You can view a list of limits [here](https://docs.rs/wgpu/latest/wgpu/struct.Limits.html).
+`limits` 字段描述了创建某些类型的资源的限制。我们在本教程中使用默认值，所以可以支持大多数设备。你可以 [在这里](https://docs.rs/wgpu/0.13.1/wgpu/struct.Limits.html) 查看限制列表。
 
 ```rust
         let config = wgpu::SurfaceConfiguration {
@@ -146,33 +145,35 @@ The `limits` field describes the limit of certain types of resources that we can
         surface.configure(&device, &config);
 ```
 
-Here we are defining a config for our surface. This will define how the surface creates its underlying `SurfaceTexture`s. We will talk about `SurfaceTexture` when we get to the `render` function. For now, let's talk about the config's fields.
+这里我们为展示平面 (surface) 定义了一个配置。它将定义展示平面如何创建其底层的 `SurfaceTexture`。讲 `render` 函数时我们再具体讨论 `SurfaceTexture`，现在我们先谈谈此配置的字段。
 
-The `usage` field describes how `SurfaceTexture`s will be used. `RENDER_ATTACHMENT` specifies that the textures will be used to write to the screen (we'll talk about more `TextureUsages`s later).
+`usage` 字段描述了 `SurfaceTexture` 如何被使用。`RENDER_ATTACHMENT` 指定将被用来渲染到屏幕的纹理（我们将在后面讨论更多的 `TextureUsages` 枚举值）。
 
-The `format` defines how `SurfaceTexture`s will be stored on the gpu. Different displays prefer different formats. We use `surface.get_preferred_format(&adapter)` to figure out the best format to use based on the display you're using.
+`format` 定义了 `SurfaceTexture` 在 GPU 内存上如何被存储。不同的显示设备偏好不同的纹理格式。我们使用`surface.get_preferred_format(&adapter)` 来获取你使用的显示设备的最佳格式。
 
-`width` and `height` are the width and the height in pixels of a `SurfaceTexture`. This should usually be the width and the height of the window.
+`width` 和 `height` 指定 `SurfaceTexture` 的宽度和高度（物理像素，等于逻辑像素乘以屏幕缩放因子）。这通常就是窗口的宽和高。
 
 <div class="warning">
-Make sure that the width and height of the `SurfaceTexture` are not 0, as that can cause your app to crash.
+
+需要确保 `SurfaceTexture` 的宽高不能为 0，因为这会导致你的应用程序崩溃。
+
 </div>
 
-`present_mode` uses `wgpu::PresentMode` enum which determines how to sync the surface with the display. The option we picked, `PresentMode::Fifo`, will cap the display rate at the display's framerate. This is essentially VSync. This mode is guaranteed to be supported on all platforms. There are other options and you can see all of them [in the docs](https://docs.rs/wgpu/latest/wgpu/enum.PresentMode.html)
+`present_mode` 指定的 `wgpu::PresentMode` 枚举值决定了展示平面如何与显示设备同步。我们选择的`PresentMode::Fifo` 指定了显示设备的刷新率做为渲染的帧速率，这本质上就是 VSync，所有平台都得支持这种呈现模式。你可以在 [文档](https://docs.rs/wgpu/latest/wgpu/enum.PresentMode.html) 中查看所有的模式。
 
 <div class="note">
 
-If you want to let your users pick what `PresentMode` they use, you can use [Surface::get_supported_modes()](https://docs.rs/wgpu/latest/wgpu/struct.Surface.html#method.get_supported_modes) to get a list of all the `PresentMode`s the surface supports:
+如果你想让你的用户来选择他们使用的 `PresentMode`（呈现模式），可以使用 [Surface::get_supported_modes()](https://docs.rs/wgpu/latest/wgpu/struct.Surface.html#method.get_supported_modes) 获取展示平面支持的所有呈现模式的列表:
 
 ```rust
 let modes = surface.get_supported_modes(&adapter);
 ```
 
-Regardless, `PresentMode::Fifo` will always be supported, and `PresentMode::AutoVsync` and `PresentMode::AutoNoVsync` have fallback support and therefore will work on all platforms.
+`PresentMode::Fifo` 模式无论如何都是被支持的，`PresentMode::AutoVsync` 和 `PresentMode::AutoNoVsync` 支持回退，因此也能工作在所有平台上。
 
 </div>
 
-Now that we've configured our surface properly we can add these new fields at the end of the method.
+现在我们已经正确地配置了展示平面，我们在函数的末尾添加上这些新字段：
 
 ```rust
         Self {
@@ -187,27 +188,28 @@ Now that we've configured our surface properly we can add these new fields at th
 }
 ```
 
-Since our `State::new()` method is async we need to change `run()` to be async as well so that we can await it.
+由于我们的 `State::new()` 函数是异步的，因此需要把 `run()` 也改成异步的，以便我们可以等待它。
 
 ```rust
 pub async fn run() {
-    // Window setup...
+    // 窗口设置...
 
     let mut state = State::new(&window).await;
 
-    // Event loop...
+    // 事件遍历...
 }
 ```
 
-Now that `run()` is async, `main()` will need some way to await the future. We could use a crate like [tokio](https://docs.rs/tokio), or [async-std](https://docs.rs/async-std), but I'm going to go with the much more lightweight [pollster](https://docs.rs/pollster). Add the following to your `Cargo.toml`:
+现在 `run()` 是异步的了，`main()` 需要某种方式来等待。我们可以使用 [tokio](https://docs.rs/tokio) 或 [async-std](https://docs.rs/async-std) 等异步库，但我打算使用更轻量级的 [pollster](https://docs.rs/pollster)。在 "Cargo.toml" 中添加以下依赖：
 
 ```toml
 [dependencies]
-# other deps...
+# 其他依赖...
 pollster = "0.2"
 ```
 
 We then use the `block_on` function provided by pollster to await our future:
+然后我们使用 pollster 提供的 `block_on` 函数来等待异步任务执行完成：
 
 ```rust
 fn main() {
@@ -217,11 +219,11 @@ fn main() {
 
 <div class="warning">
 
-Don't use `block_on` inside of an async function if you plan to support WASM. Futures have to be run using the browser's executor. If you try to bring your own your code will crash when you encounter a future that doesn't execute immediately.
+WASM 环境中不能在异步函数里使用 `block_on`。`Future`（异步函数的返回对象）必须使用浏览器的执行器来运行。如果你试图使用自己的执行器，当遇到没有立即执行的 `Future` 时代码就会崩溃。
 
 </div>
 
-If we try to build WASM now it will fail because `wasm-bindgen` doesn't support using async functions as `start` methods. You could switch to calling `run` manually in javascript, but for simplicity, we'll add the [wasm-bindgen-futures](https://docs.rs/wasm-bindgen-futures) crate to our WASM dependencies as that doesn't require us to change any code. Your dependencies should look something like this:
+如果现在尝试构建 WASM 将会失败，因为 `wasm-bindgen` 不支持使用异步函数作为“开始”函数。你可以改成在 javascript 中手动调用 `run`，但为了简单起见，我们将把 [wasm-bindgen-futures](https://docs.rs/wasm-bindgen-futures) 库添加到 WASM 依赖项中，因为这不需要改变任何代码。你的依赖项应该是这样的：
 
 ```toml
 [dependencies]
@@ -245,8 +247,9 @@ web-sys = { version = "0.3", features = [
 ]}
 ```
 
-## resize()
-If we want to support resizing in our application, we're going to need to reconfigure the `surface` every time the window's size changes. That's the reason we stored the physical `size` and the `config` used to configure the `surface`. With all of these, the resize method is very simple.
+## 调整宽高
+
+如果想在我们的应用程序中支持调整展示平面的宽高，将需要在每次窗口的大小改变时重新配置 `surface`。这就是我们存储物理 `size` 和用于配置 `surface` 的 `config` 的原因。有了这些，实现 resize 函数就非常简单了。
 
 ```rust
 // impl State
@@ -260,9 +263,9 @@ pub fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
 }
 ```
 
-There's nothing different here from the initial `surface` configuration, so I won't get into it.
+这里和最初的 `surface` 配置没什么不同，所以就不再赘述。
 
-We call this method in `run()` in the event loop for the following events.
+在 `run()` 函数的事件循环中，我们在以下事件中调用 `resize()` 函数。
 
 ```rust
 match event {
@@ -276,18 +279,18 @@ match event {
                 state.resize(*physical_size);
             }
             WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
-                // new_inner_size is &&mut so we have to dereference it twice
+                // new_inner_size 是 &&mut 类型，因此需要解引用两次
                 state.resize(**new_inner_size);
             }
             // ...
 }
 ```
 
-## input()
+## 事件输入
 
-`input()` returns a `bool` to indicate whether an event has been fully processed. If the method returns `true`, the main loop won't process the event any further.
+`input()` 函数返回一个 `bool`（布尔值），表示一个事件是否已经被处理。如果该函数返回 `true`，主循环就不再继续处理该事件。
 
-We're just going to return false for now because we don't have any events we want to capture.
+我们现在没有任何想要捕获的事件，只需要返回 false。
 
 ```rust
 // impl State
@@ -296,7 +299,7 @@ fn input(&mut self, event: &WindowEvent) -> bool {
 }
 ```
 
-We need to do a little more work in the event loop. We want `State` to have priority over `run()`. Doing that (and previous changes) should have your loop looking like this.
+还需要在事件循环中多做一点工作，我们希望 `State` 在 `run()` 函数内的事件处理中拥有第一优先级。修改后（加上之前的修改）的代码看起来像是这样的：
 
 ```rust
 // run()
@@ -305,7 +308,7 @@ event_loop.run(move |event, _, control_flow| {
         Event::WindowEvent {
             ref event,
             window_id,
-        } if window_id == window.id() => if !state.input(event) { // UPDATED!
+        } if window_id == window.id() => if !state.input(event) { // 更新!
             match event {
                 WindowEvent::CloseRequested
                 | WindowEvent::KeyboardInput {
@@ -331,9 +334,9 @@ event_loop.run(move |event, _, control_flow| {
 });
 ```
 
-## update()
+## 更新
 
-We don't have anything to update yet, so leave the method empty.
+我们还没有任何东西需要更新，所以令这个函数为空。
 
 ```rust
 fn update(&mut self) {
@@ -342,10 +345,11 @@ fn update(&mut self) {
 ```
 
 We'll add some code here later on to move around objects.
+我们稍后将在这里添加一些代码，以便在物体周围移动。
 
-## render()
+## 渲染
 
-Here's where the magic happens. First, we need to get a frame to render to.
+这里就是奇迹发生的地方。首先，我们需要获取一个帧对象以供渲染。
 
 ```rust
 // impl State
@@ -354,15 +358,14 @@ fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
     let output = self.surface.get_current_texture()?;
 ```
 
-The `get_current_texture` function will wait for the `surface` to provide a new `SurfaceTexture` that we will render to. We'll store this in `output` for later.
+`get_current_texture` 函数会等待 `surface` 提供一个新的 `SurfaceTexture` 以供渲染。我们将它存储在 `output` 变量中以便后续使用。
 
 ```rust
     let view = output.texture.create_view(&wgpu::TextureViewDescriptor::default());
 ```
+这一行创建了一个默认设置的 `TextureView`。我们这样做是为了控制渲染代码与纹理的交互。
 
-This line creates a `TextureView` with default settings. We need to do this because we want to control how the render code interacts with the texture.
-
-We also need to create a `CommandEncoder` to create the actual commands to send to the gpu. Most modern graphics frameworks expect commands to be stored in a command buffer before being sent to the gpu. The `encoder` builds a command buffer that we can then send to the gpu.
+我们还需要创建一个 `CommandEncoder` 来记录实际的命令发送给 GPU。大多数现代图形框架希望命令在被发送到 GPU 之前存储在一个命令缓冲区中。命令编码器（CommandEncoder）建立了一个命令缓冲区，然后我们可以将其发送给 GPU。
 
 ```rust
     let mut encoder = self.device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
@@ -370,7 +373,7 @@ We also need to create a `CommandEncoder` to create the actual commands to send 
     });
 ```
 
-Now we can get to clearing the screen (long time coming). We need to use the `encoder` to create a `RenderPass`. The `RenderPass` has all the methods for the actual drawing. The code for creating a `RenderPass` is a bit nested, so I'll copy it all here before talking about its pieces.
+现在可以开始执行期盼已久的屏幕内容清除了。我们需要使用 `encoder` 来创建 `RenderPass`。`RenderPass` 拥有所有实际绘图的函数。创建 `RenderPass` 的代码嵌套层级有点深，所以在谈论它的各个部分之前，我先把它全部复制到这里：
 
 ```rust
     {
@@ -393,7 +396,7 @@ Now we can get to clearing the screen (long time coming). We need to use the `en
         });
     }
 
-    // submit will accept anything that implements IntoIter
+    // submit 函数能接受任何实现了 IntoIter trait 的参数
     self.queue.submit(std::iter::once(encoder.finish()));
     output.present();
 
@@ -401,11 +404,11 @@ Now we can get to clearing the screen (long time coming). We need to use the `en
 }
 ```
 
-First things first, let's talk about the extra block (`{}`) around `encoder.begin_render_pass(...)`. `begin_render_pass()` borrows `encoder` mutably (aka `&mut self`). We can't call `encoder.finish()` until we release that mutable borrow. The block tells rust to drop any variables within it when the code leaves that scope thus releasing the mutable borrow on `encoder` and allowing us to `finish()` it. If you don't like the `{}`, you can also use `drop(render_pass)` to achieve the same effect.
+首先，我们来谈谈 `encoder.begin_render_pass(...)` 周围用 `{}` 开辟出来的块空间。`begin_render_pass()` 以可变方式借用了`encoder`（又称 `&mut self`），在释放这个可变借用之前，我们不能调用 `encoder.finish()`。这个块空间告诉 rust，当代码离开这个范围时，丢弃其中的任何变量，从而释放 `encoder` 上的可变借用，并允许我们 `finish()` 它。如果你不喜欢 `{}`，也可以使用 `drop(render_pass)` 来达到同样的效果。
 
-The last lines of the code tell `wgpu` to finish the command buffer, and to submit it to the gpu's render queue.
+代码的最后几行告诉 `wgpu` 完成命令缓冲区，并将其提交给 gpu 的渲染队列。
 
-We need to update the event loop again to call this method. We'll also call `update()` before it too.
+我们需再次更新事件循环以调用 `render()` 函数，还会在它之前先调用 `update()`。
 
 ```rust
 // run()
@@ -416,17 +419,16 @@ event_loop.run(move |event, _, control_flow| {
             state.update();
             match state.render() {
                 Ok(_) => {}
-                // Reconfigure the surface if lost
+                // 如果展示平面的上下文丢失，就需重新配置
                 Err(wgpu::SurfaceError::Lost) => state.resize(state.size),
-                // The system is out of memory, we should probably quit
+                // 系统内存不足时，程序应该退出。
                 Err(wgpu::SurfaceError::OutOfMemory) => *control_flow = ControlFlow::Exit,
-                // All other errors (Outdated, Timeout) should be resolved by the next frame
+                // 所有其他错误（过期、超时等）应在下一帧解决
                 Err(e) => eprintln!("{:?}", e),
             }
         }
         Event::MainEventsCleared => {
-            // RedrawRequested will only trigger once, unless we manually
-            // request it.
+            // 除非我们手动请求，RedrawRequested 将只会触发一次。
             window.request_redraw();
         }
         // ...
@@ -434,13 +436,13 @@ event_loop.run(move |event, _, control_flow| {
 });
 ```
 
-With all that, you should be getting something that looks like this.
+基于以上这些，你就能获得如下的效果：
 
-![Window with a blue background](./cleared-window.png)
+![蓝色背景的窗口](../../../beginner/tutorial2-surface/cleared-window.png)
 
-## Wait, what's going on with RenderPassDescriptor?
+## 关于 RenderPassDescriptor
 
-Some of you may be able to tell what's going on just by looking at it, but I'd be remiss if I didn't go over it. Let's take a look at the code again.
+部分读者可能光看代码就能理解，但如果我不把它介绍一遍，那就是失职。让我们再看一下代码。
 
 ```rust
 &wgpu::RenderPassDescriptor {
@@ -452,16 +454,15 @@ Some of you may be able to tell what's going on just by looking at it, but I'd b
 }
 ```
 
-A `RenderPassDescriptor` only has three fields: `label`, `color_attachments` and `depth_stencil_attachment`. The `color_attachments` describe where we are going to draw our color to. We use the `TextureView` we created earlier to make sure that we render to the screen.
+`RenderPassDescriptor` 只有三个字段: `label`, `color_attachments` 和 `depth_stencil_attachment``。color_attachments` 描述了要将颜色绘制到哪里。我们使用之前创建的 `TextureView` 来确保渲染到屏幕上。
 
 <div class="note">
 
-The `color_attachments` field is a "sparse" array. This allows you to use a pipeline that expects multiple render targets and only supply the ones you care about. 
+`color_attachments` 字段是一个稀疏数组。这允许你使用有多个渲染目标的管道，并且只提供你所关心的渲染目标。
 
 </div>
 
-
-We'll use `depth_stencil_attachment` later, but we'll set it to `None` for now.
+我们后面会使用到 `depth_stencil_attachment`，现在先将它设置为 `None`。
 
 ```rust
 Some(wgpu::RenderPassColorAttachment {
@@ -479,27 +480,27 @@ Some(wgpu::RenderPassColorAttachment {
 })
 ```
 
-The `RenderPassColorAttachment` has the `view` field which informs `wgpu` what texture to save the colors to. In this case we specify the `view` that we created using `surface.get_current_texture()`. This means that any colors we draw to this attachment will get drawn to the screen.
+`RenderPassColorAttachment` 有一个 `view` 字段，用于通知 `wgpu` 将颜色保存到什么纹理。这里我们指定使用 `surface.get_current_texture()` 创建的 `view`，这意味着向此附件（attachment）上绘制的任何颜色都会被绘制到屏幕上。
 
-The `resolve_target` is the texture that will receive the resolved output. This will be the same as `view` unless multisampling is enabled. We don't need to specify this, so we leave it as `None`.
+`resolve_target` 是接收多重采样解析输出的纹理。除非启用了多重采样, 否则不需要设置它，保留为 `None` 即可。
 
-The `ops` field takes a `wpgu::Operations` object. This tells wgpu what to do with the colors on the screen (specified by `view`). The `load` field tells wgpu how to handle colors stored from the previous frame. Currently, we are clearing the screen with a bluish color. The `store` field tells wgpu whether we want to store the rendered results to the `Texture` behind our `TextureView` (in this case it's the `SurfaceTexture`). We use `true` as we do want to store our render results.
+`ops` 字段需要一个 `wpgu::Operations` 对象。它告诉 wgpu 如何处理屏幕上的颜色（由 `view` 指定）。`load` 字段告诉 wgpu 如何处理存储在前一帧的颜色。目前，我们正在用蓝色清除屏幕。`store` 字段告诉 wgpu 是否要将渲染的结果存储到 `TextureView` 后面的纹理（`Texture`）（在这个例子中是 `SurfaceTexture` ）。我们希望存储渲染结果，所以设置为 `true`。
 
 <div class="note">
 
-It's not uncommon to not clear the screen if the screen is going to be completely covered up with objects. If your scene doesn't cover the entire screen however you can end up with something like this.
+如果屏幕被场景物体完全遮挡，那么不清除屏幕是很常见的。但如果你的场景没有覆盖整个屏幕，就会出现类似下边的情况。
 
-![./no-clear.png](./no-clear.png)
+![./no-clear.png](../../../beginner/tutorial2-surface/no-clear.png)
 
 </div>
 
-## Validation Errors?
+## 验证错误?
 
-If wgpu is using Vulkan on your machine, you may run into validation errors if you are running an older version of the Vulkan SDK. You should be using at least version `1.2.182` as older versions can give out some false positives. If errors persist, you may have encountered a bug in wgpu. You can post an issue at [https://github.com/gfx-rs/wgpu](https://github.com/gfx-rs/wgpu)
+如果你的机器上运行的是 Vulkan SDK 的旧版本， wgpu 在你的机器上使用 Vulkan 后端时可能会遇到验证错误。至少需要使用 `1.2.182` 及以上版本，因为旧版本可能会产生一些误报。如果错误持续存在，那可能是遇到了 wgpu 的错误。你可以在 [https://github.com/gfx-rs/wgpu](https://github.com/gfx-rs/wgpu) 上提交此问题。
 
-## Challenge
+## 挑战
 
-Modify the `input()` method to capture mouse events, and update the clear color using that. *Hint: you'll probably need to use `WindowEvent::CursorMoved`*.
+修改 `input()` 函数以捕获鼠标事件，并使用该函数来更新清除屏幕的颜色。*提示：你可能需要用到 `WindowEvent::CursorMoved`*。
 
 
 <WasmExample example="tutorial2_surface"></WasmExample>
