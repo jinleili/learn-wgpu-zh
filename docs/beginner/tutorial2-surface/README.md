@@ -438,7 +438,7 @@ event_loop.run(move |event, _, control_flow| {
 
 基于以上这些，你就能获得如下的效果：
 
-![蓝色背景的窗口](../../../beginner/tutorial2-surface/cleared-window.png)
+![蓝色背景的窗口](./cleared-window.png)
 
 ## 关于 RenderPassDescriptor
 
@@ -490,7 +490,7 @@ Some(wgpu::RenderPassColorAttachment {
 
 如果屏幕被场景物体完全遮挡，那么不清除屏幕是很常见的。但如果你的场景没有覆盖整个屏幕，就会出现类似下边的情况。
 
-![./no-clear.png](../../../beginner/tutorial2-surface/no-clear.png)
+![./no-clear.png](./no-clear.png)
 
 </div>
 

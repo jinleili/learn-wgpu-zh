@@ -9,7 +9,7 @@
 ## 什么是顶点和片元？
 顶点（Vertex）就是三维（或二维）空间中的一个点。这些顶点会两个一组以构成线段集合，或者三个一组以构成三角形集合。
 
-<img alt="Vertices Graphic" src="../../../beginner/tutorial3-pipeline/tutorial3-pipeline-vertices.png" />
+<img alt="Vertices Graphic" src="./tutorial3-pipeline-vertices.png" />
 
 从简单的立方体到复杂的人体结构，大多数现代渲染系统都使用三角形来建模所有图形。这些三角形被存储为构成三角形角的顶点。
 
@@ -306,7 +306,7 @@ Self {
 
 修改完代码后你应该能看到一个可爱的棕色三角形。
 
-![可爱的棕色三角形](../../../beginner/tutorial3-pipeline/tutorial3-pipeline-triangle.png)
+![可爱的棕色三角形](./tutorial3-pipeline-triangle.png)
 
 ## 挑战
 创建第二个管线，使用三角形顶点的位置数据来创建一个颜色并发送给片元着色器。当你按下空格键时让应用程序交替使用两个管线。*提示：你需要修改* `VertexOutput`。
