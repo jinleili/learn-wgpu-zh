@@ -146,7 +146,7 @@ wgpu::VertexBufferLayout {
 
 对于视觉学习者来说，我们的顶点缓冲区看起来是这样的：
 
-![A figure of the VertexBufferLayout](../../../beginner/tutorial4-buffer/vb_desc.png)
+![A figure of the VertexBufferLayout](./vb_desc.png)
 
 让我们在 `Vertex` 上创建一个静态函数来返回此描述符。
 
@@ -311,12 +311,12 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
 
 如果你做的正确无误，应该能看到一个下边这样的三角形：
 
-![A colorful triangle](../../../beginner/tutorial4-buffer/triangle.png)
+![A colorful triangle](./triangle.png)
 
 ## 索引缓冲区
 从技术上讲，目前的示例并不 *需要* 索引缓冲区，但它们仍然很有用。当开始使用有大量三角形的模型时，索引缓冲区就会发挥作用。考虑一下下边的五边形：
 
-![A pentagon made of 3 triangles](../../../beginner/tutorial4-buffer/pentagon.png)
+![A pentagon made of 3 triangles](./pentagon.png)
 
 
 它总共有 5 个顶点和 3 个三角形。现在，如果我们想只用顶点来显示这样的东西，我们就需要以下顶点数据。
@@ -438,7 +438,7 @@ With all that you should have a garishly magenta pentagon in your window.
 
 完成这些应该就能看到窗口里有一个洋红色的五边形了。
 
-![Magenta pentagon in window](../../../beginner/tutorial4-buffer/indexed-pentagon.png)
+![Magenta pentagon in window](./indexed-pentagon.png)
 
 ## 颜色校正
 

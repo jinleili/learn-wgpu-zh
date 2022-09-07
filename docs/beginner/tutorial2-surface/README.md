@@ -436,7 +436,7 @@ event_loop.run(move |event, _, control_flow| {
 });
 ```
 
-基于以上这些，你就能获得如下的效果：
+基于以上这些，你就能获得如下运行效果：
 
 ![蓝色背景的窗口](./cleared-window.png)
 

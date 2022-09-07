@@ -212,7 +212,7 @@ const init = await import('./pkg/game.js');
 init().then(() => console.log("WASM Loaded"));
 ```
 
-这个网站使用了 [Vuepress](https://vuepress.vuejs.org/)，所以我是在 Vue 组件中加载 WASM。你如何处理 WASM 将取决于你想做什么。如果你想看看我是怎么做的，可以查看 [这里](https://github.com/sotrh/learn-wgpu/blob/master/docs/.vuepress/components/WasmExample.vue)。
+这个网站使用了 [Vuepress](https://vuepress.vuejs.org/)，所以我是在 Vue 组件中加载 WASM。你如何使用 WASM 将取决于你想做什么。如果你想看看我是怎么做的，可以查看 [这里](https://github.com/sotrh/learn-wgpu/blob/master/docs/.vuepress/components/WasmExample.vue)。
 
 <div class="note">
 

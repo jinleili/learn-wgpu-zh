@@ -1,9 +1,20 @@
 import { defineUserConfig } from '@vuepress/cli'
 import { defaultTheme } from '@vuepress/theme-default'
+import { registerComponentsPlugin } from '@vuepress/plugin-register-components'
+import { getDirname, path } from '@vuepress/utils'
+import { backToTopPlugin } from '@vuepress/plugin-back-to-top'
+
+const __dirname = getDirname(import.meta.url)
 
 export default defineUserConfig({
     base: '/learn-wgpu-zh/',
-    description: 'Just playing around',
+    description: '使用 Rust 学习 wgpu',
+    plugins: [
+        backToTopPlugin(),
+        registerComponentsPlugin({
+            componentsDir: path.resolve(__dirname, './components'),
+        }),
+    ],
     locales: {
         '/': {
             lang: 'zh-CN',
@@ -16,6 +27,7 @@ export default defineUserConfig({
     theme: defaultTheme({
         repo: 'jinleili/learn-wgpu-zh',
         repoLabel: '《Learn wgpu》中文版',
+        docsDir: 'docs',
         locales: {
             '/': {
                 selectLanguageName: '简体中文',
@@ -34,6 +46,7 @@ export default defineUserConfig({
                             '/beginner/tutorial4-buffer/',
                             '/beginner/tutorial5-textures/',
                             '/beginner/tutorial6-uniforms/',
+                            '/beginner/tutorial7-instancing/',
                         ],
                     },
                     {

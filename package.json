@@ -1,7 +1,7 @@
 {
   "name": "learn-wgpu-zh",
   "version": "1.0.0",
-  "description": "用 Rust 学习 wgpu",
+  "description": "使用 Rust 学习 wgpu",
   "packageManager": "yarn@3.2.3",
   "engines": {
     "node": ">=16.10"
@@ -15,13 +15,15 @@
     "just-dev": "vuepress dev docs"
   },
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "lint-staged": {
     "*.{cjs,js,ts,vue}": "eslint --fix",
     "*.{json,yml,css,scss}": "prettier --write",
     "package.json": "sort-package-json"
   },
   "devDependencies": {
+    "@vuepress/plugin-back-to-top": "^2.0.0-beta.51",
+    "@vuepress/plugin-register-components": "^2.0.0-beta.51",
     "vuepress": "next"
   }
 }
