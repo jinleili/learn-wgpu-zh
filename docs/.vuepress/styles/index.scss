@@ -45,9 +45,9 @@ $MQMobileNarrow: 419px;
     color: $warningTextColor;
     @include excerpt(6px);
 
-    code {
-        color: $warningInlineCodeColor;
-    }
+    // code {
+    //     color: $warningInlineCodeColor;
+    // }
 }
 
 @media screen and (max-width: $MQMobile) {

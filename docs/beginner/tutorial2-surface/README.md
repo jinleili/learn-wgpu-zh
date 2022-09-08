@@ -1,7 +1,7 @@
 # 展示平面 (Surface)
 
 ## 封装 State
-为方便起见，我们将所有字段封装在一个 struct 内，并在其上添加一些函数：
+为方便起见，我们将所有**字段**封装在一个**结构**内，并在其上添加一些函数：
 
 ```rust
 // lib.rs
@@ -42,7 +42,7 @@ impl State {
 我省略了 `State` 的字段概述，在后续章节中解释这些函数背后的代码时，它们才会变得更有意义。
 
 ## 实例化 State
-这段代码很简单，但我们还是把它分解一下。
+这段代码很简单，但还是值得好好讲讲。
 
 ```rust
 impl State {
@@ -50,7 +50,7 @@ impl State {
     async fn new(window: &Window) -> Self {
         let size = window.inner_size();
 
-        // instance 变量是 GPU 的句柄
+        // instance 变量是 GPU 实例
         // Backends::all 对应 Vulkan、Metal、DX12、WebGL 等所有后端图形驱动
         let instance = wgpu::Instance::new(wgpu::Backends::all());
         let surface = unsafe { instance.create_surface(window) };
@@ -63,19 +63,19 @@ impl State {
         ).await.unwrap();
 ```
 
-### Instance 与 Adapter（适配器）
+### GPU 实例与适配器
 
-`instance` 是使用 wgpu 时所需创建的第一个对象，其主要用途是创建 `Adapter` 和 `Surface`。
+GPU **实例**（instance）是使用 wgpu 时所需创建的第一个对象，其主要用途是创建**适配器**（Adapter）和**展示平面**（Surface）。
 
-`adapter` 是指向实际显卡的句柄。我们可以用它获取关于显卡的信息，例如显卡名称与其所适配到的后端图形驱动等。稍后我们会用它来创建 `Device` 和 `Queue`。让我们先讨论一下 `RequestAdapterOptions` 所涉及的字段。
+**适配器**（adapter）是指向 WebGPU 实现的实例，一个系统上往往存在多个 WebGPU 实现实例。也就是说，**适配器**是固定在特定图形后端的。假如你使用的是 Windows 且有 2 个显卡（集成显卡 + 独立显卡），则至少有 4 个**适配器**可供使用，分别有 2 个固定在 Vulkan 和 DirectX 后端。我们可以用它获取关联显卡的信息，例如显卡名称与其所适配到的后端图形驱动等。稍后我们会用它来创建**逻辑设备**和**命令队列**。现在先讨论一下 `RequestAdapterOptions` 所涉及的字段。
 
-* `power_preference` 枚举有两个可选项：`LowPower` 和 `HighPerformance`。 `LowPower` 对应偏向于高电池续航的适配器（如集成显卡），`HighPerformance` 对应高功耗高性能的适配器（如独立显卡）。如果不存在符合 `HighPerformance` 选项的适配器，wgpu 将选择 `LowPower`。
-* `compatible_surface` 字段告诉 wgpu 找到与所传入的展示平面（surface）兼容的适配器。
-* `force_fallback_adapter` 强制 wgpu 选择一个能在所有硬件上工作的适配器。这通常意味着渲染后端将使用一个“软渲染”系统，而非 GPU 这样的硬件。
+* `power_preference` 枚举有两个可选项：`LowPower` 和 `HighPerformance`。 `LowPower` 对应偏向于高电池续航的适配器（如集成显卡上的 WebGPU 实现实例），`HighPerformance` 对应高功耗高性能的适配器（如独立显卡上的WebGPU 实现实例）。一旦不存在符合 `HighPerformance` 选项的适配器，wgpu 就会选择 `LowPower`。
+* `compatible_surface` 字段告诉 wgpu 找到与所传入的**展示平面**（surface）兼容的适配器。
+* `force_fallback_adapter` 强制 wgpu 选择一个能在所有硬件上工作的适配器。这通常意味着渲染后端将使用一个**软渲染**系统，而非 GPU 这样的硬件。
 
 <div class="note">
 
-此处传递给 `request_adapter` 的参数不能保证对所有设备都有效，但是应该对大多数设备都有效。如果 wgpu 找不到符合要求的适配器，`request_adapter` 将返回 `None`。如果你想获取某个特定后端的所有适配器，可以使用 `enumerate_adapters`，它会返回一个迭代器，你可以遍历检查其中是否有满足需求的适配器。
+此处传递给 `request_adapter` 的参数不能保证对所有设备都有效，但是应该对大多数设备都有效。当 wgpu 找不到符合要求的适配器，`request_adapter` 将返回 `None`。如果你想获取某个特定图形后端的所有**适配器**，可以使用 `enumerate_adapters` 函数，它会返回一个迭代器，你可以遍历检查其中是否有满足需求的适配器。
 
 ```rust
 let adapter = instance
@@ -88,20 +88,19 @@ let adapter = instance
     .unwrap()
 ```
 
-需要注意的另一件事是，适配器是固定在特定图形后端的。假如你使用的是 Windows 且有 2 个显卡（集成显卡 + 独立显卡），则至少有 4 个适配器可供使用，分别有 2 个固定在 Vulkan 和 DirectX 后端。
 
-更多可用于优化适配器搜索的函数，请 [查看文档](https://docs.rs/wgpu/latest/wgpu/struct.Adapter.html)。
+更多可用于优化**适配器**搜索的函数，请 [查看文档](https://docs.rs/wgpu/latest/wgpu/struct.Adapter.html)。
 
 </div>
 
 
-### 展示平面 (Surface)
+### 展示平面
 
-`surface` 是我们绘制到窗口的部分，需要它来直接绘制到屏幕上。窗口程序需要实现 [raw-window-handle](https://crates.io/crates/raw-window-handle) 库的 `HasRawWindowHandle` 抽象接口 (trait) 来创建展示平面。所幸 winit 的 `Window` 符合这个要求。我们还需要展示平面来请求适配器 (adapter)。
+**展示平面**（Surface）是我们绘制到窗口的部分，需要它来将绘制展示到屏幕上。窗口程序需要实现 [raw-window-handle](https://crates.io/crates/raw-window-handle) **包**的 `HasRawWindowHandle` **抽象接口**来创建**展示平面**。所幸 winit 的 `Window` 符合这个要求。我们还需要展示平面来请求**适配器** (adapter)。
 
 ### 逻辑设备与命令队列
 
-让我们使用适配器来创建逻辑设备 (Device) 和命令队列 (Queue)。
+让我们使用**适配器**来创建**逻辑设备** (Device) 和**命令队列** (Queue)。
 
 ```rust
         let (device, queue) = adapter.request_device(
@@ -145,7 +144,7 @@ let adapter = instance
         surface.configure(&device, &config);
 ```
 
-这里我们为展示平面 (surface) 定义了一个配置。它将定义展示平面如何创建其底层的 `SurfaceTexture`。讲 `render` 函数时我们再具体讨论 `SurfaceTexture`，现在我们先谈谈此配置的字段。
+这里我们为**展示平面**定义了一个配置。它将定义展示平面如何创建其底层的 `SurfaceTexture`。讲 `render` 函数时我们再具体讨论 `SurfaceTexture`，现在先谈谈此配置的字段。
 
 `usage` 字段描述了 `SurfaceTexture` 如何被使用。`RENDER_ATTACHMENT` 指定将被用来渲染到屏幕的纹理（我们将在后面讨论更多的 `TextureUsages` 枚举值）。
 
@@ -155,15 +154,15 @@ let adapter = instance
 
 <div class="warning">
 
-需要确保 `SurfaceTexture` 的宽高不能为 0，因为这会导致你的应用程序崩溃。
+需要确保 `SurfaceTexture` 的宽高不能为 0，这会导致你的应用程序崩溃。
 
 </div>
 
-`present_mode` 指定的 `wgpu::PresentMode` 枚举值决定了展示平面如何与显示设备同步。我们选择的`PresentMode::Fifo` 指定了显示设备的刷新率做为渲染的帧速率，这本质上就是 VSync，所有平台都得支持这种呈现模式。你可以在 [文档](https://docs.rs/wgpu/latest/wgpu/enum.PresentMode.html) 中查看所有的模式。
+`present_mode` 指定的 `wgpu::PresentMode` 枚举值决定了**展示平面**如何与**显示设备**同步。我们选择的`PresentMode::Fifo` 指定了显示设备的刷新率做为渲染的帧速率，这本质上就是**垂直同步**（VSync），所有平台都得支持这种**呈现模式**（PresentMode）。你可以在 [文档](https://docs.rs/wgpu/latest/wgpu/enum.PresentMode.html) 中查看所有的模式。
 
 <div class="note">
 
-如果你想让你的用户来选择他们使用的 `PresentMode`（呈现模式），可以使用 [Surface::get_supported_modes()](https://docs.rs/wgpu/latest/wgpu/struct.Surface.html#method.get_supported_modes) 获取展示平面支持的所有呈现模式的列表:
+当你想让用户来选择他们使用的**呈现模式**时，可以使用 [Surface::get_supported_modes()](https://docs.rs/wgpu/latest/wgpu/struct.Surface.html#method.get_supported_modes) 获取展示平面支持的所有**呈现模式**的列表:
 
 ```rust
 let modes = surface.get_supported_modes(&adapter);
@@ -173,7 +172,7 @@ let modes = surface.get_supported_modes(&adapter);
 
 </div>
 
-现在我们已经正确地配置了展示平面，我们在函数的末尾添加上这些新字段：
+现在已经正确地配置了**展示平面**，我们在函数的末尾添加上这些新字段：
 
 ```rust
         Self {
@@ -188,7 +187,7 @@ let modes = surface.get_supported_modes(&adapter);
 }
 ```
 
-由于我们的 `State::new()` 函数是异步的，因此需要把 `run()` 也改成异步的，以便我们可以等待它。
+由于 `State::new()` 函数是异步的，因此需要把 `run()` 也改成异步的，以便可以在函数调用处等待它。
 
 ```rust
 pub async fn run() {
@@ -200,7 +199,7 @@ pub async fn run() {
 }
 ```
 
-现在 `run()` 是异步的了，`main()` 需要某种方式来等待。我们可以使用 [tokio](https://docs.rs/tokio) 或 [async-std](https://docs.rs/async-std) 等异步库，但我打算使用更轻量级的 [pollster](https://docs.rs/pollster)。在 "Cargo.toml" 中添加以下依赖：
+现在 `run()` 是异步的了，`main()` 需要某种方式来等待它执行完成。我们可以使用 [tokio](https://docs.rs/tokio) 或 [async-std](https://docs.rs/async-std) 等异步**包**，但我打算使用更轻量级的 [pollster](https://docs.rs/pollster)。在 "Cargo.toml" 中添加以下依赖：
 
 ```toml
 [dependencies]
@@ -208,7 +207,6 @@ pub async fn run() {
 pollster = "0.2"
 ```
 
-We then use the `block_on` function provided by pollster to await our future:
 然后我们使用 pollster 提供的 `block_on` 函数来等待异步任务执行完成：
 
 ```rust
@@ -219,11 +217,11 @@ fn main() {
 
 <div class="warning">
 
-WASM 环境中不能在异步函数里使用 `block_on`。`Future`（异步函数的返回对象）必须使用浏览器的执行器来运行。如果你试图使用自己的执行器，当遇到没有立即执行的 `Future` 时代码就会崩溃。
+WASM 环境中不能在异步函数里使用 `block_on`。`Future`（异步函数的返回对象）必须使用浏览器的执行器来运行。如果你试图使用自己的执行器，一旦遇到没有立即执行的 `Future` 时代码就会崩溃。
 
 </div>
 
-如果现在尝试构建 WASM 将会失败，因为 `wasm-bindgen` 不支持使用异步函数作为“开始”函数。你可以改成在 javascript 中手动调用 `run`，但为了简单起见，我们将把 [wasm-bindgen-futures](https://docs.rs/wasm-bindgen-futures) 库添加到 WASM 依赖项中，因为这不需要改变任何代码。你的依赖项应该是这样的：
+如果现在尝试构建 WASM 将会失败，因为 `wasm-bindgen` 不支持使用异步函数作为“开始”函数。你可以改成在 javascript 中手动调用 `run`，但为了简单起见，我们将把 [wasm-bindgen-futures](https://docs.rs/wasm-bindgen-futures) **包**添加到 WASM 依赖项中，因为这不需要改变任何代码。你的依赖项应该是这样的：
 
 ```toml
 [dependencies]
@@ -247,9 +245,9 @@ web-sys = { version = "0.3", features = [
 ]}
 ```
 
-## 调整宽高
+## 调整展示平面的宽高
 
-如果想在我们的应用程序中支持调整展示平面的宽高，将需要在每次窗口的大小改变时重新配置 `surface`。这就是我们存储物理 `size` 和用于配置 `surface` 的 `config` 的原因。有了这些，实现 resize 函数就非常简单了。
+如果想在我们的应用程序中支持调整**展示平面**的宽高，将需要在每次窗口的大小改变时重新配置 `surface`。这就是我们存储物理 `size` 和用于配置 `surface` 的 `config` 的原因。有了这些，实现 resize 函数就非常简单了。
 
 ```rust
 // impl State
@@ -344,12 +342,11 @@ fn update(&mut self) {
 }
 ```
 
-We'll add some code here later on to move around objects.
-我们稍后将在这里添加一些代码，以便在物体周围移动。
+我们稍后将在这里添加一些代码，以便让绘制对象动起来。
 
 ## 渲染
 
-这里就是奇迹发生的地方。首先，我们需要获取一个帧对象以供渲染。
+这里就是奇迹发生的地方。首先，我们需要获取一个**帧**对象以供渲染。
 
 ```rust
 // impl State
@@ -358,14 +355,14 @@ fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
     let output = self.surface.get_current_texture()?;
 ```
 
-`get_current_texture` 函数会等待 `surface` 提供一个新的 `SurfaceTexture` 以供渲染。我们将它存储在 `output` 变量中以便后续使用。
+`get_current_texture` 函数会等待 `surface` 提供一个新的 `SurfaceTexture`。我们将它存储在 `output` 变量中以便后续使用。
 
 ```rust
     let view = output.texture.create_view(&wgpu::TextureViewDescriptor::default());
 ```
-这一行创建了一个默认设置的 `TextureView`。我们这样做是为了控制渲染代码与纹理的交互。
+这一行创建了一个默认设置的**纹理视图**（TextureView），渲染代码需要利用**纹理视图**来与**纹理**交互。
 
-我们还需要创建一个 `CommandEncoder` 来记录实际的命令发送给 GPU。大多数现代图形框架希望命令在被发送到 GPU 之前存储在一个命令缓冲区中。命令编码器（CommandEncoder）建立了一个命令缓冲区，然后我们可以将其发送给 GPU。
+我们还需要创建一个**命令编码器**（CommandEncoder）来记录实际的**命令**发送给 GPU。大多数现代图形框架希望命令在被发送到 GPU 之前存储在一个**命令缓冲区**中。命令编码器创建了一个命令缓冲区，然后我们可以将其发送给 GPU。
 
 ```rust
     let mut encoder = self.device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
@@ -373,7 +370,7 @@ fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
     });
 ```
 
-现在可以开始执行期盼已久的屏幕内容清除了。我们需要使用 `encoder` 来创建 `RenderPass`。`RenderPass` 拥有所有实际绘图的函数。创建 `RenderPass` 的代码嵌套层级有点深，所以在谈论它的各个部分之前，我先把它全部复制到这里：
+现在可以开始执行期盼已久的**清屏**（用统一的颜色填充指定渲染区域）了。我们需要使用 `encoder` 来创建 `RenderPass`。`RenderPass` 拥有所有实际绘制的**命令**。创建 `RenderPass` 的代码嵌套层级有点深，所以在谈论它之前，我先把代码全部复制到这里：
 
 ```rust
     {
@@ -396,7 +393,7 @@ fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
         });
     }
 
-    // submit 函数能接受任何实现了 IntoIter trait 的参数
+    // submit 命令能接受任何实现了 IntoIter trait 的参数
     self.queue.submit(std::iter::once(encoder.finish()));
     output.present();
 
@@ -406,7 +403,7 @@ fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
 
 首先，我们来谈谈 `encoder.begin_render_pass(...)` 周围用 `{}` 开辟出来的块空间。`begin_render_pass()` 以可变方式借用了`encoder`（又称 `&mut self`），在释放这个可变借用之前，我们不能调用 `encoder.finish()`。这个块空间告诉 rust，当代码离开这个范围时，丢弃其中的任何变量，从而释放 `encoder` 上的可变借用，并允许我们 `finish()` 它。如果你不喜欢 `{}`，也可以使用 `drop(render_pass)` 来达到同样的效果。
 
-代码的最后几行告诉 `wgpu` 完成命令缓冲区，并将其提交给 gpu 的渲染队列。
+代码的最后几行告诉 `wgpu` 完成**命令缓冲区**，并将其提交给 gpu 的**渲染队列**。
 
 我们需再次更新事件循环以调用 `render()` 函数，还会在它之前先调用 `update()`。
 
@@ -419,7 +416,7 @@ event_loop.run(move |event, _, control_flow| {
             state.update();
             match state.render() {
                 Ok(_) => {}
-                // 如果展示平面的上下文丢失，就需重新配置
+                // 当展示平面的上下文丢失，就需重新配置
                 Err(wgpu::SurfaceError::Lost) => state.resize(state.size),
                 // 系统内存不足时，程序应该退出。
                 Err(wgpu::SurfaceError::OutOfMemory) => *control_flow = ControlFlow::Exit,
@@ -442,7 +439,7 @@ event_loop.run(move |event, _, control_flow| {
 
 ## 关于 RenderPassDescriptor
 
-部分读者可能光看代码就能理解，但如果我不把它介绍一遍，那就是失职。让我们再看一下代码。
+部分读者可能光看代码就能理解，但如果我不把它介绍一遍，那就是失职。让我们再看一下代码：
 
 ```rust
 &wgpu::RenderPassDescriptor {
@@ -454,11 +451,11 @@ event_loop.run(move |event, _, control_flow| {
 }
 ```
 
-`RenderPassDescriptor` 只有三个字段: `label`, `color_attachments` 和 `depth_stencil_attachment``。color_attachments` 描述了要将颜色绘制到哪里。我们使用之前创建的 `TextureView` 来确保渲染到屏幕上。
+`RenderPassDescriptor` 只有三个字段: `label`, `color_attachments` 和 `depth_stencil_attachment``。color_attachments` 描述了要将颜色绘制到哪里。我们使用之前创建的**纹理视图**来确保渲染到屏幕上。
 
 <div class="note">
 
-`color_attachments` 字段是一个稀疏数组。这允许你使用有多个渲染目标的管道，并且只提供你所关心的渲染目标。
+`color_attachments` 字段是一个稀疏数组。这允许你使用有多个渲染目标的**管线**，并且最终只绘制到你所关心的某个渲染目标。
 
 </div>
 
@@ -480,15 +477,15 @@ Some(wgpu::RenderPassColorAttachment {
 })
 ```
 
-`RenderPassColorAttachment` 有一个 `view` 字段，用于通知 `wgpu` 将颜色保存到什么纹理。这里我们指定使用 `surface.get_current_texture()` 创建的 `view`，这意味着向此附件（attachment）上绘制的任何颜色都会被绘制到屏幕上。
+`RenderPassColorAttachment` 有一个 `view` 字段，用于通知 wgpu 将颜色保存到什么**纹理**。这里我们指定使用 `surface.get_current_texture()` 创建的 `view`，这意味着向此**附件**（attachment）上绘制的任何颜色都会被绘制到屏幕上。
 
-`resolve_target` 是接收多重采样解析输出的纹理。除非启用了多重采样, 否则不需要设置它，保留为 `None` 即可。
+`resolve_target` 是接收**多重采样**解析输出的纹理。除非启用了多重采样, 否则不需要设置它，保留为 `None` 即可。
 
-`ops` 字段需要一个 `wpgu::Operations` 对象。它告诉 wgpu 如何处理屏幕上的颜色（由 `view` 指定）。`load` 字段告诉 wgpu 如何处理存储在前一帧的颜色。目前，我们正在用蓝色清除屏幕。`store` 字段告诉 wgpu 是否要将渲染的结果存储到 `TextureView` 后面的纹理（`Texture`）（在这个例子中是 `SurfaceTexture` ）。我们希望存储渲染结果，所以设置为 `true`。
+`ops` 字段需要一个 `wpgu::Operations` 对象。它告诉 wgpu 如何处理屏幕上的颜色（由 `view` 指定）。`load` 字段告诉 wgpu 如何处理存储在前一帧的颜色。目前，我们正在用蓝色**清屏**。`store` 字段告诉 wgpu 是否要将渲染的结果存储到**纹理视图**后面的纹理上（在这个例子中是 `SurfaceTexture` ）。我们希望存储渲染结果，所以设置为 `true`。
 
 <div class="note">
 
-如果屏幕被场景物体完全遮挡，那么不清除屏幕是很常见的。但如果你的场景没有覆盖整个屏幕，就会出现类似下边的情况。
+当屏幕被场景**对象**完全遮挡，那么不**清屏**是很常见的。但如果你的场景没有覆盖整个屏幕，就会出现类似下边的情况。
 
 ![./no-clear.png](./no-clear.png)
 
@@ -496,11 +493,11 @@ Some(wgpu::RenderPassColorAttachment {
 
 ## 验证错误?
 
-如果你的机器上运行的是 Vulkan SDK 的旧版本， wgpu 在你的机器上使用 Vulkan 后端时可能会遇到验证错误。至少需要使用 `1.2.182` 及以上版本，因为旧版本可能会产生一些误报。如果错误持续存在，那可能是遇到了 wgpu 的错误。你可以在 [https://github.com/gfx-rs/wgpu](https://github.com/gfx-rs/wgpu) 上提交此问题。
+如果你的机器上运行的是 Vulkan SDK 的旧版本， wgpu 在你的机器上使用 Vulkan 后端时可能会遇到**验证错误**。至少需要使用 `1.2.182` 及以上版本，因为旧版本可能会产生一些误报。如果错误持续存在，那可能是遇到了 wgpu 的错误。你可以在 [https://github.com/gfx-rs/wgpu](https://github.com/gfx-rs/wgpu) 上提交此问题。
 
 ## 挑战
 
-修改 `input()` 函数以捕获鼠标事件，并使用该函数来更新清除屏幕的颜色。*提示：你可能需要用到 `WindowEvent::CursorMoved`*。
+修改 `input()` 函数以捕获鼠标事件，并使用该函数来更新**清屏**的颜色。*提示：你可能需要用到 `WindowEvent::CursorMoved`*。
 
 
 <WasmExample example="tutorial2_surface"></WasmExample>

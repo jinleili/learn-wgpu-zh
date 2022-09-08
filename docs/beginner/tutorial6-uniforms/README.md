@@ -1,10 +1,10 @@
-# Uniform buffers and a 3d camera
+# Uniform 缓冲区与 3D 虚拟摄像机
 
-While all of our previous work has seemed to be in 2d, we've actually been working in 3d the entire time! That's part of the reason why our `Vertex` structure has `position` be an array of 3 floats instead of just 2. We can't really see the 3d-ness of our scene, because we're viewing things head-on. We're going to change our point of view by creating a `Camera`.
+虽然我们之前的工作似乎都是在 2D 空间下进行的，但实际上我们一直都是在 3D 空间下工作的！这就是为什么 `Vertex` 结构的 `position` 是 3 个浮点数的数组而不是 2 个。由于我们是在正面观察，所以才无法真正看到场景的立体感。下面将通过创建一个**虚拟摄像机**（`Camera`）来改变我们的观察视角。
 
-## A perspective camera
+## 透视投影
 
-This tutorial is more about learning to use wgpu and less about linear algebra, so I'm going to gloss over a lot of the math involved. There's plenty of reading material online if you're interested in what's going on under the hood. We're going to use the [cgmath](https://docs.rs/cgmath) to handle all the math for us. Add the following to your `Cargo.toml`.
+本教程聚焦于 wgpu 的教学，而不是**线性代数**，所以我会略过很多涉及的数学知识。如果你对线性代数感兴趣，网上有大量的阅读材料。我们将使用 [cgmath](https://docs.rs/cgmath) 来处理所有数学问题，在 `Cargo.toml` 中添加以下依赖：
 
 ```toml
 [dependencies]
@@ -12,7 +12,7 @@ This tutorial is more about learning to use wgpu and less about linear algebra, 
 cgmath = "0.18"
 ```
 
-Now that we have a math library, let's put it to use! Create a `Camera` struct above the `State` struct.
+现在让我们开始使用此数学**包**！在 `State` 结构上方创建**摄像机**结构。
 
 ```rust
 struct Camera {
@@ -38,10 +38,10 @@ impl Camera {
 }
 ```
 
-The `build_view_projection_matrix` is where the magic happens.
-1. The `view` matrix moves the world to be at the position and rotation of the camera. It's essentially an inverse of whatever the transform matrix of the camera would be.
-2. The `proj` matrix warps the scene to give the effect of depth. Without this, objects up close would be the same size as objects far away.
-3. The coordinate system in Wgpu is based on DirectX, and Metal's coordinate systems. That means that in [normalized device coordinates](https://github.com/gfx-rs/gfx/tree/master/src/backend/dx12#normalized-coordinates) the x axis and y axis are in the range of -1.0 to +1.0, and the z axis is 0.0 to +1.0. The `cgmath` crate (as well as most game math crates) is built for OpenGL's coordinate system. This matrix will scale and translate our scene from OpenGL's coordinate system to WGPU's. We'll define it as follows.
+`build_view_projection_matrix` 函数就是神奇发生的地方。
+1. **视图**矩阵移动并旋转世界坐标到**摄像机**所观察的位置。它本质上是**摄像机**变换的逆矩阵。
+2. **投影**矩阵变换场景空间，以产生景深的效果。如果没有它，近处的物**对象**将与远处的大小相同。
+3. wgpu 的坐标系统是基于 DirectX 和 Metal 的坐标系。在 [归一化设备坐标](https://github.com/gfx-rs/gfx/tree/master/src/backend/dx12#normalized-coordinates) 中，x 轴和 y 轴的范围是 [-1.0, 1.0]，而 z 轴是 [0.0, 1.0], 而 `cgmath`（以及大多数游戏数学库）是为 OpenGL 的坐标系建立的。`OPENGL_TO_WGPU_MATRIX` 矩阵将把我们的场景从 OpenGL 的坐标系变换为 wgpu 的坐标系, 下边就是它的定义：
 
 ```rust
 #[rustfmt::skip]
@@ -53,9 +53,9 @@ pub const OPENGL_TO_WGPU_MATRIX: cgmath::Matrix4<f32> = cgmath::Matrix4::new(
 );
 ```
 
-* Note: We don't explicitly **need** the `OPENGL_TO_WGPU_MATRIX`, but models centered on (0, 0, 0) will be halfway inside the clipping area. This is only an issue if you aren't using a camera matrix.
+* 注意：我们并非一定 **需要** `OPENGL_TO_WGPU_MATRIX`，但是以坐标 (0, 0, 0) 为中心的模型将只有一半处于剪裁区域内。
 
-Now let's add a `camera` field to `State`.
+现在我们来给 `State` 添加上 `camera` 字段：
 
 ```rust
 struct State {
@@ -68,12 +68,12 @@ async fn new(window: &Window) -> Self {
     // let diffuse_bind_group ...
 
     let camera = Camera {
-        // position the camera one unit up and 2 units back
-        // +z is out of the screen
+        // 将摄像机向上移动 1 个单位，向后移动 2 个单位
+        // +z 朝向屏幕外
         eye: (0.0, 1.0, 2.0).into(),
-        // have it look at the origin
+        // 摄像机看向原点
         target: (0.0, 0.0, 0.0).into(),
-        // which way is "up"
+        // 定义哪个方向朝上
         up: cgmath::Vector3::unit_y(),
         aspect: config.width as f32 / config.height as f32,
         fovy: 45.0,
@@ -89,20 +89,20 @@ async fn new(window: &Window) -> Self {
 }
 ```
 
-Now that we have our camera, and it can make us a view projection matrix, we need somewhere to put it. We also need some way of getting it into our shaders.
+有了可以提供视图投影矩阵的**摄像机**，我们还需要一些方法将其引入着色器。
 
-## The uniform buffer
+## Uniform 缓冲区
 
-Up to this point, we've used `Buffer`s to store our vertex and index data, and even to load our textures. We are going to use them again to create what's known as a uniform buffer. A uniform is a blob of data that is available to every invocation of a set of shaders. We've technically already used uniforms for our texture and sampler. We're going to use them again to store our view projection matrix. To start let's create a struct to hold our uniform.
+到目前为止，我们已经使用**缓冲区**来存储顶点和索引数据，甚至加载**纹理**。我们将再次使用它来创建一个称之为 `uniform` 的缓冲区。uniform 缓冲区也是一个数据块，在一组着色器的每个调用都中都可以使用，从技术上讲，我们已经为**纹理**和**采样器**使用了 uniform 缓冲区。下面将再次使用它们来存储视图投影**矩阵**，我们先创建一个结构来保存 uniform：
 
 ```rust
-// We need this for Rust to store our data correctly for the shaders
+// 此属性标注数据的内存布局兼容 C-ABI，令其可用于着色器
 #[repr(C)]
-// This is so we can store this in a buffer
+// derive 属性自动导入的这些接口，令其可被存入缓冲区
 #[derive(Debug, Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
 struct CameraUniform {
-    // We can't use cgmath with bytemuck directly so we'll have
-    // to convert the Matrix4 into a 4x4 f32 array
+    // cgmath 的数据类型不能直接用于 bytemuck
+    // 需要先将 Matrix4 矩阵转为一个 4x4 的浮点数数组
     view_proj: [[f32; 4]; 4],
 }
 
@@ -120,10 +120,10 @@ impl CameraUniform {
 }
 ```
 
-Now that we have our data structured, let's make our `camera_buffer`.
+有了封装好的数据，让我们来制作 `camera_buffer`：
 
 ```rust
-// in new() after creating `camera`
+// 在 new() 函数中创建 `camera` 后
 
 let mut camera_uniform = CameraUniform::new();
 camera_uniform.update_view_proj(&camera);
@@ -137,9 +137,9 @@ let camera_buffer = device.create_buffer_init(
 );
 ```
 
-## Uniform buffers and bind groups
+## Uniform 缓冲区和绑定组
 
-Cool, now that we have a uniform buffer, what do we do with it? The answer is we create a bind group for it. First, we have to create the bind group layout.
+现在我们有了一个 uniform 缓冲区，那该如何使用呢？答案是为它创建一个**绑定组**。我们得先创建绑定组的布局：
 
 ```rust
 let camera_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
@@ -159,10 +159,10 @@ let camera_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupL
 });
 ```
 
-1. We only really need camera information in the vertex shader, as that's what we'll use to manipulate our vertices.
-2. The `dynamic` field indicates whether this buffer will change size or not. This is useful if we want to store an array of things in our uniforms.
+1. 我们只在**顶点着色器**中需要**虚拟摄像机**信息，因为要用它来操作**顶点**。
+2. `has_dynamic_offset` 字段表示这个**缓冲区**是否会动态改变偏移量。如果我们想一次性在 uniform 中存储多组数据，并实时修改偏移量来告诉**着色器**当前使用哪组数据时，这就很有用。
 
-Now we can create the actual bind group.
+现在，我们可以创建实际的**绑定组**了：
 
 ```rust
 let camera_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
@@ -177,7 +177,7 @@ let camera_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
 });
 ```
 
-Like with our texture, we need to register our `camera_bind_group_layout` with the render pipeline.
+就像对**纹理**所做的那样，我们需要在**管线**布局描述符中注册 `camera_bind_group_layout`：
 
 ```rust
 let render_pipeline_layout = device.create_pipeline_layout(
@@ -192,7 +192,7 @@ let render_pipeline_layout = device.create_pipeline_layout(
 );
 ```
 
-Now we need to add `camera_buffer` and `camera_bind_group` to `State`
+现在，我们需要将 `camera_buffer` 和 `camera_bind_group` 添加到 `State` 中：
 
 ```rust
 struct State {
@@ -215,12 +215,12 @@ async fn new(window: &Window) -> Self {
 }
 ```
 
-The final thing we need to do before we get into shaders is use the bind group in `render()`.
+在进入**着色器**之前，我们要做的最后一件事就是在 `render()` 函数中使用**绑定组**：
 
 ```rust
 render_pass.set_pipeline(&self.render_pipeline);
 render_pass.set_bind_group(0, &self.diffuse_bind_group, &[]);
-// NEW!
+// 新添加!
 render_pass.set_bind_group(1, &self.camera_bind_group, &[]);
 render_pass.set_vertex_buffer(0, self.vertex_buffer.slice(..));
 render_pass.set_index_buffer(self.index_buffer.slice(..), wgpu::IndexFormat::Uint16);
@@ -228,9 +228,9 @@ render_pass.set_index_buffer(self.index_buffer.slice(..), wgpu::IndexFormat::Uin
 render_pass.draw_indexed(0..self.num_indices, 0, 0..1);
 ```
 
-## Using the uniform in the vertex shader
+## 在顶点着色器中使用 uniform
 
-Modify the vertex shader to include the following.
+修改顶点着色器以加入如下代码：
 
 ```wgsl
 // Vertex shader
@@ -261,16 +261,16 @@ fn vs_main(
 }
 ```
 
-1. Because we've created a new bind group, we need to specify which one we're using in the shader. The number is determined by our `render_pipeline_layout`. The `texture_bind_group_layout` is listed first, thus it's `group(0)`, and `camera_bind_group` is second, so it's `group(1)`.
-2. Multiplication order is important when it comes to matrices. The vector goes on the right, and the matrices go on the left in order of importance.
+1. 因为我们已经创建了一个新的**绑定组**，所以需要指定在**着色器**中使用哪一个。这个数字由我们的 `render_pipeline_layout` 决定。`texture_bind_group_layout` 被列在第一位，因此它是 `group(0)`，而 `camera_bind_group` 是第二位，因此它是 `group(1)`。
+2. 当涉及到**矩阵**时，乘法的顺序很重要。向量在最右边，矩阵按重要性顺序在左边（裁剪空间坐标 **=** 投影矩阵 **x** 模型视图矩阵 **x** 位置向量）。
 
-## A controller for our camera
+## 摄像机控制器
 
-If you run the code right now, you should get something that looks like this.
+如果现在运行代码，你将看到如下运行效果。
 
 ![./static-tree.png](./static-tree.png)
 
-The shape's less stretched now, but it's still pretty static. You can experiment with moving the camera position around, but most cameras in games move around. Since this tutorial is about using wgpu and not how to process user input, I'm just going to post the `CameraController` code below.
+现在形状的拉伸度降低了，但它仍然是静态的。你可以尝试移动**摄像机**的位置使画面动起来，就像游戏中的摄像机通常所做的那样。由于本教程聚焦于 wgpu 的使用，而非用户输入事件的处理，所以仅在此贴出**摄像机控制器**（CameraController）的代码： 
 
 ```rust
 struct CameraController {
@@ -333,8 +333,7 @@ impl CameraController {
         let forward_norm = forward.normalize();
         let forward_mag = forward.magnitude();
 
-        // Prevents glitching when camera gets too close to the
-        // center of the scene.
+        // 防止摄像机离场景中心太近时出现问题
         if self.is_forward_pressed && forward_mag > self.speed {
             camera.eye += forward_norm * self.speed;
         }
@@ -344,14 +343,13 @@ impl CameraController {
 
         let right = forward_norm.cross(camera.up);
 
-        // Redo radius calc in case the fowrard/backward is pressed.
+        // 在按下前进或后退键时重做半径计算
         let forward = camera.target - camera.eye;
         let forward_mag = forward.magnitude();
 
         if self.is_right_pressed {
-            // Rescale the distance between the target and eye so 
-            // that it doesn't change. The eye therefore still 
-            // lies on the circle made by the target and eye.
+            // 重新调整目标和眼睛之间的距离，以便其不发生变化。
+            // 因此，眼睛仍然位于目标和眼睛形成的圆圈上。
             camera.eye = camera.target - (forward + right * self.speed).normalize() * forward_mag;
         }
         if self.is_left_pressed {
@@ -361,15 +359,15 @@ impl CameraController {
 }
 ```
 
-This code is not perfect. The camera slowly moves back when you rotate it. It works for our purposes though. Feel free to improve it!
+这段代码并不完美。当你旋转**摄像机**时，摄像机会慢慢向后移动。虽然已达到了我们的目的，但你还是可以自由地改进它！
 
-We still need to plug this into our existing code to make it do anything. Add the controller to `State` and create it in `new()`.
+我们仍然需要把它插入到现有的代码中使其生效。将**控制器**添加到 `State` 中，并在 `new()` 函数中创建它的实例：
 
 ```rust
 struct State {
     // ...
     camera: Camera,
-    // NEW!
+    // 新添加!
     camera_controller: CameraController,
     // ...
 }
@@ -389,7 +387,7 @@ impl State {
 }
 ```
 
-We're finally going to add some code to `input()` (assuming you haven't already)!
+将下边这行代码添加到 `input()` 函数中。
 
 ```rust
 fn input(&mut self, event: &WindowEvent) -> bool {
@@ -397,12 +395,12 @@ fn input(&mut self, event: &WindowEvent) -> bool {
 }
 ```
 
-Up to this point, the camera controller isn't actually doing anything. The values in our uniform buffer need to be updated. There are a few main methods to do that.
-1. We can create a separate buffer and copy its contents to our `camera_buffer`. The new buffer is known as a staging buffer. This method is usually how it's done as it allows the contents of the main buffer (in this case `camera_buffer`) to only be accessible by the gpu. The gpu can do some speed optimizations which it couldn't if we could access the buffer via the cpu.
-2. We can call one of the mapping methods `map_read_async`, and `map_write_async` on the buffer itself. These allow us to access a buffer's contents directly but require us to deal with the `async` aspect of these methods this also requires our buffer to use the `BufferUsages::MAP_READ` and/or `BufferUsages::MAP_WRITE`. We won't talk about it here, but you check out [Wgpu without a window](../../showcase/windowless) tutorial if you want to know more.
-3. We can use `write_buffer` on `queue`.
+到目前为止，摄像机**控制器**还没有真正工作起来。uniform **缓冲区**中的值需要被更新。有几种方式可以做到这一点：
+1. 可以创建一个单独的缓冲区，并将其数据复制到 `camera_buffer`。这个新的缓冲区被称为**中继缓冲区**（staging buffer）。这种方法允许主缓冲区（在这里是指 `camera_buffer`）的数据只被 GPU 访问，从而令 GPU 能做一些速度上的优化。如果缓冲区能被 CPU 访问，就无法实现此类优化。
+2. 可以在**缓冲区**本身调用内存映射函数 `map_read_async` 和 `map_write_async`。此方式允许我们直接访问缓冲区的数据，但是需要处理**异步**代码，也需要缓冲区使用 `BufferUsages::MAP_READ` 和/或 `BufferUsages::MAP_WRITE`。在此不再详述，如果你想了解更多，可以查看 [wgpu without a window](./showcase/windowless) 教程。
+3. 可以在 `queue` 上使用 `write_buffer` 函数。
 
-We're going to use option number 3.
+我们将使用第 3 种方式。
 
 ```rust
 fn update(&mut self) {
@@ -412,12 +410,11 @@ fn update(&mut self) {
 }
 ```
 
-That's all we need to do. If you run the code now you should see a pentagon with our tree texture that you can rotate around and zoom into with the wasd/arrow keys.
+这就是要做的全部工作了。现在运行代码，将能看到一个带有树木纹理的五边形，并可以用 wasd/arrow 键来旋转和缩放。
 
-## Challenge
+## 挑战
 
-Have our model rotate on its own independently of the camera. *Hint: you'll need another matrix for this.*
-
+让上面的五边形独立于**摄像机**进行旋转。*提示：你需要另一个**矩阵**来实现这一点*。
 
 <WasmExample example="tutorial6_uniforms"></WasmExample>
 
