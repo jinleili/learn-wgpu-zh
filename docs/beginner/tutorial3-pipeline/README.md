@@ -24,7 +24,7 @@
 [WebGPU Shading Language](https://www.w3.org/TR/WGSL/) (WGSL) 是 WebGPU 的着色器语言。
 WGSL 的开发重点是让它轻松转换为与后端对应的着色器语言；例如，Vulkan 的 SPIR-V、Metal 的 MSL、DX12 的 HLSL 和OpenGL 的 GLSL。
 这种转换是在内部完成的，我们通常不需要关心这些细节。
-就 wgpu 而言，它是由名为 [naga](https://github.com/gfx-rs/naga) 的库完成的。
+就 wgpu 而言，它是由名为 [naga](https://github.com/gfx-rs/naga) 的**包**完成的。
 
 请注意，在写这篇文章的时候，一些 WebGPU 的实现也支持 SPIR-V，但这只是在向 WGSL 过渡期间的临时措施，将被移除（如果你好奇 SPIR-V 和 WGSL 背后的八卦，请参考 [这篇博文](http://kvark.github.io/spirv/2021/05/01/spirv-horrors.html)）。
 
@@ -72,7 +72,7 @@ fn vs_main(
 
 着色器代码的下一部分是 `vs_main` 函数。`@vertex` 用来标记这个函数为顶点着色器的有效入口。我们预期有一个 `u32` 类型的变量 `in_vertex_index`，它的值来自 `@builtin(vertex_index)`。
 
-然后使用 `VertexOutput` 结构声明一个名为 `out` 的变量。我们为顶点的裁剪空间坐标创建另外两个 `x` `y` 变量。
+然后使用 `VertexOutput` 结构体声明一个名为 `out` 的变量。我们为顶点的裁剪空间坐标创建另外两个 `x` `y` 变量。
 
 <div class="note">
 

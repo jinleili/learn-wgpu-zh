@@ -10,7 +10,7 @@
 
 ![一棵快乐的树](./happy-tree.png)
 
-我们将使用 [image 库](https://docs.rs/image) 来加载这棵树。让我们把它添加到依赖项中：
+我们将使用 [image 包](https://docs.rs/image) 来加载这棵树。让我们把它添加到依赖项中：
 
 ```toml
 [dependencies.image]
@@ -41,7 +41,7 @@ use image::GenericImageView;
 let dimensions = diffuse_image.dimensions();
 ```
 
-此处我们从图像文件中读取字节，并将其加载到 image 对象中，然后转换为 rgba 向量数组。我们还保存了图像的尺寸信息以便在创建实际纹理时使用。
+此处我们从图像文件中读取字节，并将其加载到 image 对象中，然后转换为 rgba **动态数组**。我们还保存了图像的尺寸信息以便在创建实际纹理时使用。
 
 现在我们来创建纹理：
 
@@ -70,7 +70,7 @@ let diffuse_texture = device.create_texture(
 
 ## 填充数据到纹理中
 
-`Texture` 结构没有方法可以直接与数据交互。但我们可以使用之前创建的命令队列上的 `write_texture` 命令来填充纹理数据。让我们来看看具体代码：
+`Texture` 结构体没有方法可以直接与数据交互。但我们可以使用之前创建的命令队列上的 `write_texture` 命令来填充纹理数据。让我们来看看具体代码：
 
 ```rust
 queue.write_texture(
@@ -229,7 +229,7 @@ let diffuse_bind_group = device.create_bind_group(
 
 看着这个，你可能会有一点似曾相识的感觉! 这是因为绑定组（`BindGroup`）是 `BindGroupLayout` 的一个更具体的声明。它们分开的原因是，只要是共享同一个 `BindGroupLayout` 的绑定组，就能在运行时实时切换。创建的每个纹理和采样器都需要添加到一个绑定组中。为了达成目的，我们将为每个纹理创建一个新的绑定组。
 
-现在有了 `diffuse_bind_group`，让我们把它添加到 `State` 结构中。
+现在有了 `diffuse_bind_group`，让我们把它添加到 `State` 结构体中。
 
 ```rust
 struct State {
@@ -305,7 +305,7 @@ async fn new(...) {
 
 由于 `tex_coords` 是二维的，我们将修改这个字段的类型为两个浮点数的数组。
 
-我们先来修改 `Vertex` 结构。
+我们先来修改 `Vertex` 结构体。
 
 ```rust
 #[repr(C)]
@@ -357,7 +357,7 @@ const VERTICES: &[Vertex] = &[
 
 ## 修改着色器
 
-有了新的 `Vertex` 结构，现在是时候更新着色器了。我们首先需要 `tex_coords` 传递给顶点着色器，然后将它们用于片段着色器，以便从采样器获得最终的颜色。让我们从顶点着色器开始：
+有了新的 `Vertex` 结构体，现在是时候更新着色器了。我们首先需要 `tex_coords` 传递给顶点着色器，然后将它们用于片段着色器，以便从采样器获得最终的颜色。让我们从顶点着色器开始：
 
 ```wgsl
 // Vertex shader
@@ -430,7 +430,7 @@ const VERTICES: &[Vertex] = &[
 
 ## 代码整理
 
-为方便起见，让我们把纹理代码放到自己的模块中。我们首先将 [anyhow](https://docs.rs/anyhow/) 库添加到 `Cargo.toml` 文件中，以简化错误处理：
+为方便起见，让我们把纹理代码放到自己的模块中。我们首先将 [anyhow](https://docs.rs/anyhow/) **包**添加到 `Cargo.toml` 文件中，以简化错误处理：
 
 ```toml
 [dependencies]
@@ -571,7 +571,7 @@ let diffuse_bind_group = device.create_bind_group(
 );
 ```
 
-最后，我们需要更新 `State` 中的字段以使用全新 `Texture` 结构，在未来的教程中还会用到它。
+最后，我们需要更新 `State` 中的字段以使用全新 `Texture` 结构体，在未来的教程中还会用到它。
 
 ```rust
 struct State {

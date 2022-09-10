@@ -4,10 +4,10 @@
 你可能已经厌倦了我老说 "我们会在讨论缓冲区（buffer）的时候再详细介绍" 之类的话。现在终于到了谈论缓冲区的时候了，但首先...
 
 ## 什么是缓冲区?
-缓冲区（buffer）是 GPU 上的一个数据块。缓冲区被保证是连续的，这意味着所有数据在内存中都是按顺序存储。缓冲区常用于存储结构或数组等简单的数据，但也可以存储更复杂的数据，如树等图结构（只要所有节点都存储在一起，且不引用缓冲区以外的任何数据）。我们会经常用到缓冲区，所以让我们从最重要的两个开始：顶点缓冲区（vertex buffer）和索引缓冲区（index buffer）。
+缓冲区（buffer）是 GPU 上的一个数据块。缓冲区被保证是连续的，这意味着所有数据在内存中都是按顺序存储。缓冲区常用于存储**结构体**或数组等简单的数据，但也可以存储更复杂的数据，如树等图结构（只要所有节点都存储在一起，且不引用缓冲区以外的任何数据）。我们会经常用到缓冲区，所以让我们从最重要的两个开始：顶点缓冲区（vertex buffer）和索引缓冲区（index buffer）。
 
 ## 顶点缓冲区
-之前我们是直接在顶点着色器中存储的顶点数据。这在学习的起始阶段很有效，但这不是长远之计，因为需要绘制的对象的类型会有不同的大小，且每当需要更新模型时就得重新编译着色器，这会大大减慢我们的程序。我们将改为使用缓冲区（vertex buffer）来存储想要绘制的顶点数据。在此之前，我们需要创建一个新的结构来描述顶点。
+之前我们是直接在顶点着色器中存储的顶点数据。这在学习的起始阶段很有效，但这不是长远之计，因为需要绘制的对象的类型会有不同的大小，且每当需要更新模型时就得重新编译着色器，这会大大减慢我们的程序。我们将改为使用缓冲区（vertex buffer）来存储想要绘制的顶点数据。在此之前，我们需要创建一个新的**结构体**来描述顶点。
 
 ```rust
 // lib.rs
@@ -62,9 +62,9 @@ let vertex_buffer = device.create_buffer_init(
 );
 ```
 
-为了访问 `wgpu::Device` 上的 `create_buffer_init` 方法，我们须导入 [DeviceExt](https://docs.rs/wgpu/latest/wgpu/util/trait.DeviceExt.html#tymethod.create_buffer_init) 扩展抽象接口（trait）。关于扩展抽象接口的更多信息，请查看 [这篇文章](http://xion.io/post/code/rust-extension-traits.html)。
+为了访问 `wgpu::Device` 上的 `create_buffer_init` 方法，我们须导入 [DeviceExt](https://docs.rs/wgpu/latest/wgpu/util/trait.DeviceExt.html#tymethod.create_buffer_init) 扩展 trait。关于扩展 trait 的更多信息，请查看 [这篇文章](http://xion.io/post/code/rust-extension-traits.html)。
 
-要导入扩展抽象接口，只需在 `lib.rs` 的顶部放上这一行。
+要导入扩展 trait，只需在 `lib.rs` 的顶部放上这一行。
 
 ```rust
 use wgpu::util::DeviceExt;
@@ -76,7 +76,7 @@ use wgpu::util::DeviceExt;
 bytemuck = { version = "1.4", features = [ "derive" ] }
 ```
 
-我们还需要实现两个抽象接口来使 `bytemuck` 工作。它们是 [bytemuck::Pod](https://docs.rs/bytemuck/1.3.0/bytemuck/trait.Pod.html) 和 [bytemuck::Zeroable](https://docs.rs/bytemuck/1.3.0/bytemuck/trait.Zeroable.html)。 `Pod` 表示 `Vertex` 是 ["Plain Old Data"](https://zh.wikipedia.org/wiki/POD_(程序设计)) 数据类型，因此可以被解释为 `&[u8]` 类型。`Zeroable` 表示可以对其使用 `std::mem::zeroed()`。我们可以修改 `Vertex` 结构来派生这些接口。
+我们还需要实现两个 trait 来使 `bytemuck` 工作。它们是 [bytemuck::Pod](https://docs.rs/bytemuck/1.3.0/bytemuck/trait.Pod.html) 和 [bytemuck::Zeroable](https://docs.rs/bytemuck/1.3.0/bytemuck/trait.Zeroable.html)。 `Pod` 表示 `Vertex` 是 ["Plain Old Data"](https://zh.wikipedia.org/wiki/POD_(程序设计)) 数据类型，因此可以被解释为 `&[u8]` 类型。`Zeroable` 表示可以对其使用 `std::mem::zeroed()`。我们可以修改 `Vertex` 结构体来派生这些 trait。
 
 ```rust
 #[repr(C)]
@@ -89,7 +89,7 @@ struct Vertex {
 
 <div class="note">
 
-如果结构里包含了没有实现 `Pod` 和 `Zeroable` 的类型，就需要手动实现这些抽象接口。这些抽象接口不需要我们实现任何方法，只需像下面这样来让代码工作。 
+当**结构体**里包含了没有实现 `Pod` 和 `Zeroable` 的类型时，就需要手动实现这些 trait。这些 trait不需要我们实现任何函数，只需像下面这样来让代码工作。 
 
 ```rust
 unsafe impl bytemuck::Pod for Vertex {}
@@ -98,7 +98,7 @@ unsafe impl bytemuck::Zeroable for Vertex {}
 
 </div>
 
-最终我们可以把 `vertex_buffer` 添加到 `State` 结构中了。
+最终我们可以把 `vertex_buffer` 添加到 `State` 结构体中了。
 
 ```rust
 Self {
@@ -138,9 +138,9 @@ wgpu::VertexBufferLayout {
 
 1. `array_stride` 定义了一个顶点所占的字节数。当着色器读取下一个顶点时，它将跳过 `array_stride` 的字节数。在我们的例子中，array_stride 是 24 个字节。
 2. `step_mode` 告诉管线此缓冲区中的数组数据中的每个元素代表的是每个顶点还是每个实例的数据，如果只想在开始绘制一个新实例时改变顶点，就可以设置为 `wgpu::VertexStepMode::Instance`。在后面的教程里我们会讲解实例化绘制。
-3. `attributes` 描述顶点的各个属性（attribute）的布局。一般来说，这与结构的字段是 1:1 映射的，在我们的案例中也是如此。
+3. `attributes` 描述顶点的各个属性（attribute）的布局。一般来说，这与结构体的字段是 1:1 映射的，在我们的案例中也是如此。
 4. `offset` 定义了属性在一个顶点元素中的字节偏移量。对于第一个属性，偏移量通常为零。其后属性的偏移量应为在其之前各属性的 `size_of` 之和。
-5. `shader_location` 告诉着色器要在什么位置存储这个属性。例如 `@location(0) x: vec3<f32>` 在顶点着色器中对应于 `Vertex` 结构的 `position` 字段，而 `@location(1) x: vec3<f32>` 对应 `color` 字段。
+5. `shader_location` 告诉着色器要在什么位置存储这个属性。例如 `@location(0) x: vec3<f32>` 在顶点着色器中对应于 `Vertex` 结构体的 `position` 字段，而 `@location(1) x: vec3<f32>` 对应 `color` 字段。
 6. `format` 告诉着色器该属性的数据格式。`Float32x3`对应于着色器代码中的 `vec3<f32>`。我们可以在一个属性中存储的最大值是`Float32x4`（`Uint32x4` 和 `Sint32x4` 也可以）。当我们需要存储比 `Float32x4` 更大的东西时请记住这一点。
 
 
@@ -382,7 +382,7 @@ let index_buffer = device.create_buffer_init(
 let num_indices = INDICES.len() as u32;
 ```
 
-我们不需要为索引实现 `Pod` 和 `Zeroable`，因为 `bytemuck` 已经为 `u16` 等基本类型实现了它们。我们只需将 `index_buffer` 和 `num_indices` 添加到 `State` 结构中。
+我们不需要为索引实现 `Pod` 和 `Zeroable`，因为 `bytemuck` 已经为 `u16` 等基本类型实现了它们。我们只需将 `index_buffer` 和 `num_indices` 添加到 `State` 结构体中。
 
 ```rust
 struct State {

@@ -33,7 +33,8 @@ export default defineUserConfig({
                 selectLanguageName: '简体中文',
                 selectLanguageText: "选择语言",
                 lastUpdatedText: '上次更新',
-                contributorsText: '贡献者',
+                contributors: false,
+                editLink: false,
                 backToHome: '回到首页',
                 sidebar: [
                     '/README.md',
@@ -47,18 +48,30 @@ export default defineUserConfig({
                             '/beginner/tutorial5-textures/',
                             '/beginner/tutorial6-uniforms/',
                             '/beginner/tutorial7-instancing/',
+                            '/beginner/tutorial8-depth/',
+                            '/beginner/tutorial9-models/',
                         ],
                     },
                     {
                         text: '进阶',
                         children: [
+                            '/intermediate/tutorial10-lighting/',
+                            '/intermediate/tutorial11-normals/',
+                            '/intermediate/tutorial12-camera/',
+                            '/intermediate/tutorial13-threading/',
                         ],
                     },
                     {
                         text: '案例展示',
+                        collapsable: true,
                         children: [
                             '/showcase/',
+                            '/showcase/windowless/',
                             '/showcase/gifs/',
+                            '/showcase/pong/',
+                            '/showcase/compute/',
+                            '/showcase/alignment/',
+                            '/showcase/imgui-demo/',
                         ]
                     },
                     '/GLOSSARY_OF_TERMS.md',

@@ -1,5 +1,5 @@
 # 依赖与窗口
-部分读者可能已经熟悉如何在 Rust 中打开窗口程序，且有自己偏好的窗口**包**（crate）。但本教程是为所有人设计的，所以不免要涉及这部分的内容。所幸你可以跳过这部分，但有一点值得了解，即无论使用什么样的窗口解决方案，都需要实现  [raw-window-handle](https://github.com/rust-windowing/raw-window-handle) **包**定义的**抽象接口**（trait)。如果有兴趣自己动手来为 wgpu 实现一个基础的窗口，可以参考 [wgpu-on-app](https://github.com/jinleili/wgpu-on-app).
+部分读者可能已经熟悉如何在 Rust 中打开窗口程序，且有自己偏好的窗口**包**（crate）。但本教程是为所有人设计的，所以不免要涉及这部分的内容。所幸你可以跳过这部分，但有一点值得了解，即无论使用什么样的窗口解决方案，都需要实现  [raw-window-handle](https://github.com/rust-windowing/raw-window-handle) **包**定义的 trait。如果有兴趣自己动手来为 wgpu 实现一个基础的窗口，可以参考 [wgpu-on-app](https://github.com/jinleili/wgpu-on-app).
 
 ## 我们要使用哪些包?
 我们将尽量保持基础部分的简单性。后续我们会逐渐添加依赖，先列出相关的 `Cargo.toml` 依赖项如下：
@@ -126,7 +126,7 @@ web-sys = { version = "0.3", features = [
   如果你想了解更多详细信息，请查看 [wgpu 源码仓库](https://github.com/gfx-rs/wgpu/wiki/Running-on-the-Web-with-WebGPU-and-WebGL) 上的 web 编译指南
 * [wasm-bindgen](https://docs.rs/wasm-bindgen) 是此列表中最重要的依赖项。它负责生成样板代码，并告诉浏览器如何使用我们的项目。它还允许我们在 Rust 中公开可在 Javascript 中使用的**函数**，反之亦然。<br>
   我不会详细介绍 wasm-bindgen，所以如果你需要入门（或者是复习），请查看 [这里](https://rustwasm.github.io/wasm-bindgen/)
-* [web-sys](https://docs.rs/web-sys) 是一个包含了许多在 javascript 程序中可用的**函数**和**结构**的工具箱，如：`get_element_by_id`、`append_child`。`features = [...]` 数组里列出的是我们目前最低限度需要的功能。
+* [web-sys](https://docs.rs/web-sys) 是一个包含了许多在 javascript 程序中可用的**函数**和**结构体**的工具箱，如：`get_element_by_id`、`append_child`。`features = [...]` 数组里列出的是我们目前最低限度需要的功能。
 
 ## 更多示例代码
 

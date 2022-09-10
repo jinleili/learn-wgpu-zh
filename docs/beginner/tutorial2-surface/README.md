@@ -1,7 +1,7 @@
 # 展示平面 (Surface)
 
 ## 封装 State
-为方便起见，我们将所有**字段**封装在一个**结构**内，并在其上添加一些函数：
+为方便起见，我们将所有**字段**封装在一个**结构体**内，并在其上添加一些函数：
 
 ```rust
 // lib.rs
@@ -96,7 +96,7 @@ let adapter = instance
 
 ### 展示平面
 
-**展示平面**（Surface）是我们绘制到窗口的部分，需要它来将绘制展示到屏幕上。窗口程序需要实现 [raw-window-handle](https://crates.io/crates/raw-window-handle) **包**的 `HasRawWindowHandle` **抽象接口**来创建**展示平面**。所幸 winit 的 `Window` 符合这个要求。我们还需要展示平面来请求**适配器** (adapter)。
+**展示平面**（Surface）是我们绘制到窗口的部分，需要它来将绘制展示到屏幕上。窗口程序需要实现 [raw-window-handle](https://crates.io/crates/raw-window-handle) **包**的 `HasRawWindowHandle`  trait 来创建**展示平面**。所幸 winit 的 `Window` 符合这个要求。我们还需要展示平面来请求**适配器** (adapter)。
 
 ### 逻辑设备与命令队列
 
@@ -433,7 +433,7 @@ event_loop.run(move |event, _, control_flow| {
 });
 ```
 
-基于以上这些，你就能获得如下运行效果：
+基于以上这些，你就能获得如下渲染效果：
 
 ![蓝色背景的窗口](./cleared-window.png)
 
