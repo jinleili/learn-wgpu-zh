@@ -1,10 +1,10 @@
 # Uniform 缓冲区与 3D 虚拟摄像机
 
-虽然我们之前的工作似乎都是在 2D 空间下进行的，但实际上我们一直都是在 3D 空间下工作的！这就是为什么 `Vertex` 结构的 `position` 是 3 个浮点数的数组而不是 2 个。由于我们是在正面观察，所以才无法真正看到场景的立体感。下面将通过创建一个**虚拟摄像机**（`Camera`）来改变我们的观察视角。
+虽然我们之前的渲染似乎都是在 2D 空间下进行的，但实际上我们一直都是在 3D 空间下渲染的！这就是为什么 `Vertex` 结构体的 `position` 是 3 个浮点数的数组而不是 2 个。由于我们是在正面观察，所以才无法真正看到场景的立体感。下面将通过创建一个**虚拟摄像机**（`Camera`）来改变我们的观察视角。
 
-## 透视投影
+## 透视摄像机
 
-本教程聚焦于 wgpu 的教学，而不是**线性代数**，所以我会略过很多涉及的数学知识。如果你对线性代数感兴趣，网上有大量的阅读材料。我们将使用 [cgmath](https://docs.rs/cgmath) 来处理所有数学问题，在 `Cargo.toml` 中添加以下依赖：
+本教程聚焦于 wgpu 的教学，而不是**线性代数**，所以会略过很多涉及的数学知识。如果你对线性代数感兴趣，网上有大量的阅读材料。我们将使用 [cgmath](https://docs.rs/cgmath) 来处理所有数学问题，在 `Cargo.toml` 中添加以下依赖：
 
 ```toml
 [dependencies]
@@ -12,7 +12,7 @@
 cgmath = "0.18"
 ```
 
-现在让我们开始使用此数学**包**！在 `State` 结构体上方创建**摄像机**结构体。
+现在让我们开始使用此数学**包**！在 `State` 结构体上方创建**摄像机**结构体：
 
 ```rust
 struct Camera {
@@ -38,10 +38,10 @@ impl Camera {
 }
 ```
 
-`build_view_projection_matrix` 函数就是神奇发生的地方。
+`build_view_projection_matrix` 函数实现了视图投影矩阵。
 1. **视图**矩阵移动并旋转世界坐标到**摄像机**所观察的位置。它本质上是**摄像机**变换的逆矩阵。
 2. **投影**矩阵变换场景空间，以产生景深的效果。如果没有它，近处的物**对象**将与远处的大小相同。
-3. wgpu 的坐标系统是基于 DirectX 和 Metal 的坐标系。在 [归一化设备坐标](https://github.com/gfx-rs/gfx/tree/master/src/backend/dx12#normalized-coordinates) 中，x 轴和 y 轴的范围是 [-1.0, 1.0]，而 z 轴是 [0.0, 1.0], 而 `cgmath`（以及大多数游戏数学库）是为 OpenGL 的坐标系建立的。`OPENGL_TO_WGPU_MATRIX` 矩阵将把我们的场景从 OpenGL 的坐标系变换为 wgpu 的坐标系, 下边就是它的定义：
+3. wgpu 的坐标系统是基于 DirectX 和 Metal 的坐标系。在[归一化设备坐标](https://github.com/gfx-rs/gfx/tree/master/src/backend/dx12#normalized-coordinates)中，x 轴和 y 轴的范围是 [-1.0, 1.0]，而 z 轴是 [0.0, 1.0], 而 `cgmath`（以及大多数游戏数学库）是为 OpenGL 的坐标系建立的。`OPENGL_TO_WGPU_MATRIX` 矩阵将把我们的场景从 OpenGL 的坐标系变换为 wgpu 的坐标系, 下边就是它的定义：
 
 ```rust
 #[rustfmt::skip]
@@ -53,7 +53,7 @@ pub const OPENGL_TO_WGPU_MATRIX: cgmath::Matrix4<f32> = cgmath::Matrix4::new(
 );
 ```
 
-* 注意：我们并非一定 **需要** `OPENGL_TO_WGPU_MATRIX`，但是以坐标 (0, 0, 0) 为中心的模型将只有一半处于剪裁区域内。
+* 注意：我们并非一定需要 `OPENGL_TO_WGPU_MATRIX`，但是以坐标 (0, 0, 0) 为中心的模型将只有一半处于剪裁区域内。
 
 现在我们来给 `State` 添加上 `camera` 字段：
 
@@ -93,7 +93,7 @@ async fn new(window: &Window) -> Self {
 
 ## Uniform 缓冲区
 
-到目前为止，我们已经使用**缓冲区**来存储顶点和索引数据，甚至加载**纹理**。我们将再次使用它来创建一个称之为 `uniform` 的缓冲区。uniform 缓冲区也是一个数据块，在一组着色器的每个调用都中都可以使用，从技术上讲，我们已经为**纹理**和**采样器**使用了 uniform 缓冲区。下面将再次使用它们来存储视图投影**矩阵**，我们先创建一个结构体来保存 uniform：
+到目前为止，我们已经使用**缓冲区**来存储顶点和索引数据，甚至加载**纹理**。我们将再次使用它来创建一个称之为 `uniform` 的缓冲区。uniform 缓冲区也是一个数据块，在一组着色器的每个调用都中都可以使用，从技术的角度来看，我们已经为**纹理**和**采样器**使用了 uniform 缓冲区。下面将再次使用它们来存储视图投影**矩阵**，我们先创建一个结构体来保存 uniform：
 
 ```rust
 // 此属性标注数据的内存布局兼容 C-ABI，令其可用于着色器
@@ -120,7 +120,7 @@ impl CameraUniform {
 }
 ```
 
-有了封装好的数据，让我们来制作 `camera_buffer`：
+封装好了数据，接下来创建一个名为 `camera_buffer` 的 uniform 缓冲区：
 
 ```rust
 // 在 new() 函数中创建 `camera` 后
@@ -139,17 +139,17 @@ let camera_buffer = device.create_buffer_init(
 
 ## Uniform 缓冲区和绑定组
 
-现在我们有了一个 uniform 缓冲区，那该如何使用呢？答案是为它创建一个**绑定组**。我们得先创建绑定组的布局：
+现在有了一个 uniform 缓冲区，那该如何使用呢？答案是为它创建一个**绑定组**。我们得先创建绑定组的布局：
 
 ```rust
 let camera_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
     entries: &[
         wgpu::BindGroupLayoutEntry {
             binding: 0,
-            visibility: wgpu::ShaderStages::VERTEX,
+            visibility: wgpu::ShaderStages::VERTEX,     // 1
             ty: wgpu::BindingType::Buffer {
                 ty: wgpu::BufferBindingType::Uniform,
-                has_dynamic_offset: false,
+                has_dynamic_offset: false,              // 2
                 min_binding_size: None,
             },
             count: None,
@@ -192,7 +192,7 @@ let render_pipeline_layout = device.create_pipeline_layout(
 );
 ```
 
-现在，我们需要将 `camera_buffer` 和 `camera_bind_group` 添加到 `State` 中：
+现在，需要将 `camera_buffer` 和 `camera_bind_group` 添加到 `State` 中：
 
 ```rust
 struct State {
@@ -266,11 +266,11 @@ fn vs_main(
 
 ## 摄像机控制器
 
-如果现在运行代码，你看到的将是如下渲染效果：
+如果现在运行代码，看到的将是如下渲染效果：
 
 ![./static-tree.png](./static-tree.png)
 
-现在形状的拉伸度降低了，但它仍然是静态的。你可以尝试移动**摄像机**的位置使画面动起来，就像游戏中的摄像机通常所做的那样。由于本教程聚焦于 wgpu 的使用，而非用户输入事件的处理，所以仅在此贴出**摄像机控制器**（CameraController）的代码： 
+形状的拉伸度降低了，但它仍然是静态的。你可以尝试移动**摄像机**的位置使画面动起来，就像游戏中的摄像机通常所做的那样。由于本教程聚焦于 wgpu 的使用，而非用户输入事件的处理，所以仅在此贴出**摄像机控制器**（CameraController）的代码： 
 
 ```rust
 struct CameraController {
@@ -396,7 +396,7 @@ fn input(&mut self, event: &WindowEvent) -> bool {
 ```
 
 到目前为止，摄像机**控制器**还没有真正工作起来。uniform **缓冲区**中的值需要被更新。有几种方式可以做到这一点：
-1. 可以创建一个单独的缓冲区，并将其数据复制到 `camera_buffer`。这个新的缓冲区被称为**中继缓冲区**（staging buffer）。这种方法允许主缓冲区（在这里是指 `camera_buffer`）的数据只被 GPU 访问，从而令 GPU 能做一些速度上的优化。如果缓冲区能被 CPU 访问，就无法实现此类优化。
+1. 可以创建一个单独的缓冲区，并将其数据复制到 `camera_buffer`。这个新的缓冲区被称为**中继缓冲区**（Staging Buffer）。这种方法允许主缓冲区（在这里是指 `camera_buffer`）的数据只被 GPU 访问，从而令 GPU 能做一些速度上的优化。如果缓冲区能被 CPU 访问，就无法实现此类优化。
 2. 可以在**缓冲区**本身调用内存映射函数 `map_read_async` 和 `map_write_async`。此方式允许我们直接访问缓冲区的数据，但是需要处理**异步**代码，也需要缓冲区使用 `BufferUsages::MAP_READ` 和/或 `BufferUsages::MAP_WRITE`。在此不再详述，如果你想了解更多，可以查看 [wgpu without a window](./showcase/windowless) 教程。
 3. 可以在 `queue` 上使用 `write_buffer` 函数。
 

@@ -91,7 +91,7 @@ crate-type = ["cdylib", "rlib"]
 
 ## Web Assembly
 
-Web Assembly 即 WASM，是大多数现代浏览器支持的二进制格式，它令 Rust 等底层语言能在网页上运行。这允许我们用 Rust 编写应用程序的绝大部分，并使用几行 Javascript 来加载它到 Web 浏览器中运行。
+Web Assembly 即 WASM，是大多数现代浏览器支持的二进制格式，它令 Rust 等底层语言能在网页上运行。这允许我们用 Rust 编写应用程序，并使用几行 Javascript 来加载它到 Web 浏览器中运行。
 
 </div>
 
@@ -125,7 +125,7 @@ web-sys = { version = "0.3", features = [
   欢迎你在这些浏览器上测试这段代码（wgpu 的开发者也会很感激），但为了简单起见，我打算坚持使用 WebGL 功能，直到 WebGPU API 达到一个更稳定的状态。<br>
   如果你想了解更多详细信息，请查看 [wgpu 源码仓库](https://github.com/gfx-rs/wgpu/wiki/Running-on-the-Web-with-WebGPU-and-WebGL) 上的 web 编译指南
 * [wasm-bindgen](https://docs.rs/wasm-bindgen) 是此列表中最重要的依赖项。它负责生成样板代码，并告诉浏览器如何使用我们的项目。它还允许我们在 Rust 中公开可在 Javascript 中使用的**函数**，反之亦然。<br>
-  我不会详细介绍 wasm-bindgen，所以如果你需要入门（或者是复习），请查看 [这里](https://rustwasm.github.io/wasm-bindgen/)
+  我不会详细介绍 wasm-bindgen，所以如果你需要入门（或者是复习），请查看[这里](https://rustwasm.github.io/wasm-bindgen/)
 * [web-sys](https://docs.rs/web-sys) 是一个包含了许多在 javascript 程序中可用的**函数**和**结构体**的工具箱，如：`get_element_by_id`、`append_child`。`features = [...]` 数组里列出的是我们目前最低限度需要的功能。
 
 ## 更多示例代码
@@ -159,7 +159,7 @@ cfg_if::cfg_if! {
 }
 ```
 
-这将在 web **构建**中设置 `console_log` 和 `console_error_panic_hook`，或在普通构建中初始化 `env_logger`。这很重要，因为 `env_logger` 目前不支持 Web Assembly。
+上边的代码判断了**构建**目标，在 web 构建中设置 `console_log` 和 `console_error_panic_hook`。这很重要，因为 `env_logger` 目前不支持 Web Assembly。
 
 接下来，在创建了事件循环与窗口之后，我们需要在应用程序所在的 HTML 网页中添加一个**画布**（canvas)：
 
@@ -189,15 +189,15 @@ cfg_if::cfg_if! {
 
 </div>
 
-这就是我们现在需要的所有 web 专用代码。接下来要做的就是**构建** Web Assembly 本身。
+上边这些就是我们现在需要的所有 web 专用代码。接下来要做的就是**构建** Web Assembly 本身。
 
 ## Wasm Pack
 
-你可以只用 wasm-bindgen 来**构建**一个 wgpu 应用程序，但我在这样做的时候遇到了一些问题。首先，你需要在电脑上安装 wasm-bindgen，并将其作为一个依赖项。作为依赖关系的版本 **需要** 与你安装的版本完全一致，否则构建将会失败。
+你可以只用 wasm-bindgen 来**构建**一个 wgpu 应用程序，但我在这样做的时候遇到了一些问题。首先，你需要在电脑上安装 wasm-bindgen，并将其作为一个依赖项。作为依赖关系的版本**需要**与你安装的版本完全一致，否则构建将会失败。
 
 为了克服这个缺点，并使阅读这篇教程人更容易上手，我选择在组合中加入 [wasm-pack](https://rustwasm.github.io/docs/wasm-pack/)。wasm-pack 可以为你安装正确的 wasm-bindgen 版本，而且它还支持为不同类型的 web 目标进行**构建**：浏览器、NodeJS 和 webpack 等打包工具。
 
-使用 wasm-pack 前，你需要先 [安装](https://rustwasm.github.io/wasm-pack/installer/)。
+使用 wasm-pack 前，你需要先[安装](https://rustwasm.github.io/wasm-pack/installer/)。
 
 完成安装后，就可以用它来**构建**我们的项目了。当你的项目是一个独立的**包**（crate）时，可以直接使用 `wasm-pack build`。如果是**工作区**（workspace），就必须指定你要构建的包。想象一下**包**是一个名为 `game` 的目录，你就会使用：
 
@@ -212,7 +212,7 @@ const init = await import('./pkg/game.js');
 init().then(() => console.log("WASM Loaded"));
 ```
 
-这个网站使用了 [Vuepress](https://vuepress.vuejs.org/)，所以我是在 Vue 组件中加载 WASM。你如何使用 WASM 将取决于你想做什么。如果想看看我是怎么做的，可以查看 [这里](https://github.com/sotrh/learn-wgpu/blob/master/docs/.vuepress/components/WasmExample.vue)。
+这个网站使用了 [Vuepress](https://vuepress.vuejs.org/)，所以我是在 Vue 组件中加载 WASM。你如何使用 WASM 将取决于你想做什么。如果想看看我是怎么做的，可以查看[这里](https://github.com/sotrh/learn-wgpu/blob/master/docs/.vuepress/components/WasmExample.vue)。
 
 <div class="note">
 

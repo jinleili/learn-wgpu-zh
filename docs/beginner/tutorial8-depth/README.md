@@ -1,26 +1,26 @@
-# The Depth Buffer
+# 深度缓冲区
 
-Let's take a closer look at the last example at an angle.
+让我们换个摄像机角度来仔细观察上个教程中的例子:
 
 ![depth_problems.png](./depth_problems.png)
 
-Models that should be in the back are getting rendered ahead of ones that should be in the front. This is caused by the draw order. By default, pixel data from a new object will replace old pixel data.
+应该排在后面的**对象**被渲染在了前面的对象之前。这是由绘制顺序引起的。默认情况下，新对象的像素数据将取代**帧缓冲区**（FrameBuffer）相同坐标上旧的像素数据。
 
-There are two ways to solve this: sort the data from back to front, or use what's known as a depth buffer.
+有两种方式可以解决这个问题：将数据从后往前排序; 或者使用**深度缓冲区**（Depth Buffer）。
 
-## Sorting from back to front
+## 从后往前排序
 
-This is the go-to method for 2d rendering as it's pretty easy to know what's supposed to go in front of what. You can just use the z order. In 3d rendering, it gets a little trickier because the order of the objects changes based on the camera angle.
+这是 2D 渲染的常用方法，因为很容易计算绘制**对象**的前后关系，甚至可以直接使用 Z 轴顺序。而在 3D 渲染中就有点棘手了，因为**对象**的前后关系会根据**摄像机**的角度而改变。
 
-A simple way of doing this is to sort all the objects by their distance to the camera's position. There are flaws with this method though as when a large object is behind a small object, parts of the large object that should be in front of the small object will be rendered behind it. We'll also run into issues with objects that overlap *themselves*.
+一个简单的方法是按照**对象**与**摄像机**的距离来排序。但这种方法也有缺陷，因为当大对象的模型中心坐标处在小对象后面时，大对象中本应在小对象前面的部分也会被渲染到后面。我们还会遇到对象本身重叠的问题。
 
-If we want to do this properly we need to have pixel-level precision. That's where a *depth buffer* comes in.
+如果想正确地实现绘制对象的前后关系，就需要有像素级的精度。这，就是 **深度缓冲区** 的作用。
 
-## A pixels depth
+## 像素深度
 
-A depth buffer is a black and white texture that stores the z-coordinate of rendered pixels. Wgpu can use this when drawing new pixels to determine whether to replace the data or keep it. This technique is called depth testing. This will fix our draw order problem without needing us to sort our objects!
+**深度缓冲区**是一个用来存储已渲染像素的 Z 轴坐标的纹理。在绘制新的像素时，wgpu 使用它来决定是替换数据还是丢弃。这种技术被称为**深度测试**，它将解决绘制顺序问题，而不需要我们对绘制对象进行排序!
 
-Let's make a function to create the depth texture in `texture.rs`.
+让我们在 `texture.rs` 中添加一个函数来创建**深度纹理**。
 
 ```rust
 impl Texture {
@@ -65,19 +65,18 @@ impl Texture {
 }
 ```
 
-1. We need the DEPTH_FORMAT for when we create the depth stage of the `render_pipeline` and for creating the depth texture itself.
-2. Our depth texture needs to be the same size as our screen if we want things to render correctly. We can use our `config` to make sure that our depth texture is the same size as our surface textures.
-3. Since we are rendering to this texture, we need to add the `RENDER_ATTACHMENT` flag to it.
-4. We technically don't *need* a sampler for a depth texture, but our `Texture` struct requires it, and we need one if we ever want to sample it.
-5. If we do decide to render our depth texture, we need to use `CompareFunction::LessEqual`. This is due to how the `sampler_comparison` and `textureSampleCompare()` interacts with the `texture()` function in GLSL.
+1. 定义 DEPTH_FORMAT 用于创建**深度纹理**及 `render_pipeline` 需要的 `DepthStencilState` 对象。
+2. **深度纹理**的宽高需要与**展示平面**一致（更准确的说，是需要与当前的 Color Attachment 一致）。我们传入展示平面使用的 `config` 参数来确保它们的宽高相同。
+3. 由于要对这个纹理进行渲染，我们需要给它添加 `RENDER_ATTACHMENT` 使用范围标志。
+4. 从技术的角度来看，我们不需要深度纹理的**采样器**，是我们的 `Texture` 结构体需要它。
 
-We create our `depth_texture` in `State::new()`.
+现在在 `State::new()` 中创建我们的 `depth_texture`：
 
 ```rust
 let depth_texture = texture::Texture::create_depth_texture(&device, &config, "depth_texture");
 ```
 
-We need to modify our `render_pipeline` to allow depth testing.
+然后修改**渲染管线**以启用**深度测试**：
 
 ```rust
 let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
@@ -93,7 +92,7 @@ let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescrip
 });
 ```
 
-1. The `depth_compare` function tells us when to discard a new pixel. Using `LESS` means pixels will be drawn front to back. Here are all the values you can use.
+1. `depth_compare` 字段指定通过**深度测试**的条件。使用 `LESS` 意味着像素将被从后往前绘制，大于当前位置的深度值的像素将被丢弃。下面是可选的所有枚举值：
 
 ```rust
 #[repr(C)]
@@ -112,9 +111,9 @@ pub enum CompareFunction {
 }
 ```
 
-2. There's another type of buffer called a stencil buffer. It's common practice to store the stencil buffer and depth buffer in the same texture. These fields control values for stencil testing. Since we aren't using a stencil buffer, we'll use default values. We'll cover stencil buffers [later](../../todo).
+2. 还有一种类型的缓冲区叫做**模版缓冲区**（Stencil Buffer）。模版缓冲区和深度缓冲区通常被存储在同一个**纹理**中。这些字段控制着**模版测试**的数值。目前我们没有使用模版缓冲区，这里就使用默认值。在以后教程中再详情介绍模版缓冲区。
 
-Don't forget to store the `depth_texture` in `State`.
+不要忘了在 `State` 中存储 `depth_texture`：
 
 ```rust
 Self {
@@ -123,21 +122,19 @@ depth_texture,
 }
 ```
 
-We need to remember to change the `resize()` method to create a new `depth_texture` and `depth_texture_view`.
+还要记得修改 `resize()` 函数来更新**深度纹理**及它的**纹理视图**：
 
 ```rust
 fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
     // ...
-
     self.depth_texture = texture::Texture::create_depth_texture(&self.device, &self.config, "depth_texture");
-
     // ...
 }
 ```
 
-Make sure you update the `depth_texture` *after* you update `config`. If you don't, your program will crash as the `depth_texture` will be a different size than the `surface` texture.
+请确保更新了 `config` 之后一定要更新 `depth_texture`，否则程序就会崩溃，因为此时 `depth_texture` 与`surface` 纹理的宽高已经不一致了（还记得上边提到过的 “**深度纹理**的宽高需要与**展示平面**一致” 吗？）。
 
-The last change we need to make is in the `render()` function. We've created the `depth_texture`, but we're not currently using it. We use it by attaching it to the `depth_stencil_attachment` of a render pass.
+最后是修改 `render()` 函数，我们已经创建了**深度纹理**，但目前还没有使用。只需把它绑定到**渲染通道**的`depth_stencil_attachment` 字段即可：
 
 ```rust
 let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
@@ -153,13 +150,13 @@ let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
 });
 ```
 
-And that's all we have to do! No shader code needed! If you run the application, the depth issues will be fixed.
+这就是我们所要做的！不涉及**着色器**代码！现在运行该应用程序，将看到深度问题已不复存在：
 
 ![forest_fixed.png](./forest_fixed.png)
 
-## Challenge
+## 挑战
 
-Since the depth buffer is a texture, we can sample it in the shader. Because it's a depth texture, we'll have to use the `sampler_comparison` uniform type and the `textureSampleCompare` function instead of `sampler`, and `sampler2D` respectively. Create a bind group for the depth texture (or reuse an existing one), and render it to the screen.
+**深度缓冲区**是一张纹理，所以我们可以在着色器中对其采样。请为深度纹理创建一个**绑定组**（或重用现有的），并将其渲染到屏幕上。
 
 <WasmExample example="tutorial8_depth"></WasmExample>
 

@@ -12,7 +12,7 @@
  Range<_> |范围
  struct | 结构体
  Vec | 动态数组
- Workspace | ⼯作空间（指在⼀个根包（crate）下包含了多个⼦包（crate）的项目）
+ workspace | ⼯作空间（指在⼀个根包（crate）下包含了多个⼦包（crate）的项目）
 
 
 #### WebGPU 术语
@@ -22,6 +22,7 @@
  BindGroup | 绑定组
  Device | 逻辑设备（区别于物理设备）
  Fragment | 片元
+ Frame | 帧
  Frame Buffer | 帧缓冲区
  Instance Buffer | 实例缓冲区
  wgpu::Instance | GPU 实例（简称为：实例）
@@ -45,9 +46,11 @@
  Camera | 虚拟摄像机（简称为：摄像机，相机）
  Controller | 控制器
  Instancing | 实例化绘制
+ Mapping | 映射
  Matrice | 矩阵
  Material | 材质
  Mesh | 网格
+ Normal | 法向量（又称为：法线）
  Object | 绘制对象，对象
  Quaternion | 四元数 
  View | 视图

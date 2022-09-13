@@ -1,8 +1,8 @@
-# Model Loading
+# 模型加载
 
-Up to this point we've been creating our models manually. While this is an acceptable way to do this, it's really slow if we want to include complex models with lots of polygons. Because of this, we're going to modify our code to leverage the `.obj` model format so that we can create a model in software such as blender and display it in our code.
+到目前为止，我们一直在手动创建**模型**。简单的模型当然可以这么干，但如果是有成千上万多边形的复杂模型，那就行不通了。因此，我们将修改代码以利用 `.obj` 模型格式，以便可以利用 Blender 等软件来创建模型并运用到项目中。
 
-Our `lib.rs` file is getting pretty cluttered, let's create a `model.rs` file that we can put our model loading code into.
+`lib.rs` 文件中堆砌的代码已经很多了，让我们创建一个 `model.rs` 文件来安置所有模型加载相关的代码：
 
 ```rust
 // model.rs
@@ -25,11 +25,13 @@ impl Vertex for ModelVertex {
 }
 ```
 
-You'll notice a couple of things here. In `lib.rs` we had `Vertex` as a struct, here we're using a trait. We could have multiple vertex types (model, UI, instance data, etc.). Making `Vertex` a trait will allow us to abstract out the `VertexBufferLayout` creation code to make creating `RenderPipeline`s simpler.
+你会注意到这里有几点变化：
 
-Another thing to mention is the `normal` field in `ModelVertex`. We won't use this until we talk about lighting, but will add it to the struct for now.
+首先是 `Vertex`， 它在 `lib.rs` 中是一个结构体，而这里我们改为了 trait。我们会有多种顶点类型（模型、UI、实例数据等），`Vertex` 做为 trait 令我们能从其中抽象出 `VertexBufferLayout` 的创建函数，从而简化**渲染管线**的创建。
 
-Let's define our `VertexBufferLayout`.
+其次是 `ModelVertex` 中新增了 `normal` 字段。在讨论光照之前暂时不会用到它。
+
+让我们来创建 `VertexBufferLayout`：
 
 ```rust
 impl Vertex for ModelVertex {
@@ -60,7 +62,7 @@ impl Vertex for ModelVertex {
 }
 ```
 
-This is basically the same as the original `VertexBufferLayout`, but we added a `VertexAttribute` for the `normal`. Remove the `Vertex` struct in `lib.rs` as we won't need it anymore, and use our new `Vertex` from `model` for the `RenderPipeline`.
+这与原来的 `VertexBufferLayout` 基本相同，只是为 `normal` 添加了一个 `VertexAttribute`。删除 `lib.rs` 中我们已不再需要的旧 `Vertex` 结构体，并在 `RenderPipeline` 中使用来自 `model` 的新 `Vertex`:
 
 ```rust
 let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
@@ -73,19 +75,19 @@ let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescrip
 });
 ```
 
-Since the `desc` method is implemented on the `Vertex` trait, the trait needs to be imported before the method will be accessible. Put the import towards the top of the file with the others.
+由于 `desc` 接口是定义在 `Vertex` trait 上的，因此需要先导入 `Vertex`，然后才能调用到该接口的具体实现。只需将导入代码放在文件顶部：
 
 ```rust
 use model::Vertex;
 ```
 
-With all that in place, we need a model to render. If you have one already that's great, but I've supplied a [zip file](https://github.com/sotrh/learn-wgpu/blob/master/code/beginner/tutorial9-models/res/cube.zip) with the model and all of its textures. We're going to put this model in a new `res` folder next to the existing `src` folder.
+现在，我们需要一个用于渲染的模型。你可以使用自己的模型，我这也提供了一个模型及其纹理的 [zip 压缩包](https://github.com/sotrh/learn-wgpu/blob/master/code/beginner/tutorial9-models/res/cube.zip ) 。我们将新建一个与 `src` 文件夹同级的 `res` 文件夹来安置这个模型。
 
-## Accessing files in the res folder
+## 访问资源文件
 
-When cargo builds and runs our program it sets what's known as the current working directory. This directory is usually the folder containing your project's root `Cargo.toml`. The path to our res folder may differ depending on the structure of the project. In the `res` folder for the example code for this section tutorial is at `code/beginner/tutorial9-models/res/`. When loading our model we could use this path, and just append `cube.obj`. This is fine, but if we change our project's structure, our code will break.
+cargo 在构建并运行程序时会设置一个当前工作目录，该目录通常就是放置了 `Cargo.toml` 文件的项目根目录。**资源**（res）文件夹的路径会因项目的结构而异。本节教程示例代码的**资源**文件夹位于 `code/beginner/tutorial9-models/res/`。我们加载模型时可以使用这个路径，仅需在路径后拼上 `cube.obj`。这似乎很完美，可一旦修改项目的目录结构，写在代码里的路径就不可用了。
 
-We're going to fix that by modifying our build script to copy our `res` folder to where cargo creates our executable, and we'll reference it from there. Create a file called `build.rs` and add the following:
+所以，我们通过修改**构建脚本**，将 `res` 文件夹复制到 cargo 创建可执行文件的位置来解决此问题，然后再从那里引用资源文件。创建一个 `build.rs`（构建文件的默认名称）文件并添加以下代码：
 
 ```rust
 use anyhow::*;
@@ -94,7 +96,7 @@ use fs_extra::dir::CopyOptions;
 use std::env;
 
 fn main() -> Result<()> {
-    // This tells cargo to rerun this script if something in /res/ changes.
+    // 这一行告诉 cargo 如果 /res/ 文件夹中的内容发生了变化，就重新运行脚本
     println!("cargo:rerun-if-changed=res/*");
 
     let out_dir = env::var("OUT_DIR")?;
@@ -110,17 +112,16 @@ fn main() -> Result<()> {
 
 <div class="note">
 
-Make sure to put `build.rs` in the same folder as the `Cargo.toml`. If you don't, cargo won't run it when your crate builds.
+确保将 `build.rs` 放在与 `Cargo.toml` 相同的文件夹中，只有这样，在项目构建时 cargo 才能此运行构建脚本。
 
 </div>
-
 <div class="note">
 
-The `OUT_DIR` is an environment variable that cargo uses to specify where our application will be built.
+`OUT_DIR` 是一个环境变量，cargo 用它来指定应用程序将在哪里构建。
 
 </div>
 
-You'll need to modify your `Cargo.toml` for this to work properly. Add the following below your `[dependencies]` block.
+还需修改 `Cargo.toml` 来让构建脚本能正常运行，在**构建依赖**（`[build-dependencies]`）配置里添加以下依赖项：
 
 ```toml
 [build-dependencies]
@@ -129,9 +130,9 @@ fs_extra = "1.2"
 glob = "0.3"
 ```
 
-## Accessing files from WASM
+## 从 WASM 访问文件
 
-By design, you can't access files on a user's filesystem in Web Assembly. Instead, we'll serve those files up using a web serve, and then load those files into our code using an http request. In order to simplify this, let's create a file called `resources.rs` to handle this for us. We'll create two functions that will load text files and binary files respectively.
+遵循 WASM 规范，你不能在 Web Assembly 中访问用户文件系统上的文件。所以，我们利用 web 服务来提供这些文件，然后使用 http 请求将文件加载​​到代码中。让我们创建一个名为 `resources.rs` 的文件来处理这个问题，创建两个函数分别用于加载文本文件和二进制文件：
 
 ```rust
 use std::io::{BufReader, Cursor};
@@ -195,11 +196,11 @@ pub async fn load_binary(file_name: &str) -> anyhow::Result<Vec<u8>> {
 
 <div class="note">
 
-We're using `OUT_DIR` on desktop to get to our `res` folder.
+在**桌面环境**里，我们是使用 `OUT_DIR` 环境变量来访问资源文件夹。
 
 </div>
 
-I'm using [reqwest](https://docs.rs/reqwest) to handle loading the requests when using WASM. Add the following to the Cargo.toml:
+在 WASM 环境里，我们使用了 [reqwest](https://docs.rs/reqwest) 来处理网络请求。需将以下依赖项添加到 Cargo.toml：
 
 ```toml
 [target.'cfg(target_arch = "wasm32")'.dependencies]
@@ -207,7 +208,7 @@ I'm using [reqwest](https://docs.rs/reqwest) to handle loading the requests when
 reqwest = { version = "0.11" }
 ```
 
-We'll also need to add the `Location` feature to `web-sys`:
+还需要将 `Location` 功能添加到 `web-sys` 的 features 数组里：
 
 ```toml
 web-sys = { version = "0.3", features = [
@@ -218,15 +219,14 @@ web-sys = { version = "0.3", features = [
 ]}
 ```
 
-Make sure to add `resources` as a module in `lib.rs`:
+确保 `resources` 作为模块已添加到 `lib.rs` 中：
 
 ```rust
 mod resources;
 ```
+## 使用 TOBJ 加载模型
 
-## Loading models with TOBJ
-
-We're going to use the [tobj](https://docs.rs/tobj/3.0/tobj/) library to load our model. Let's add it to our `Cargo.toml`.
+加载模型是使用的 [tobj](https://docs.rs/tobj/3.0/tobj/) **包**。让我们将其添加到 `Cargo.toml` 中：
 
 ```toml
 [dependencies]
@@ -236,7 +236,7 @@ tobj = { version = "3.2.1", features = [
 ]}
 ```
 
-Before we can load our model though, we need somewhere to put it.
+在加载模型之前，我们需要有一个**结构体**来存放模型数据：
 
 ```rust
 // model.rs
@@ -246,7 +246,7 @@ pub struct Model {
 }
 ```
 
-You'll notice that our `Model` struct has a `Vec` for the `meshes`, and for `materials`. This is important as our obj file can include multiple meshes and materials. We still need to create the `Mesh` and `Material` classes, so let's do that.
+`Model` 结构体中 `meshes` 和 `materials` 两个字段都是**动态数组**类型。这很重要，因为一个 obj 文件可以包含多个**网格**和**材质**。下面我们接着来创建 `Mesh` 和 `Material` 结构体：
 
 ```rust
 pub struct Material {
@@ -264,12 +264,11 @@ pub struct Mesh {
 }
 ```
 
-The `Material` is pretty simple, it's just the name and one texture. Our cube obj actually has 2 textures, but one is a normal map, and we'll get to those [later](../../intermediate/tutorial11-normals). The name is more for debugging purposes.
+`Material` 很简单，它主要有一个名称字段和一个纹理字段。名称更多是被用于程序调试。我们的立方体模型实际上有 2 个纹理，但其中一个是**法线贴图**，[稍后](../../intermediate/tutorial11-normals) 我们会介绍这些纹理。
 
-Speaking of textures, we'll need to add a function to load a `Texture` in `resources.rs`.
+说到纹理，我们还需在 `resources.rs` 中添加一个函数来加载 `Texture`：
 
 ```rust
-
 pub async fn load_texture(
     file_name: &str,
     device: &wgpu::Device,
@@ -280,11 +279,11 @@ pub async fn load_texture(
 }
 ```
 
-The `load_texture` method will be useful when we load the textures for our models, as `include_bytes!` requires that we know the name of the file at compile time which we can't really guarantee with model textures.
+`load_texture` 函数在为模型加载纹理会很有用，因为`include_bytes!` 宏要求我们在编译阶段就指定文件名称并加载纹理数据到构建的程序包内，而我们希望模型纹理能根据需要动态加载。
 
-`Mesh` holds a vertex buffer, an index buffer, and the number of indices in the mesh. We're using an `usize` for the material. This `usize` will be used to index the `materials` list when it comes time to draw.
+`Mesh` 包含一个顶点缓冲区、一个索引缓冲区和网格中的索引数，`material` 字段被定义为 `usize` 类型，它将用于在绘制时索引 `materials` 列表。
 
-With all that out of the way, we can get to loading our model.
+完成上面这些后，我们就可以加载模型了：
 
 ```rust
 pub async fn load_model(
@@ -381,9 +380,9 @@ pub async fn load_model(
 
 ```
 
-## Rendering a mesh
+## 渲染网格
 
-Before we can draw the model, we need to be able to draw an individual mesh. Let's create a trait called `DrawModel`, and implement it for `RenderPass`.
+在能够绘制完整模型之前，需要能绘制单个**网格**对象。让我们创建一个名为 `DrawModel` 的 trait，并为 `RenderPass` 实现它：
 
 ```rust
 // model.rs
@@ -415,7 +414,7 @@ where
 }
 ```
 
-We could have put these methods in an `impl Model`, but I felt it made more sense to have the `RenderPass` do all the rendering, as that's kind of its job. This does mean we have to import `DrawModel` when we go to render though.
+把这些函数放在 `impl Model` 中也是可以的，但我觉得让 `RenderPass` 做所有的渲染更加合理，因为这是它的工作。这也意味着在渲染时必须先导入 `DrawModel` trait：
 
 ```rust
 // lib.rs
@@ -428,7 +427,7 @@ use model::DrawModel;
 render_pass.draw_mesh_instanced(&self.obj_model.meshes[0], 0..self.instances.len() as u32);
 ```
 
-Before that though we need to actually load the model and save it to `State`. Put the following in `State::new()`.
+在开始绘制之前，需要实际加载模型并将其保存到 `State` 实例。请在 `State::new()` 中加入以下代码：
 
 ```rust
 let obj_model = resources::load_model(
@@ -439,7 +438,7 @@ let obj_model = resources::load_model(
 ).await.unwrap();
 ```
 
-Our new model is a bit bigger than our previous one so we're gonna need to adjust the spacing on our instances a bit.
+我们的新**模型**比之前的五角星要大一些，所以需要调整一下实例间的间距：
 
 ```rust
 const SPACE_BETWEEN: f32 = 3.0;
@@ -463,21 +462,21 @@ let instances = (0..NUM_INSTANCES_PER_ROW).flat_map(|z| {
 }).collect::<Vec<_>>();
 ```
 
-With all that done, you should get something like this.
+完成上面这些后，运行项目你就能看到如下渲染效果：
 
 ![cubes.png](./cubes.png)
 
-## Using the correct textures
+## 使用正确的纹理
 
-If you look at the texture files for our obj, you'll see that they don't match up to our obj. The texture we want to see is this one,
+我们目前看到的是还是之前的树纹理，它显然不是 obj 文件里的纹理。正确的纹理应该是下边这个：
 
 ![cube-diffuse.jpg](./cube-diffuse.jpg)
 
-but we're still getting our happy tree texture.
+这其中的原因很简单：尽管我们已经创建了**纹理**，但还没有创建一个**绑定组**来给 `RenderPass`，使用的仍然是 `diffuse_bind_group`。
 
-The reason for this is quite simple. Though we've created our textures we haven't created a bind group to give to the `RenderPass`. We're still using our old `diffuse_bind_group`. If we want to change that we need to use the bind group from our materials - the `bind_group` member of the `Material` struct.
+如果想修正这一点，我们就需要使用**材质**的**绑定组**--`Material` 结构体的 `bind_group` 字段。
 
-We're going to add a material parameter to `DrawModel`.
+现在，我们来给 `DrawModel` 添加一个材质参数：
 
 ```rust
 pub trait DrawModel<'a> {
@@ -516,7 +515,7 @@ where
 }
 ```
 
-We need to change the render code to reflect this.
+接下来修改渲染代码以使用正确的材质参数：
 
 ```rust
 render_pass.set_vertex_buffer(1, self.instance_buffer.slice(..));
@@ -528,13 +527,15 @@ let material = &self.obj_model.materials[mesh.material];
 render_pass.draw_mesh_instanced(mesh, material, 0..self.instances.len() as u32, &self.camera_bind_group);
 ```
 
-With all that in place, we should get the following.
+全部修改完毕，就能看到如下渲染效果：
 
 ![cubes-correct.png](./cubes-correct.png)
 
-## Rendering the entire model
+## 渲染完整模型
 
-Right now we are specifying the mesh and the material directly. This is useful if we want to draw a mesh with a different material. We're also not rendering other parts of the model (if we had some). Let's create a method for `DrawModel` that will draw all the parts of the model with their respective materials.
+上边的代码直接指定了**网格**和对应的**材质**。这对使用不同的材质绘制网格很有用。
+
+我们还没有渲染模型的其他部分，让我们为 `DrawModel` 新增一个函数，它将绘制模型的所有网格和对应的材质：
 
 ```rust
 pub trait DrawModel<'a> {
@@ -570,7 +571,7 @@ where
 }
 ```
 
-The code in `lib.rs` will change accordingly.
+`lib.rs` 中的代码也相应地修改一下以调用新的 `draw_model_instanced` 函数：
 
 ```rust
 render_pass.set_vertex_buffer(1, self.instance_buffer.slice(..));

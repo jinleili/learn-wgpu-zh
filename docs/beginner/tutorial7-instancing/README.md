@@ -1,37 +1,38 @@
-# Instancing
+# 实例化绘制
 
-Our scene right now is very simple: we have one object centered at (0,0,0). What if we wanted more objects? This is where instancing comes in.
+我们目前的场景非常简单：仅有一个以坐标 (0,0,0) 为中心的**对象**。如果想要绘制更多的对象呢？
+这，就是**实例化绘制**（Instancing）的用武之地了。
 
-Instancing allows us to draw the same object multiple times with different properties (position, orientation, size, color, etc.). There are multiple ways of doing instancing. One way would be to modify the uniform buffer to include these properties and then update it before we draw each instance of our object.
+**实例化绘制**允许我们以不同的属性（位置、方向、大小、颜色等）多次绘制同一个对象。有多种方式可以实现实例化绘制。其中一种方式是修改 uniform 缓冲区以加入这些属性，并在绘制每个对象实例之前更新它。
 
-We don't want to use this method for performance reasons. Updating the uniform buffer for each instance would require multiple buffer copies for each frame. On top of that, our method to update the uniform buffer currently requires us to create a new buffer to store the updated data. That's a lot of time wasted between draw calls.
+出于性能原因，我们不推荐这种方式。因为逐**实例**更新时，uniform **缓冲区**需要为每一帧复制多个缓冲区而消耗 GPU 内存带宽, 且随实例数增加的绘制命令更是会消耗 GPU 的执行时间。
 
-If we look at the parameters for the `draw_indexed` function [in the wgpu docs](https://docs.rs/wgpu/latest/wgpu/struct.RenderPass.html#method.draw_indexed), we can see a solution to our problem.
+如果查阅 [wgpu 文档](https://docs.rs/wgpu/latest/wgpu/struct.RenderPass.html#method.draw_indexed) 中 `draw_indexed` 函数的参数 ，我们可以看到解决这一问题的方式：
 
-```rust
+```rust=
 pub fn draw_indexed(
     &mut self,
     indices: Range<u32>,
     base_vertex: i32,
-    instances: Range<u32> // <-- This right here
+    instances: Range<u32> // <-- 在这里
 )
 ```
 
-The `instances` parameter takes a `Range<u32>`. This parameter tells the GPU how many copies, or instances, of the model we want to draw. Currently, we are specifying `0..1`, which instructs the GPU to draw our model once, and then stop. If we used `0..5`, our code would draw 5 instances.
+`instances` 参数是**范围**（`Range<u32>`）类型的值。它命令 GPU 绘制指定对象的多少个实例。目前我们指定的是`0..1`，它命令 GPU 绘制 1 个实例后停止。如果使用 `0..5`，我们的代码就绘制 5 个实例。
 
-The fact that `instances` is a `Range<u32>` may seem weird as using `1..2` for instances would still draw 1 instance of our object. Seems like it would be simpler to just use a `u32` right? The reason it's a range is that sometimes we don't want to draw **all** of our objects. Sometimes we want to draw a selection of them, because others are not in frame, or we are debugging and want to look at a particular set of instances.
+`instances` 的**范围**类型可能看起来很奇怪，因为使用 `1..2` 仍然是绘制 1 个实例。似乎直接使用 `u32` 类型会更简单，对吧？这里是**范围**类型的原因是：有时我们不想绘制出*所有*对象; 有时因为其他实例可能不该出现在这一**帧**中而只想绘制指定部分的实例; 又或者我们正在调试某组特定的实例。
 
-Ok, now we know how to draw multiple instances of an object, how do we tell wgpu what particular instance to draw? We are going to use something known as an instance buffer.
+好了，现在我们知道了如何绘制 1 个对象的多个实例，那么如何告诉 wgpu 要绘制哪些指定的实例呢？我们将要用到**实例缓冲区**（Instance Buffer）的概念。
 
-## The Instance Buffer
+## 实例缓冲区 
 
-We'll create an instance buffer in a similar way to how we create a uniform buffer. First, we'll create a struct called `Instance`.
+我们将以类似于创建 uniform 缓冲区的方式创建一个**实例缓冲区**。首先，声明一个名为 `Instance` 的结构体：
 
 ```rust
 // lib.rs
 // ...
 
-// NEW!
+// 新增!
 struct Instance {
     position: cgmath::Vector3<f32>,
     rotation: cgmath::Quaternion<f32>,
@@ -40,14 +41,14 @@ struct Instance {
 
 <div class="note">
 
-A `Quaternion` is a mathematical structure often used to represent rotation. The math behind them is beyond me (it involves imaginary numbers and 4D space) so I won't be covering them here. If you really want to dive into them [here's a Wolfram Alpha article](https://mathworld.wolfram.com/Quaternion.html).
+**四元数**（Quaternion） 是一种通常用来表示旋转的数学结构。这里不会介绍它背后的数学原理（涉及**虚数**和 4 维空间）。如果你想深入了解四元数，这里有一篇 [Wolfram Alpha](https://mathworld.wolfram.com/Quaternion.html) 的文章。
 
 </div>
 
-Using these values directly in the shader would be a pain as quaternions don't have a WGSL analog. I don't feel like writing the math in the shader, so we'll convert the `Instance` data into a matrix and store it into a struct called `InstanceRaw`.
+在**着色器**中直接使用这些值会有麻烦，因为 WGSL 里没有**四元数**的数据类型。我不想在着色器中做四元数运算，所以把 `Instance` 数据转换成了**矩阵**，并将其存储在一个名为 `InstanceRaw` 的结构体中：
 
 ```rust
-// NEW!
+// 新增!
 #[repr(C)]
 #[derive(Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
 struct InstanceRaw {
@@ -55,12 +56,12 @@ struct InstanceRaw {
 }
 ```
 
-This is the data that will go into the `wgpu::Buffer`. We keep these separate so that we can update the `Instance` as much as we want without needing to mess with matrices. We only need to update the raw data before we draw.
+这就是将要写入**缓冲区**的数据。我们拆分出 `InstanceRaw` 之后，就可以自由地更新 `Instance` 而无需涉及矩阵，因为 raw 数据只需要在绘制之前更新。
 
-Let's create a method on `Instance` to convert to `InstanceRaw`.
+让我们在 `Instance` 上创建一个函数来计算并返回 `InstanceRaw`：
 
 ```rust
-// NEW!
+// 新增!
 impl Instance {
     fn to_raw(&self) -> InstanceRaw {
         InstanceRaw {
@@ -70,7 +71,7 @@ impl Instance {
 }
 ```
 
-Now we need to add 2 fields to `State`: `instances`, and `instance_buffer`.
+现在需要给 `State` 添加两个字段：`instances` 和 `instance_buffer`：
 
 ```rust
 struct State {
@@ -79,22 +80,22 @@ struct State {
 }
 ```
 
-The `cgmath` crate uses traits to provide common mathematical methods across its structs such as `Vector3`, and these traits must be imported before these methods can be called.  For convenience, the `prelude` module within the crate provides the most common of these extension crates when it is imported.
+`cgmath` **包**使用 trait 来为 `Vector3` 等类型提供通用的数学函数，这些 trait 必须在相关函数被调用之前导入。为了方便起见，包内的 `prelude` 模块在导入时就会提供一些常用的扩展 trait。
 
-To import this prelude module, put this line near the top of `lib.rs`.
+要导入 prelude 模块，只需把下边这行代码放在 `lib.rs` 的顶部：
 
 ```rust
 use cgmath::prelude::*;
 ```
 
-We'll create the instances in `new()`. We'll use some constants to simplify things. We'll display our instances in 10 rows of 10, and they'll be spaced evenly apart.
+接下来在 `new()` 函数中创建实例数据，先定义几个**常量**用于简化代码：
 
 ```rust
 const NUM_INSTANCES_PER_ROW: u32 = 10;
 const INSTANCE_DISPLACEMENT: cgmath::Vector3<f32> = cgmath::Vector3::new(NUM_INSTANCES_PER_ROW as f32 * 0.5, 0.0, NUM_INSTANCES_PER_ROW as f32 * 0.5);
 ```
 
-Now we can create the actual instances.
+我们将创建一组 10 行 10 列空间排列均匀的实例数据，下边是具体代码：
 
 ```rust
 impl State {
@@ -105,8 +106,8 @@ impl State {
                 let position = cgmath::Vector3 { x: x as f32, y: 0.0, z: z as f32 } - INSTANCE_DISPLACEMENT;
 
                 let rotation = if position.is_zero() {
-                    // this is needed so an object at (0, 0, 0) won't get scaled to zero
-                    // as Quaternions can effect scale if they're not created correctly
+                    // 这一行特殊确保在坐标 (0, 0, 0) 处的对象不会被缩放到 0
+                    // 因为错误的四元数会影响到缩放
                     cgmath::Quaternion::from_axis_angle(cgmath::Vector3::unit_z(), cgmath::Deg(0.0))
                 } else {
                     cgmath::Quaternion::from_axis_angle(position.normalize(), cgmath::Deg(45.0))
@@ -122,7 +123,7 @@ impl State {
 }
 ```
 
-Now that we have our data, we can create the actual `instance_buffer`.
+现在数据已经有了，我们来创建实际的**实例缓冲区**：
 
 ```rust
 let instance_data = instances.iter().map(Instance::to_raw).collect::<Vec<_>>();
@@ -135,7 +136,7 @@ let instance_buffer = device.create_buffer_init(
 );
 ```
 
-We're going to need to create a new `VertexBufferLayout` for `InstanceRaw`.
+需要为 `InstanceRaw` 创建一个新的**顶点缓冲区布局**：
 
 ```rust
 impl InstanceRaw {
@@ -143,21 +144,19 @@ impl InstanceRaw {
         use std::mem;
         wgpu::VertexBufferLayout {
             array_stride: mem::size_of::<InstanceRaw>() as wgpu::BufferAddress,
-            // We need to switch from using a step mode of Vertex to Instance
-            // This means that our shaders will only change to use the next
-            // instance when the shader starts processing a new instance
+            // step_mode 的值需要从 Vertex 改为 Instance
+            // 这意味着只有着色器开始处理一次新实例化绘制时，才会使用下一个实例数据
             step_mode: wgpu::VertexStepMode::Instance,
             attributes: &[
                 wgpu::VertexAttribute {
                     offset: 0,
-                    // While our vertex shader only uses locations 0, and 1 now, in later tutorials we'll
-                    // be using 2, 3, and 4, for Vertex. We'll start at slot 5 not conflict with them later
+                    // 虽然顶点着色器现在只使用了插槽 0 和 1，但在后面的教程中将会使用 2、3 和 4
+                    // 此处从插槽 5 开始，确保与后面的教程不会有冲突
                     shader_location: 5,
                     format: wgpu::VertexFormat::Float32x4,
                 },
-                // A mat4 takes up 4 vertex slots as it is technically 4 vec4s. We need to define a slot
-                // for each vec4. We'll have to reassemble the mat4 in
-                // the shader.
+                // mat4 从技术的角度来看是由 4 个 vec4 构成，占用 4 个插槽。
+                // 我们需要为每个 vec4 定义一个插槽，然后在着色器中重新组装出 mat4。
                 wgpu::VertexAttribute {
                     offset: mem::size_of::<[f32; 4]>() as wgpu::BufferAddress,
                     shader_location: 6,
@@ -179,53 +178,53 @@ impl InstanceRaw {
 }
 ```
 
-We need to add this descriptor to the render pipeline so that we can use it when we render.
+我们需要将此**布局**添加到渲染**管线**中，以便在渲染时可以使用它：
 
 ```rust
 let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
     // ...
     vertex: wgpu::VertexState {
         // ...
-        // UPDATED!
+        // 更新!
         buffers: &[Vertex::desc(), InstanceRaw::desc()],
     },
     // ...
 });
 ```
 
-Don't forget to return our new variables!
+别忘了要返回新增的变量：
 
 ```rust
 Self {
     // ...
-    // NEW!
+    // 新添加!
     instances,
     instance_buffer,
 }
 ```
 
-The last change we need to make is in the `render()` method. We need to bind our `instance_buffer` and we need to change the range we're using in `draw_indexed()` to include the number of instances.
+最后，在 `render()` 函数中绑定 `instance_buffer`，并修改 `draw_indexed()` 绘制命令以使用我们实际的实例数：
 
 ```rust
 render_pass.set_pipeline(&self.render_pipeline);
 render_pass.set_bind_group(0, &self.diffuse_bind_group, &[]);
 render_pass.set_bind_group(1, &self.camera_bind_group, &[]);
 render_pass.set_vertex_buffer(0, self.vertex_buffer.slice(..));
-// NEW!
+// 新添加!
 render_pass.set_vertex_buffer(1, self.instance_buffer.slice(..));
 render_pass.set_index_buffer(self.index_buffer.slice(..), wgpu::IndexFormat::Uint16);
 
-// UPDATED!
+// 更新!
 render_pass.draw_indexed(0..self.num_indices, 0, 0..self.instances.len() as _);
 ```
 
 <div class="warning">
 
-Make sure if you add new instances to the `Vec`, that you recreate the `instance_buffer` and as well as `camera_bind_group`, otherwise your new instances won't show up correctly.
+当你向**数组**添加新的实例时，请确保重新创建了 `instance_buffer` 和 `camera_bind_group`，否则新实例不会正确显示。
 
 </div>
 
-We need to reference the parts of our new matrix in `shader.wgsl` so that we can use it for our instances. Add the following to the top of `shader.wgsl`.
+`shader.wgsl` 中需要引入我们新增的**矩阵**，这样才能在实例中使用它。请在 `shader.wgsl` 文件的顶部添加以下代码：
 
 ```wgsl
 struct InstanceInput {
@@ -236,7 +235,7 @@ struct InstanceInput {
 };
 ```
 
-We need to reassemble the matrix before we can use it.
+在使用之前，我们需要将**矩阵**重新组装出来：
 
 ```wgsl
 @vertex
@@ -254,7 +253,7 @@ fn vs_main(
 }
 ```
 
-We'll apply the `model_matrix` before we apply `camera_uniform.view_proj`. We do this because the `camera_uniform.view_proj` changes the coordinate system from `world space` to `camera space`. Our `model_matrix` is a `world space` transformation, so we don't want to be in `camera space` when using it.
+我们得在应用 `camera_uniform.view_proj` 之前先应用 `model_matrix`。因为 `view_proj` 将坐标系从**世界空间**（World Space）变换为**相机空间**（Camera Space），而 `model_matrix` 是一个**世界空间**的变换，所以在使用它时不希望处于**相机空间**。
 
 ```wgsl
 @vertex
@@ -270,14 +269,13 @@ fn vs_main(
 }
 ```
 
-With all that done, we should have a forest of trees!
+完成后，应该就能看到一片树林了！
 
 ![./forest.png](./forest.png)
 
-## Challenge
+## 挑战
 
-Modify the position and/or rotation of the instances every frame.
-
+逐帧变更实例的位置 和/或 旋转弧度。
 
 <WasmExample example="tutorial7_instancing"></WasmExample>
 

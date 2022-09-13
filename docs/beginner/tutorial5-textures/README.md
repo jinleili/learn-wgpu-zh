@@ -1,16 +1,16 @@
 # 纹理和绑定组
 
-目前为止，我们一直在绘制简单的图形。当然我们可以只用三角形来做游戏，而试图绘制高精度的物体又会极大地限制能运行我们游戏的设备。不过，我们可以用 **纹理** 来解决此问题。
+目前为止，我们一直在绘制简单的图形。当然可以只用三角形来做游戏，而试图绘制高精度的**对象**又会极大地限制能运行我们游戏的设备。不过，可以用 **纹理** 来解决此问题。
 
-纹理（Textures）是叠加在三角形网格上的图像，使其看起来有丰富的细节。有多种类型的纹理，如法线贴图、凹凸贴图、镜面贴图和漫反射贴图。我们将讨论漫反射贴图，简单来说就是颜色纹理。
+**纹理**（Textures）是叠加在三角形**网格**（Mesh）上的图像，使其看起来有丰富的细节。有多种类型的纹理，如法线贴图（Normal Maps，也就是法线纹理）、凹凸贴图（Bump Maps）、镜面贴图和漫反射贴图。下边将讨论漫反射贴图，简单来说也就是颜色纹理。
 
 ## 加载图像文件
 
-要把一个图像映射到网格上，首先是需要有一个图像文件。让我们使用下边这棵快乐的小树吧。
+要把一个图像**映射**到对象**网格**上，首先是需要有一个图像文件。就使用下边这棵快乐的小树吧：
 
 ![一棵快乐的树](./happy-tree.png)
 
-我们将使用 [image 包](https://docs.rs/image) 来加载这棵树。让我们把它添加到依赖项中：
+我们将使用 [image 包](https://docs.rs/image) 来加载这棵树。先把它添加到依赖项中：
 
 ```toml
 [dependencies.image]
@@ -27,7 +27,7 @@ features = ["png", "jpeg"]
 
 </div>
 
-在 `State` 的 `new()` 函数中，在配置了 `surface` 之后添加以下代码：
+在 `State` 的 `new()` 函数中，于 `surface.configure()` 之后添加以下代码：
 
 ```rust
 surface.configure(&device, &config);
@@ -41,7 +41,7 @@ use image::GenericImageView;
 let dimensions = diffuse_image.dimensions();
 ```
 
-此处我们从图像文件中读取字节，并将其加载到 image 对象中，然后转换为 rgba **动态数组**。我们还保存了图像的尺寸信息以便在创建实际纹理时使用。
+此处代码从图像文件中读取**字节**，并将其加载到 image 对象中，然后转换为 rgba **动态数组**。我们还保存了图像的尺寸信息以便在创建实际纹理时使用。
 
 现在我们来创建纹理：
 
@@ -70,7 +70,7 @@ let diffuse_texture = device.create_texture(
 
 ## 填充数据到纹理中
 
-`Texture` 结构体没有方法可以直接与数据交互。但我们可以使用之前创建的命令队列上的 `write_texture` 命令来填充纹理数据。让我们来看看具体代码：
+`Texture` 结构体没有函数可以直接与数据交互。但我们可以使用之前创建的**命令队列**上的 `write_texture` 命令来填充纹理数据。下边是具体代码：
 
 ```rust
 queue.write_texture(
@@ -95,7 +95,7 @@ queue.write_texture(
 
 <div class="note">
 
-填充纹理数据的经典方式是将像素数据先复制到一个缓冲区，然后再从缓冲区复制到纹理中。使用 `write_texture` 更有效率，因为它少用了一个缓冲区 -- 不过这里还是介绍一下，以防读者有需要。
+填充纹理数据的经典方式是将像素数据先复制到一个缓冲区，然后再从缓冲区复制到纹理中。使用 `write_texture` 更有效率，因为它少用了一个缓冲区 -- 不过这里还是介绍一下，以防读者有需要：
 
 ```rust
 let buffer = device.create_buffer_init(
@@ -129,13 +129,15 @@ encoder.copy_buffer_to_texture(
 queue.submit(std::iter::once(encoder.finish()));
 ```
 
-值得注意的是 `bytes_per_row` 字段，这个值需要是 256 的倍数。查看 [gif教程](../showcase/gifs/#how-do-we-make-the-frames) 以了解更多细节。
+值得注意的是 `bytes_per_row` 字段，这个值需要是 256 的倍数。查看 [gif 教程](../showcase/gifs/#how-do-we-make-the-frames) 以了解更多细节。
 
 </div>
 
 ## 纹理视图与采样器
 
-现在纹理中已经有了数据，我们需要一种方法来使用它。这就是纹理视图（`TextureView`）和采样器（`Sampler`）的用处。纹理视图描述纹理及其关联的元数据。采样器控制纹理如何被 *采样*。采样工作类似于 GIMP/Photoshop 中的滴管工具。我们的程序在纹理上提供一个坐标（被称为 *纹理坐标* ），然后采样器根据纹理和一些内部参数返回相应的颜色。
+现在纹理中已经有了数据，我们需要一种方法来使用它。这，就是**纹理视图**（`TextureView`）和**采样器**（`Sampler`）的用处。
+
+**纹理视图**描述纹理及其关联的元数据。**采样器**控制纹理如何被 *采样*。采样工作类似于 GIMP/Photoshop 中的滴管工具。我们的程序在纹理上提供一个坐标（被称为 *纹理坐标* ），然后采样器根据纹理和一些内部参数返回相应的颜色。
 
 现在我们来定义 `diffuse_texture_view` 和 `diffuse_sampler`：
 
@@ -153,7 +155,7 @@ let diffuse_sampler = device.create_sampler(&wgpu::SamplerDescriptor {
 });
 ```
 
-`address_mode_*` 参数指定了如果采样器得到的纹理坐标超出了纹理边界时该如何处理。我们有几个选项可供选择：
+`address_mode_*` 参数指定了如果**采样器**得到的纹理坐标超出了纹理边界时该如何处理。我们有几个选项可供选择：
 
 * `ClampToEdge`：任何在纹理外的纹理坐标将返回离纹理边缘最近的像素的颜色。
 * `Repeat`。当纹理坐标超过纹理的尺寸时，纹理将重复。
@@ -161,7 +163,7 @@ let diffuse_sampler = device.create_sampler(&wgpu::SamplerDescriptor {
 
 ![address_mode.png](./address_mode.png)
 
-`mag_filter` 与 `min_filter` 字段描述了当采样足迹小于或大于一个纹素（texel）时该如何处理。当场景中的贴图远离或靠近 camera 时，这两个字段的设置通常会有效果。
+`mag_filter` 与 `min_filter` 字段描述了当采样足迹小于或大于一个纹素（Texel）时该如何处理。当场景中的贴图远离或靠近 camera 时，这两个字段的设置通常会有效果。
 
 有 2 个选项:
 * `Linear`：在每个维度中选择两个纹素，并在它们的值之间返回线性插值。
@@ -175,7 +177,7 @@ Mipmaps 是一个复杂的话题，需要在未来单独写一个章节。现在
 
 ## 绑定组
 
-绑定组（`BindGroup`）描述了一组资源以及如何通过着色器访问它们。我们先来使用 `BindGroupLayout` 创建一个绑定组。
+**绑定组**（`BindGroup`）描述了一组资源以及如何通过着色器访问它们。我们先来创建一个**绑定组布局**（`BindGroupLayout`）：
 
 ```rust
 let texture_bind_group_layout =
@@ -204,9 +206,9 @@ let texture_bind_group_layout =
             });
 ```
 
-我们的 `texture_bind_group_layout` 有两个条目：一个是绑定到 0 资源槽的采样纹理，另一个是绑定到 1 资源槽的采样器。这两个绑定只对由`visibility` 字段指定的片元着色器可见。这个字段的可选值是 `NONE`、`VERTEX`、`FRAGMENT` 或 `COMPUTE` 的任意按位或（`|`）组合。
+`texture_bind_group_layout` 有两个条目：一个是绑定到 0 资源槽的**纹理**，另一个是绑定到 1 资源槽的**采样器**。这两个绑定只对由 `visibility` 字段指定的片元着色器可见。这个字段的可选值是 `NONE`、`VERTEX`、`FRAGMENT` 或 `COMPUTE` 的任意按位或（`|`）组合。
 
-有了 `texture_bind_group_layout`，我们现在可以创建绑定组了：
+现在使用**绑定组布局**（`texture_bind_group_layout`）来创建绑定组：
 
 ```rust
 let diffuse_bind_group = device.create_bind_group(
@@ -227,9 +229,9 @@ let diffuse_bind_group = device.create_bind_group(
 );
 ```
 
-看着这个，你可能会有一点似曾相识的感觉! 这是因为绑定组（`BindGroup`）是 `BindGroupLayout` 的一个更具体的声明。它们分开的原因是，只要是共享同一个 `BindGroupLayout` 的绑定组，就能在运行时实时切换。创建的每个纹理和采样器都需要添加到一个绑定组中。为了达成目的，我们将为每个纹理创建一个新的绑定组。
+看着这个，你可能会有一点似曾相识的感觉! 这是因为**绑定组**是**绑定组布局**的一个更具体的声明。它们分开的原因是，只要是共享同一个绑定组布局的绑定组，就能在运行时实时切换。创建的每个纹理和采样器都需要添加到一个绑定组中。为了达成目的，我们将为每个纹理创建一个新的绑定组。
 
-现在有了 `diffuse_bind_group`，让我们把它添加到 `State` 结构体中。
+让我们把 `diffuse_bind_group` 添加到 `State` 结构体中：
 
 ```rust
 struct State {
@@ -246,22 +248,14 @@ struct State {
 }
 ```
 
-确保我们在 `new()` 函数中返回这个字段。
+确保我们在 `new()` 函数中返回这个字段：
 
 ```rust
 impl State {
     async fn new() -> Self {
         // ...
         Self {
-            surface,
-            device,
-            queue,
-            config,
-            size,
-            render_pipeline,
-            vertex_buffer,
-            index_buffer,
-            num_indices,
+            // ...
             // 新添加!
             diffuse_bind_group,
         }
@@ -269,7 +263,7 @@ impl State {
 }
 ```
 
-现在已经有了绑定组，我们可以在 `render()` 函数中使用它了。
+现在，我们来在 `render()` 函数中使用绑定组:
 
 ```rust
 // render()
@@ -282,9 +276,9 @@ render_pass.set_index_buffer(self.index_buffer.slice(..), wgpu::IndexFormat::Uin
 render_pass.draw_indexed(0..self.num_indices, 0, 0..1);
 ```
 
-## PipelineLayout
+## 管线布局
 
-还记得我们在 [管线](zh/learn-wgpu/beginner/tutorial3-pipeline#how-do-we-use-the-shaders) 章节创建的 `PipelineLayout` 吗？现在我们终于可以使用它了! PipelineLayout "包含一个管线可以使用的 `BindGroupLayout` 的列表。修改 `render_pipeline_layout` 以使用我们的 `texture_bind_group_layout`。
+还记得在[管线](/learn-wgpu-zh/beginner/tutorial3-pipeline#how-do-we-use-the-shaders)章节创建的**管线布局**（`PipelineLayout`）吗？现在我们终于可以使用它了! 管线布局包含一个管线可以使用的**绑定组布局**的列表。修改 `render_pipeline_layout` 以使用 `texture_bind_group_layout`：
 
 ```rust
 async fn new(...) {
@@ -292,7 +286,7 @@ async fn new(...) {
     let render_pipeline_layout = device.create_pipeline_layout(
         &wgpu::PipelineLayoutDescriptor {
             label: Some("Render Pipeline Layout"),
-            bind_group_layouts: &[&texture_bind_group_layout], // NEW!
+            bind_group_layouts: &[&texture_bind_group_layout], // 新添加!
             push_constant_ranges: &[],
         }
     );
@@ -301,18 +295,18 @@ async fn new(...) {
 ```
 
 ## 修改 VERTICES 常量
-对于 `Vertex` 的定义有几处需要改变。到目前为止，我们一直在使用 `color` 属性来设置网格颜色。现在我们要用 `tex_coords` 代替 `color`，这些坐标会被传递给采样器以获取纹素的颜色。
+对于 `Vertex` 的定义有几处需要修改。到目前为止，我们一直在使用 `color` 字段来设置网格颜色。现在我们要用 `tex_coords` 代替 `color`，这些坐标会被传递给采样器以获取**纹素**（Texel）的颜色。
 
-由于 `tex_coords` 是二维的，我们将修改这个字段的类型为两个浮点数的数组。
+由于 `tex_coords` 是二维的，需要修改这个字段的类型为两个浮点数的数组。
 
-我们先来修改 `Vertex` 结构体。
+先来修改 `Vertex` 结构体：
 
 ```rust
 #[repr(C)]
 #[derive(Copy, Clone, Debug, bytemuck::Pod, bytemuck::Zeroable)]
 struct Vertex {
     position: [f32; 3],
-    tex_coords: [f32; 2], // NEW!
+    tex_coords: [f32; 2], // 新添加!
 }
 ```
 
@@ -342,7 +336,7 @@ impl Vertex {
 }
 ```
 
-最后，我们需要修改 `VERTICES`。用以下代码替换现有的定义：
+最后，需要修改 `VERTICES`，用以下代码替换现有的定义：
 
 ```rust
 // Changed
@@ -357,7 +351,7 @@ const VERTICES: &[Vertex] = &[
 
 ## 修改着色器
 
-有了新的 `Vertex` 结构体，现在是时候更新着色器了。我们首先需要 `tex_coords` 传递给顶点着色器，然后将它们用于片段着色器，以便从采样器获得最终的颜色。让我们从顶点着色器开始：
+有了新的 `Vertex` 结构体，现在是时候更新着色器了。首先需要将 `tex_coords` 传递给顶点着色器，然后将它们用于片段着色器，以便从采样器获得最终的颜色。让我们从顶点着色器开始：
 
 ```wgsl
 // Vertex shader
@@ -383,7 +377,7 @@ fn vs_main(
 }
 ```
 
-现在顶点着色器输出了 `tex_coords`，我们需要改变片元着色器来接收它们。有了这些坐标，我们终于可以使用采样器从纹理中获取纹素的颜色了。
+现在顶点着色器输出了 `tex_coords`，我们需要改变片元着色器来接收它们。有了这些坐标，就可以使用采样器从纹理中获取**纹素**的颜色了:
 
 ```wgsl
 // 片元着色器
@@ -399,23 +393,23 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
 }
 ```
 
-变量 `t_diffuse` 和 `s_diffuse` 就是所谓的 uniforms。我们将在 [相机部分](zh/beginner/tutorial6-uniforms/) 中进一步讨论 uniforms。现在，我们需要知道的是，`@group(x)` 对应于 `set_bind_group()` 中的第一个参数，`@binding(x)` 与我们创建 `BindGroupLayout` 和 `BindGroup` 时指定的 `binding` 值对应。
+变量 `t_diffuse` 和 `s_diffuse` 就是所谓的 uniforms。我们将在 [相机部分](/learn-wgpu-zh/beginner/tutorial6-uniforms/) 中进一步讨论 uniforms。现在，我们需要知道的是，`@group(x)` 对应于 `set_bind_group()` 中的第一个参数，`@binding(x)` 与我们创建**绑定组布局**和**绑定组**时指定的 `binding` 值对应。
 
 ## 渲染结果
 
-如果现在运行我们的程序，会得到以下渲染结果：
+现在运行我们的程序，将得到如下渲染效果：
 
 ![an upside down tree on a hexagon](./upside-down.png)
 
-这很奇怪，我们的树是颠倒的! 这是因为 wgpu 的世界坐标的 Y 轴朝上，而纹理坐标的 Y 轴朝下。换句话说，纹理坐标中的（0，0）对应于图像的左上方，而（1，1）是右下方。
+很奇怪，我们的树是颠倒的! 这是因为 wgpu 的世界坐标的 Y 轴朝上，而纹理坐标的 Y 轴朝下。换句话说，纹理坐标中的（0，0）对应于图像的左上方，而（1，1）是右下方：
 
 ![happy-tree-uv-coords.png](./happy-tree-uv-coords.png)
 
-我们可以通过将每个纹理坐标的 y 坐标替换为 `1 - y` 来得到纹理的正确朝向。
+我们可以通过将每个纹理坐标的 y 坐标替换为 `1 - y` 来得到纹理的正确朝向：
 
 ```rust
 const VERTICES: &[Vertex] = &[
-    // Changed
+    // 修改后的
     Vertex { position: [-0.0868241, 0.49240386, 0.0], tex_coords: [0.4131759, 0.00759614], }, // A
     Vertex { position: [-0.49513406, 0.06958647, 0.0], tex_coords: [0.0048659444, 0.43041354], }, // B
     Vertex { position: [-0.21918549, -0.44939706, 0.0], tex_coords: [0.28081453, 0.949397], }, // C
@@ -550,7 +544,7 @@ let diffuse_texture = texture::Texture::from_bytes(&device, &queue, diffuse_byte
 // 到 `let texture_bind_group_layout = ...` 行为止的所有代码现在都可以移除了。
 ```
 
-我们仍然需要单独存储绑定组，因为纹理无须知道绑定组的布局。修改创建 `diffuse_bind_group` 的过程以使用`diffuse_texture` 的 `view` 和 `sampler` 字段:
+我们仍然需要单独存储**绑定组**，因为纹理无须知道绑定组的布局。修改创建 `diffuse_bind_group` 的过程以使用`diffuse_texture` 的 `view` 和 `sampler` 字段:
 
 ```rust
 let diffuse_bind_group = device.create_bind_group(
@@ -571,7 +565,7 @@ let diffuse_bind_group = device.create_bind_group(
 );
 ```
 
-最后，我们需要更新 `State` 中的字段以使用全新 `Texture` 结构体，在未来的教程中还会用到它。
+最后，需要更新 `State` 中的字段以使用全新 `Texture` 结构体，在未来的教程中还会用到它：
 
 ```rust
 struct State {
@@ -595,7 +589,7 @@ impl State {
 }
 ```
  
-经过这些整理，代码的工作方式还和以前一样，但我们现在有了一个更便利的方式来创建纹理。
+经过上边的整理，代码的工作方式还和以前一样，但我们现在有了一个更便利的方式来创建纹理。
 
 ## 挑战
 

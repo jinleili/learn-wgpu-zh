@@ -39,10 +39,10 @@ impl State {
 }
 ```
 
-我省略了 `State` 的字段概述，在后续章节中解释这些函数背后的代码时，它们才会变得更有意义。
+此处省略了 `State` 的字段概述，在后续章节中解释这些函数背后的代码时，它们才会变得更有意义。
 
 ## 实例化 State
-这段代码很简单，但还是值得好好讲讲。
+这段代码很简单，但还是值得好好讲讲：
 
 ```rust
 impl State {
@@ -65,13 +65,13 @@ impl State {
 
 ### GPU 实例与适配器
 
-GPU **实例**（instance）是使用 wgpu 时所需创建的第一个对象，其主要用途是创建**适配器**（Adapter）和**展示平面**（Surface）。
+**GPU 实例**（Instance）是使用 wgpu 时所需创建的第一个对象，其主要用途是创建**适配器**（Adapter）和**展示平面**（Surface）。
 
-**适配器**（adapter）是指向 WebGPU 实现的实例，一个系统上往往存在多个 WebGPU 实现实例。也就是说，**适配器**是固定在特定图形后端的。假如你使用的是 Windows 且有 2 个显卡（集成显卡 + 独立显卡），则至少有 4 个**适配器**可供使用，分别有 2 个固定在 Vulkan 和 DirectX 后端。我们可以用它获取关联显卡的信息，例如显卡名称与其所适配到的后端图形驱动等。稍后我们会用它来创建**逻辑设备**和**命令队列**。现在先讨论一下 `RequestAdapterOptions` 所涉及的字段。
+**适配器**（Adapter）是指向 WebGPU API 实现的实例，一个系统上往往存在多个 WebGPU API 实现实例。也就是说，**适配器**是固定在特定图形后端的。假如你使用的是 Windows 且有 2 个显卡（集成显卡 + 独立显卡），则至少有 4 个**适配器**可供使用，分别有 2 个固定在 Vulkan 和 DirectX 后端。我们可以用它获取关联显卡的信息，例如显卡名称与其所适配到的后端图形驱动等。稍后我们会用它来创建**逻辑设备**和**命令队列**。现在先讨论一下 `RequestAdapterOptions` 所涉及的字段。
 
 * `power_preference` 枚举有两个可选项：`LowPower` 和 `HighPerformance`。 `LowPower` 对应偏向于高电池续航的适配器（如集成显卡上的 WebGPU 实现实例），`HighPerformance` 对应高功耗高性能的适配器（如独立显卡上的WebGPU 实现实例）。一旦不存在符合 `HighPerformance` 选项的适配器，wgpu 就会选择 `LowPower`。
-* `compatible_surface` 字段告诉 wgpu 找到与所传入的**展示平面**（surface）兼容的适配器。
-* `force_fallback_adapter` 强制 wgpu 选择一个能在所有硬件上工作的适配器。这通常意味着渲染后端将使用一个**软渲染**系统，而非 GPU 这样的硬件。
+* `compatible_surface` 字段告诉 wgpu 找到与所传入的**展示平面**兼容的适配器。
+* `force_fallback_adapter` 强制 wgpu 选择一个能在所有系统上工作的适配器，这通常意味着渲染后端将使用一个**软渲染**系统，而非 GPU 这样的硬件。需要注意的是：WebGPU 标准并没有要求所有系统上都必须实现 [fallback adapter](https://gpuweb.github.io/gpuweb/#fallback-adapter) 。
 
 <div class="note">
 
@@ -89,34 +89,34 @@ let adapter = instance
 ```
 
 
-更多可用于优化**适配器**搜索的函数，请 [查看文档](https://docs.rs/wgpu/latest/wgpu/struct.Adapter.html)。
+更多可用于优化**适配器**搜索的函数，请[查看文档](https://docs.rs/wgpu/latest/wgpu/struct.Adapter.html)。
 
 </div>
 
 
 ### 展示平面
 
-**展示平面**（Surface）是我们绘制到窗口的部分，需要它来将绘制展示到屏幕上。窗口程序需要实现 [raw-window-handle](https://crates.io/crates/raw-window-handle) **包**的 `HasRawWindowHandle`  trait 来创建**展示平面**。所幸 winit 的 `Window` 符合这个要求。我们还需要展示平面来请求**适配器** (adapter)。
+**展示平面**（Surface）是我们绘制到窗口的部分，需要它来将绘制结果展示（或者说，呈现）到屏幕上。窗口程序需要实现 [raw-window-handle](https://crates.io/crates/raw-window-handle) **包**的 `HasRawWindowHandle`  trait 来创建展示平面。所幸 winit 的 `Window` 符合这个要求。我们还需要展示平面来请求**适配器**。
 
 ### 逻辑设备与命令队列
 
 让我们使用**适配器**来创建**逻辑设备** (Device) 和**命令队列** (Queue)。
 
 ```rust
-        let (device, queue) = adapter.request_device(
-            &wgpu::DeviceDescriptor {
-                features: wgpu::Features::empty(),
-                // WebGL 后端并不支持 wgpu 的所有功能，
-                // 所以如果要以 web 为构建目标，就必须禁用一些功能。
-                limits: if cfg!(target_arch = "wasm32") {
-                    wgpu::Limits::downlevel_webgl2_defaults()
-                } else {
-                    wgpu::Limits::default()
-                },
-                label: None,
+    let (device, queue) = adapter.request_device(
+        &wgpu::DeviceDescriptor {
+            features: wgpu::Features::empty(),
+            // WebGL 后端并不支持 wgpu 的所有功能，
+            // 所以如果要以 web 为构建目标，就必须禁用一些功能。
+            limits: if cfg!(target_arch = "wasm32") {
+                wgpu::Limits::downlevel_webgl2_defaults()
+            } else {
+                wgpu::Limits::default()
             },
-            None, // 追踪 API 调用路径
-        ).await.unwrap();
+            label: None,
+        },
+        None, // 追踪 API 调用路径
+    ).await.unwrap();
 ```
 
 `DeviceDescriptor`上的 `features` 字段允许我们指定想要的扩展功能。对于这个简单的例子，我决定不使用任何额外的功能。
@@ -125,23 +125,23 @@ let adapter = instance
 
 显卡会限制可用的扩展功能，所以如果想使用某些功能，你可能需要限制支持的设备或提供变通函数。
 
-你可以使用 `adapter.features()` 或 `device.features()` 获取设备支持的扩展功能列表。
+可以使用 `adapter.features()` 或 `device.features()` 获取设备支持的扩展功能列表。
 
-你可以查看完整的 [扩展功能列表](https://docs.rs/wgpu/latest/wgpu/struct.Features.html)。
+如果有需要，请查看完整的[扩展功能列表](https://docs.rs/wgpu/latest/wgpu/struct.Features.html)。
 
 </div>
 
-`limits` 字段描述了创建某些类型的资源的限制。我们在本教程中使用默认值，所以可以支持大多数设备。你可以 [在这里](https://docs.rs/wgpu/0.13.1/wgpu/struct.Limits.html) 查看限制列表。
+`limits` 字段描述了创建某些类型的资源的限制。我们在本教程中使用默认值，所以可以支持大多数设备。你可以[在这里](https://docs.rs/wgpu/0.13.1/wgpu/struct.Limits.html)查看限制列表。
 
 ```rust
-        let config = wgpu::SurfaceConfiguration {
-            usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
-            format: surface.get_supported_formats(&adapter)[0],
-            width: size.width,
-            height: size.height,
-            present_mode: wgpu::PresentMode::Fifo,
-        };
-        surface.configure(&device, &config);
+    let config = wgpu::SurfaceConfiguration {
+        usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
+        format: surface.get_supported_formats(&adapter)[0],
+        width: size.width,
+        height: size.height,
+        present_mode: wgpu::PresentMode::Fifo,
+    };
+    surface.configure(&device, &config);
 ```
 
 这里我们为**展示平面**定义了一个配置。它将定义展示平面如何创建其底层的 `SurfaceTexture`。讲 `render` 函数时我们再具体讨论 `SurfaceTexture`，现在先谈谈此配置的字段。
@@ -158,7 +158,7 @@ let adapter = instance
 
 </div>
 
-`present_mode` 指定的 `wgpu::PresentMode` 枚举值决定了**展示平面**如何与**显示设备**同步。我们选择的`PresentMode::Fifo` 指定了显示设备的刷新率做为渲染的帧速率，这本质上就是**垂直同步**（VSync），所有平台都得支持这种**呈现模式**（PresentMode）。你可以在 [文档](https://docs.rs/wgpu/latest/wgpu/enum.PresentMode.html) 中查看所有的模式。
+`present_mode` 指定的 `wgpu::PresentMode` 枚举值决定了**展示平面**如何与**显示设备**同步。我们选择的`PresentMode::Fifo` 指定了显示设备的刷新率做为渲染的帧速率，这本质上就是**垂直同步**（VSync），所有平台都得支持这种**呈现模式**（PresentMode）。你可以在[文档](https://docs.rs/wgpu/latest/wgpu/enum.PresentMode.html)中查看所有的模式。
 
 <div class="note">
 
@@ -247,7 +247,7 @@ web-sys = { version = "0.3", features = [
 
 ## 调整展示平面的宽高
 
-如果想在我们的应用程序中支持调整**展示平面**的宽高，将需要在每次窗口的大小改变时重新配置 `surface`。这就是我们存储物理 `size` 和用于配置 `surface` 的 `config` 的原因。有了这些，实现 resize 函数就非常简单了。
+如果要在应用程序中支持调整**展示平面**的宽高，将需要在每次窗口的大小改变时重新配置 `surface`。这就是我们存储物理 `size` 和用于配置 `surface` 的 `config` 的原因。有了这些，实现 resize 函数就非常简单了。
 
 ```rust
 // impl State
@@ -334,7 +334,7 @@ event_loop.run(move |event, _, control_flow| {
 
 ## 更新
 
-我们还没有任何东西需要更新，所以令这个函数为空。
+目前还没有任何东西需要更新，所以令这个函数为空。
 
 ```rust
 fn update(&mut self) {
@@ -346,7 +346,7 @@ fn update(&mut self) {
 
 ## 渲染
 
-这里就是奇迹发生的地方。首先，我们需要获取一个**帧**对象以供渲染。
+这里就是奇迹发生的地方。首先，我们需要获取一个**帧**（Frame）对象以供渲染：
 
 ```rust
 // impl State
@@ -358,16 +358,16 @@ fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
 `get_current_texture` 函数会等待 `surface` 提供一个新的 `SurfaceTexture`。我们将它存储在 `output` 变量中以便后续使用。
 
 ```rust
-    let view = output.texture.create_view(&wgpu::TextureViewDescriptor::default());
+let view = output.texture.create_view(&wgpu::TextureViewDescriptor::default());
 ```
 这一行创建了一个默认设置的**纹理视图**（TextureView），渲染代码需要利用**纹理视图**来与**纹理**交互。
 
 我们还需要创建一个**命令编码器**（CommandEncoder）来记录实际的**命令**发送给 GPU。大多数现代图形框架希望命令在被发送到 GPU 之前存储在一个**命令缓冲区**中。命令编码器创建了一个命令缓冲区，然后我们可以将其发送给 GPU。
 
 ```rust
-    let mut encoder = self.device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
-        label: Some("Render Encoder"),
-    });
+let mut encoder = self.device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
+    label: Some("Render Encoder"),
+});
 ```
 
 现在可以开始执行期盼已久的**清屏**（用统一的颜色填充指定渲染区域）了。我们需要使用 `encoder` 来创建 `RenderPass`。`RenderPass` 拥有所有实际绘制的**命令**。创建 `RenderPass` 的代码嵌套层级有点深，所以在谈论它之前，我先把代码全部复制到这里：
@@ -451,7 +451,7 @@ event_loop.run(move |event, _, control_flow| {
 }
 ```
 
-`RenderPassDescriptor` 只有三个字段: `label`, `color_attachments` 和 `depth_stencil_attachment``。color_attachments` 描述了要将颜色绘制到哪里。我们使用之前创建的**纹理视图**来确保渲染到屏幕上。
+`RenderPassDescriptor` 只有三个字段: `label`, `color_attachments` 和 `depth_stencil_attachment`。`color_attachments` 描述了要将颜色绘制到哪里。我们使用之前创建的**纹理视图**来确保渲染到屏幕上。
 
 <div class="note">
 
@@ -477,7 +477,7 @@ Some(wgpu::RenderPassColorAttachment {
 })
 ```
 
-`RenderPassColorAttachment` 有一个 `view` 字段，用于通知 wgpu 将颜色保存到什么**纹理**。这里我们指定使用 `surface.get_current_texture()` 创建的 `view`，这意味着向此**附件**（attachment）上绘制的任何颜色都会被绘制到屏幕上。
+`RenderPassColorAttachment` 有一个 `view` 字段，用于通知 wgpu 将颜色保存到什么**纹理**。这里我们指定使用 `surface.get_current_texture()` 创建的 `view`，这意味着向此**附件**（Attachment）上绘制的任何颜色都会被绘制到屏幕上。
 
 `resolve_target` 是接收**多重采样**解析输出的纹理。除非启用了多重采样, 否则不需要设置它，保留为 `None` 即可。
 
@@ -485,7 +485,7 @@ Some(wgpu::RenderPassColorAttachment {
 
 <div class="note">
 
-当屏幕被场景**对象**完全遮挡，那么不**清屏**是很常见的。但如果你的场景没有覆盖整个屏幕，就会出现类似下边的情况。
+当屏幕被场景**对象**完全遮挡，那么不**清屏**是很常见的。但如果你的场景没有覆盖整个屏幕，就会出现类似下边的情况：
 
 ![./no-clear.png](./no-clear.png)
 

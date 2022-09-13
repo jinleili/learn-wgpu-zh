@@ -2,7 +2,7 @@
 
 虽然我们的场景是 3D 的，但它们看起来像是平的，没有深度感，所以没能体现模型的三维特性。这是因为我们的模型没有考虑光线和对象表面之间的相互作用，无论如何摆放都会保持着相同的着色。
 
-如果想修正这一点，就需要在我们的场景中添加灯光。
+如果想修正这一点，就需要在我们的场景中添加**光源**。
 
 在现实世界中，光源发出的光子会四处反射，最后进入我们的眼睛。
 当观察对象上的一点时，我们所看到的颜色取决于多个光源和多个反射表面之间的多次相互作用。
@@ -369,7 +369,7 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
 }
 ```
 
-现在能在 `render()` 函数中手动实现灯光的绘制代码了，但是为了保持我们之前开发的绘制模式，让我们来创建一个名为 `DrawLight` 的新 trait：
+现在能在 `render()` 函数中手动实现光源的绘制代码了，但是为了保持我们之前开发的绘制模式，让我们来创建一个名为 `DrawLight` 的新 trait：
 
 ```rust
 // model.rs
@@ -526,12 +526,12 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
 
 理想的**漫反射**（Diffuse Reflection）**表面**将光线向所有方向均匀地散射，因此，这样的表面在所有的观察者看来亮度都一样。不过，反射出去的光线强度依赖于材质以及光源相对于表面的位置。
 
-还记得我们的模型中包含的**法向量**（normal vector）吗？现在终于要使用它们了。
-**法线**（也就是法向量）代表一个表面的朝向。通过计算片元的法线和它指向光源的向量之间的夹角，可以得到该片元**漫反射**强度值。我们使用点积来计算向量之间夹角的余弦值：
+还记得我们的模型中包含的**法向量**（Normal Vector）吗？现在终于要使用它们了。
+**法向量**（也叫做法线）代表一个表面的朝向。通过计算片元的法向量和它指向光源的向量之间的夹角，可以得到该片元**漫反射**强度值。我们使用点积来计算向量之间夹角的余弦值：
 
 ![./normal_diagram.png](./normal_diagram.png)
 
-如果**法线**和光源方向向量的点积为 1.0，则表示当前片元与光源对齐，将反射光线的全部强度。值为 0 或更低表示表面垂直于或远离光源，因此反射强度小。
+如果**法向量**和光源方向向量的点积为 1.0，则表示当前片元与光源对齐，将反射光线的全部强度。值为 0 或更低表示表面垂直于或远离光源，因此反射强度小。
 
 我们将**法向量**加入到 `shader.wgsl` 中：
 
@@ -599,7 +599,7 @@ let result = (ambient_color + diffuse_color) * object_color.xyz;
 
 ## 法线矩阵
 
-还记得我说过将顶点**法线**直接传递给片元着色器是错误的吗？我们通过只在场景中保留一个在 y 轴上旋转了 180 度的立方体来探索这一点：
+还记得我说过将顶点**法向量**直接传递给片元着色器是错误的吗？我们通过只在场景中保留一个在 y 轴上旋转了 180 度的立方体来探索这一点：
 
 ```rust
 const NUM_INSTANCES_PER_ROW: u32 = 1;
@@ -618,11 +618,11 @@ let result = (diffuse_color) * object_color.xyz;
 
 ![./diffuse_wrong.png](./diffuse_wrong.png)
 
-这显然是错误的，因为光线照亮了立方体的背光侧。这是因为**法线**并没有随对象一起旋转，因此无论对象转向哪个方向，法线的方向始终没变：
+这显然是错误的，因为光线照亮了立方体的背光侧。这是因为**法向量**并没有随对象一起旋转，因此无论对象转向哪个方向，法向量的方向始终没变：
 
 ![./normal_not_rotated.png](./normal_not_rotated.png)
 
-我们将使用**法线矩阵**（normal matrix）将**法线**变换为正确的方向。需要注意的是，法线表示一个方向，它应该是整个计算过程中的单位向量。
+我们将使用**法线矩阵**（Normal Matrix）将**法向量**变换为正确的方向。需要注意的是，法向量表示一个方向，它应该是整个计算过程中的单位向量。
 
 虽然可以在顶点着色器中计算**法线矩阵**，但这涉及到反转 `model_matrix`，而 WGSL 实际上没有矩阵求逆的函数，必须自己编写此代码。更重要的是，矩阵求逆的计算在着色器里实际上非常昂贵，特别是每个顶点都要计算一遍。
 
@@ -659,7 +659,7 @@ impl model::Vertex for InstanceRaw {
                     shader_location: 5,
                     format: wgpu::VertexFormat::Float32x4,
                 },
-                // mat4 从技术的角度上看是由 4 个 vec4 构成，占用 4 个插槽。
+                // mat4 从技术的角度来看是由 4 个 vec4 构成，占用 4 个插槽。
                 // 我们需要为每个 vec4 定义一个插槽，然后在着色器中重新组装出 mat4。
                 wgpu::VertexAttribute {
                     offset: mem::size_of::<[f32; 4]>() as wgpu::BufferAddress,
@@ -795,9 +795,9 @@ out.world_normal = (model_matrix * vec4<f32>(model.normal, 0.0)).xyz;
 ```
 
 他利用的是这样一个事实：即用一个 4x4 矩阵乘以一个 w 分量为 0 的向量时，只有旋转和缩放将被应用于向量。
-不过你需要对这个向量进行**归一化**处理，因为法线必须是单位长度的。
+不过你需要对这个向量进行**归一化**处理，因为法向量必须是单位长度的。
 
-模型矩阵的缩放因子*必须*是统一的才能适用。否则产生的法线将是倾斜于表面的，如下图片所示：
+模型矩阵的缩放因子*必须*是统一的才能适用。否则产生的法向量将是倾斜于表面的，如下图片所示：
 
 ![./normal-scale-issue.png](./normal-scale-issue.png)
 
@@ -872,7 +872,7 @@ let camera_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupL
 });
 ```
 
-计算从片元位置到摄像机的方向**向量**，并用此向量和法线来计算反射方向 `reflect_dir`：
+计算从片元位置到摄像机的方向**向量**，并用此向量和法向量来计算反射方向 `reflect_dir`：
 
 ```wgsl
 // shader.wgsl
@@ -903,9 +903,9 @@ let result = (ambient_color + diffuse_color + specular_color) * object_color.xyz
 ![./specular_lighting.png](./specular_lighting.png)
 
 ## 半程向量
-所谓的**半程向量**（halfway vector）是一个单位向量，它正好在视图方向和光源方向的中间。
+所谓的**半程向量**（Halfway Vector）是一个单位向量，它正好在视图方向和光源方向的中间。
 
-到目前为止，我们实际上只实现了 Blinn-Phong 的 Phong 部分。Phong 反射模型很好用，但在 [某些情况下](https://learnopengl.com/Advanced-Lighting/Advanced-Lighting) 会产生 bug。
+到目前为止，我们实际上只实现了 Blinn-Phong 的 Phong 部分。Phong 反射模型很好用，但在[某些情况下](https://learnopengl.com/Advanced-Lighting/Advanced-Lighting)会产生 bug。
 Blinn-Phong 的 Blinn 部分来自于这样的事实：如果把 `view_dir` 和 `light_dir` 加在一起，对结果进行**归一化**处理后得到一个**半程向量**，然后再与 `normal` 求点积，就会得到大致相同的渲染结果，且不会有使用反射方向 `reflect_dir` 会产生的问题。
 
 ```wgsl
