@@ -1,8 +1,8 @@
 <template>
     <div class="auto-github-link">
-        <a :href="link" target="_blank" rel="noopener noreferrer">{{ this.$lang == "en-US" ? "Check out the code!" :
-                "查看源码！"
-        }}</a>
+        <a :href="link" target="_blank" rel="noopener noreferrer">
+            "查看源码！"
+        </a>
         <OutboundLink />
     </div>
 </template>

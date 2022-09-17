@@ -1,26 +1,21 @@
-# Procedural Terrain
+# 程序地形
 
-Up to this point we've been working in an empty void. This is great when you want to get your shading code just right, but most applications will want to fill the screen more interesting things. You could aproach this in a variety of ways. You could create a bunch of models in Blender and load them into the scene. This method works great if you have some decent artistic skills, and some patience. I'm lacking in both those departments, so let's write some code to make something that looks nice.
+到目前为止，我们一直在一个空旷的场景里渲染模型。如果只是想测试着色代码，这是非常好的，但大多数应用程序会想让屏幕上填充更多有趣的元素。
+你可以用各种方法来处理此问题，比如，在 Blender 中创建一堆模型，然后把它们加载到场景中。如果你有一些像样的艺术技巧和一些耐心，这是很有效的方法。我在这两个方面都很欠缺，所以让我们通过代码来制作一些看起来不错的东西。
 
-As the name of this article suggests we're going to create a terrain. Now the traditional method to create a terrain mesh is to use a pre-generated noise texture and sampling it to get the height values at each point in the mesh. This is a perfectly valid way to approach this, but I opted to generate the noise using a Compute Shader directly. Let's get started!
+正如本文的名字所示，我们将创建一个**地形**（Terrain）。现在，创建地形网格的经典方法是使用预先生成的**噪声纹理**（Noise Texture），并对其进行采样，以获得网格中每个点的高度值。这是一个相当有效的方法，但我选择了直接使用计算着色器来生成噪声。让我们开始吧!
 
-## Compute Shaders
+## 计算着色器
 
-A compute shader is simply a shader that allows you to leverage the GPU's parallel computing power for arbitrary tasks. You can use them for anything from creating a texture to running a neural network. I'll get more into how they work in a bit, but for now suffice to say that we're going to use them to create the vertex and index buffers for our terrain.
+**计算着色器**（Compute Shader）允许你利用 GPU 的并行计算能力完成任意任务。虽然它也可以用于渲染任务，但通常用于与绘制三角形和像素没有直接关系的任务，比如，物理模拟、图像滤镜、创建程序纹理、运行神经网络等等。我稍后会详细介绍它们的工作原理，但现在只需用它们来为我们的地形创建顶点和索引缓冲区。
 
-<div class="note">
+## 噪声函数
 
-As of writing, compute shaders are still experimental on the web. You can enable them on beta versions of browsers such as Chrome Canary and Firefox Nightly. Because of this I'll cover a method to use a fragment shader to compute the vertex and index buffers after we cover the compute shader method.
-
-</div>
-
-## Noise Functions
-
-Lets start with the shader code for the compute shader. First we'll create the noise functions, then we'll create the compute shader's entry function. Create a new file called `terrain.wgsl`. Then add the following:
+让我们从计算着色器的代码开始，创建一个名为 `terrain.wgsl` 的新文件，在文件内先实现一个**噪声函数**（Noise Function），然后再创建着色器的入口函数。具体代码如下：
 
 ```wgsl
 // ============================
-// Terrain Generation
+// 地形生成
 // ============================
 
 // https://gist.github.com/munrocket/236ed5ba7e409b8bdf1ff6eca5dcdc39
@@ -53,17 +48,18 @@ fn snoise2(v: vec2<f32>) -> f32 {
 
 ```
 
-Some of my readers may recognize this as an implementation of Simplex noise (specifically OpenSimplex noise). I'll admit to not really understanding the math behind OpenSimplex noise. The basics of it are that it's similar to Perlin Noise, but instead of a square grid it's a hexagonal grid which removes some of the artifacts that generating the noise on a square grid gets you. Again I'm not an expert on this, so to summarize: `permute3()` takes a `vec3` and returns a pseudorandom `vec3`, `snoise2()` takes a `vec2` and returns a floating point number between [-1, 1]. If you want to learn more about noise functions, check out [this article from The Book of Shaders](https://thebookofshaders.com/11/). The code's in GLSL, but the concepts are the same.
+部分读者可能已经认出这是 Simplex 噪声（特别是 OpenSimplex 噪声）的一个实现。我承认没有真正理解 OpenSimplex 噪声背后的数学原理。它的基本原理类似于 Perlin 噪声，但不是一个正方形网格，而是六边形网格，这消除了在正方形网格上产生噪声的一些伪影。我也不是这方面的专家，所以总结一下：`permute3()` 接收一个 `vec3` 并返回一个伪随机的 `vec3`，`snoise2()` 接收一个 `vec2` 并返回一个 [-1, 1] 之间的浮点数。如果你想了解更多关于噪声函数的信息，请查看[这篇文章来自 The Book of Shaders](https://thebookofshaders.com/11/)。代码是用 GLSL 编写的，但概念是一样的。
 
-While we can use the output of `snoise` directly to generate the terrains height values. The result of this tends to be very smooth, which may be what you want, but doesn't look very organic as you can see below:
+从下面的渲染结果可以看出，直接使用 `snoise` 的输出来生成地形的高度值，地表往往过于平滑。虽然这可能就是你想要的，但它看起来不像是自然界的地形。
 
 ![smooth terrain](./figure_no-fbm.png)
 
-To make the terrain a bit rougher we're going to use a technique called [Fractal Brownian Motion](https://thebookofshaders.com/13/). This technique works by sampling the noise function multiple times cutting the strength in half each time while doubling the frequency of the noise. This means that the overall shape of the terrain will be fairly smooth, but it will have sharper details. You can see what that will look like below:
+为了使地形更加粗糙，我们将使用一种叫做[分形布朗运动](https://thebookofshaders.com/13/)的技术。这种技术的工作原理是对噪声函数进行多次采样，每次将强度减半，同时将噪声的频率提高一倍。
+这意味着地形的整体形状保持平滑，同时拥有更清晰的细节，得到的效果将是下面这样:
 
 ![more organic terrain](./figure_fbm.png)
 
-The code for this function is actually quite simple:
+这个函数的代码其实很简单：
 
 ```wgsl
 fn fbm(p: vec2<f32>) -> f32 {
@@ -85,16 +81,16 @@ fn fbm(p: vec2<f32>) -> f32 {
 }
 ```
 
-Let's go over some this a bit:
+让我们稍微回顾一下：
 
-- The `NUM_OCTAVES` constant is the number of levels of noise you want. More octaves will add more texture to the terrain mesh, but you'll get diminishing returns at higher levels. I find that 5 is a good number.
-- We multiple `p` by `0.01` to "zoom in" on the noise function. This is because as our mesh will be 1x1 quads and the simplex noise function resembles white noise when stepping by one each time. You can see what that looks like to use `p` directly: ![spiky terrain](./figure_spiky.png)
-- The `a` variable is the amplitude of the noise at the given noise level.
-- `shift` and `rot` are used to reduce artifacts in the generated noise. One such artiface is that at `0,0` the output of the `snoise` will always be the same regardless of how much you scale `p`.
+- `NUM_OCTAVES` 常数设定噪声级别。更高的级别将给地形网格增加更多的细节，但级别越高，得到的回报将递减，我发现 5 是一个好数字。
+- `p` 乘以 `0.01` 用来“放大”噪声函数。这是因为我们的网格将是 1x1 的四边形，而 simplex 噪声函数在每步进一次时类似于白噪声。我们来看到直接使用 `p` 是什么样子的：![spiky terrain](./figure_spiky.png)
+- `a` 变量是在给定的噪声级别下的噪声振幅。
+- `shift` 和 `rot` 用于减少生成的噪声中的失真。其中一个失真现象是，在 `0,0` 处，无论你如何缩放 `p`，`snoise` 的输出都是一样的。
 
-## Generating the mesh
+## 生成网格
 
-To generate the terrain mesh we're going to need to pass some information into the shader:
+为了生成地形网格，需要向着色器传递一些信息：
 
 ```wgsl
 struct ChunkData {
@@ -121,11 +117,11 @@ struct IndexBuffer {
 @group(0)@binding(2) var<storage, read_write> indices: IndexBuffer;
 ```
 
-Our shader will expect a `uniform` buffer that includes the size of the quad grid in `chunk_size`, the `chunk_corner` that our noise algorithm should start at, and `min_max_height` of the terrain.
+我们传递给色器的 `uniform` 缓冲区，其中包括四边形网格的大小 `chunk_size`，噪声算法的起始点 `chunk_corner` ，以及地形的 `min_max_height`。
 
-The vertex and index buffers are passed in as `storage` buffers with `read_write` enabled. We'll create the actual buffers in Rust and bind them when we execute the compute shader.
+顶点和索引缓冲区作为 `storage` 缓冲区传入，并启用 `read_write` 访问模式来支持数据的读取与写入。我们将在 Rust 中创建这些缓冲区，并在执行计算着色器时将其绑定。
 
-The next part of the shader will be the functions that generate a point on the mesh, and a vertex at that point:
+着色器的下一个部分是在网格上生成一个点，以及该点的一个顶点：
 
 ```wgsl
 fn terrain_point(p: vec2<f32>) -> vec3<f32> {
@@ -153,19 +149,19 @@ fn terrain_vertex(p: vec2<f32>) -> Vertex {
 }
 ```
 
-The `terrain_point` function takes an XZ point on the terrain and returns a `vec3` with the `y` value between the min and max height values.
+`terrain_point` 函数接收地形上的一个 XZ 点，并返回一个 `vec3`，其中 `y` 值在最小和最大高度之间。
 
-`terrain_vertex` uses `terrain_point` to get it's position and also to compute of the normal of the surface by sampling 4 nearby points and uses them to compute the normal using some [cross products](https://www.khanacademy.org/math/multivariable-calculus/thinking-about-multivariable-function/x786f2022:vectors-and-matrices/a/cross-products-mvc).
+`terrain_vertex` 使用 `terrain_point` 来获得它的位置，同时通过对附近的 4 个点进行采样，并使用[叉积](https://www.khanacademy.org/math/multivariable-calculus/thinking-about-multivariable-function/x786f2022:vectors-and-matrices/a/cross-products-mvc)来计算顶点法线。
 
 <div class="note">
 
-You'll notice that our `Vertex` struct doesn't include a texture coordinate. We could easily create texture coordinates by using the XZ coords of the vertices and having the texture sampler mirror the texture on the x and y axes, but heightmaps tend to have stretching when textured in this way.
+你应该注意到了 `Vertex` 结构体不包括纹理坐标字段。我们可以通过使用顶点的 XZ 坐标，并让纹理采样器在 X 和 Y 轴上镜像纹理来轻松地创建纹理坐标，但以这种方式进行纹理采样时，高度图往往会有拉伸现象。
 
-We'll cover a method called triplanar mapping to texture the terrain in a future tutorial. For now we'll just use a procedural texture that will create in the fragment shader we use to render the terrain.
+我们将在未来的教程中介绍一种叫做三平面映射的方法来给地形贴图。但现在我们只使用一个程序纹理，它将在渲染地形的片元着色器中被创建。
 
 </div>
 
-Now that we can get a vertex on the terrains surface we can fill our vertex and index buffers with actual data. We'll create a `gen_terrain()` function that will be the entry point for our compute shader:
+现在我们可以在地形表面获得一个实际的顶点数据，并用来填充顶点和索引缓冲区了。我们将创建一个 `gen_terrain()` 函数作为计算着色器的入口：
 
 ```wgsl
 @compute @workgroup_size(64)
@@ -176,19 +172,20 @@ fn gen_terrain(
 }
 ```
 
-We specify that `gen_terrain` is a compute shader entry point by annotating it with `stage(compute)`.
+`@stage(compute)` 注释指定了 `gen_terrain` 是一个计算着色器入口。
 
-The `workgroup_size()` is the number of workers that the GPU can allocate per `workgroup`. We specify the number of workers when we execute the compute shader. There are technically 3 parameters to this as work groups are a 3d grid, but if you don't specify them they default to 1. In other words `workgroup_size(64)` is equivalent to `workgroup_size(64, 1, 1)`.
+[`workgroup_size()`](https://www.w3.org/TR/WGSL/#attribute-workgroup_size) 指定 GPU 可以为每个**工作组**（workgroup）分配的一组调用，这一组调用会同时执行着色器入口函数，并共享对工作组地址空间中着色器变量的访问。
+我们在编写计算着色器的时候指定工作组的大小，它有 3 个维度的参数，因为工作组是一个 3D 网格，但如果不指定它们，则默认为 1。 换句话说，`workgroup_size(64)` 相当于 `workgroup_size(64, 1, 1)`。
 
-The `global_invocation_id` is a 3d index. This may seem weird, but you can think of work groups as a 3d grid of work groups. These workgroups have an internal grid of workers. The `global_invocation_id` is the id of the current worker relative to all the other works.
+`global_invocation_id` 是一个 3D 索引。这可能看起来很奇怪，但你可以把工作组看作是工作组的 3D 网格。这些工作组有一个内部的工作者网格。`global_invocation_id` 就是相对于所有其他工作组的当前工作者的 id。
 
-Visually the workgroup grid would look something like this:
+从视觉上看，工作组的网格看起来会是这样的：
 
 ![work group grid](./figure_work-groups.jpg)
 
 <div class="note">
 
-It may be helpful to think of a compute shader as a function that is run in a bunch of nested for loops, but each loop is executed in parallel. It would look something like this:
+把计算着色器想象成一个在一堆嵌套的 for 循环中运行的函数，但每个循环都是并行执行的，这可能会有帮助。它看起来会像这样：
 
 ```
 for wgx in num_workgroups.x:
@@ -203,7 +200,7 @@ for wgx in num_workgroups.x:
 
 ```
 
-If you want learn more about workgroups [check out the docs](https://www.w3.org/TR/WGSL/#compute-shader-workgroups).
+如果想了解更多关于工作组的信息[请查看 WGSL 文档](https://www.w3.org/TR/WGSL/#compute-shader-workgroups)。
 
 </div>
 

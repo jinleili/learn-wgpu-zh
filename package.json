@@ -22,6 +22,7 @@
     "package.json": "sort-package-json"
   },
   "devDependencies": {
+    "@vuepress/bundler-webpack": "^2.0.0-beta.51",
     "@vuepress/plugin-back-to-top": "^2.0.0-beta.51",
     "@vuepress/plugin-register-components": "^2.0.0-beta.51",
     "vuepress": "next"

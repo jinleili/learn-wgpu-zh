@@ -1,25 +1,25 @@
 # 光照
 
-虽然我们的场景是 3D 的，但它们看起来像是平的，没有深度感，所以没能体现模型的三维特性。这是因为我们的模型没有考虑光线和对象表面之间的相互作用，无论如何摆放都会保持着相同的着色。
+虽然我们的场景是 3D 的，但它们看起来像是平的，**对象**表面缺乏现实光照环境中的明暗变化，所以无法体现模型的三维特性。这是因为我们的模型没有考虑光线和对象表面之间的相互作用，无论如何摆放都会保持着相同的着色。
 
-如果想修正这一点，就需要在我们的场景中添加**光源**。
+如果想修正这一点，就需要在我们的场景中添加**光照**（Lighting）。
 
 在现实世界中，光源发出的光子会四处反射，最后进入我们的眼睛。
 当观察对象上的一点时，我们所看到的颜色取决于多个光源和多个反射表面之间的多次相互作用。
 
-在计算机图形学领域，为单个光子建模的计算成本极高。一个 100 瓦的灯泡每秒钟发出大约 3.27×10^20 个光子，再试想一下太阳每秒发出的光子的数量级。为了解决这个问题，我们要用数学来作弊。
+在计算机图形学领域，为单个光子建模的计算成本极高。一个 100 瓦的灯泡每秒钟发出大约 3.27×10^20 个光子，再试想一下太阳每秒发出的光子的数量级。为了解决这个问题，我们要用数学来 **“作弊”**（也就是**模拟**。严格来说，这不是作弊，计算机图形学里有这么一句名言："If it looks right, it is right.", 意思就是，如果它看起来是对的，那么它就是对的）。
 
 我们来看看计算机图形学里常用的几个**光照**模型。
 
 ## 光线/路径追踪
 
-**光线/路径追踪**（Ray/path tracing）以虛拟摄像机模型为基础，但是对于每条与某个三角形相交的投影线，在计算光源对交点处明暗值的直接贡献之前，还要确定是否有一个或者多个光源能够照射到这个交点。
+**光线/路径追踪**（Ray/Path tracing）以虛拟摄像机模型为基础，但是对于每条与某个三角形相交的投影线，在计算光源对交点处明暗值的直接贡献之前，还要确定是否有一个或者多个光源能够照射到这个交点。
 
 它是最接近光的真实工作方式的模型，所以我觉得必须提到它。但这是一个*高级*话题，我们不会在这里深入讨论。
 
 ## Blinn-Phong 反射模型
 
-对于大多数**实时**（real-time）应用来说，**光线/路径追踪**的计算成本十在太高了（尽管这种情况已经开始改变），所以通常使用一种更有效的，精度较低的 [Phong 反射模型](https://en.wikipedia.org/wiki/Phong_shading) 来解决光照问题。它考虑了光线与材质的 3 种相互作用：环境光反射、漫反射和镜面反射。我们将学习 [Blinn-Phong 反射模型](https://en.wikipedia.org/wiki/Blinn%E2%80%93Phong_reflection_model)，它在镜面反射的计算中作弊以加快速度。
+对于大多数**实时**（real-time）应用来说，**光线/路径追踪**的计算成本十在太高了（尽管这种情况已经开始改变），所以通常使用一种更有效的，精度较低的 [Phong 反射模型](https://en.wikipedia.org/wiki/Phong_shading) 来解决光照问题。它考虑了光线与材质的 3 种相互作用：环境光反射、漫反射和镜面反射。我们将学习 [Blinn-Phong 反射模型](https://en.wikipedia.org/wiki/Blinn%E2%80%93Phong_reflection_model)，它能加速镜面反射的计算。
 
 在开始学习之前，需要在我们的场景中添加一个光源：
 
@@ -29,14 +29,14 @@
 #[derive(Debug, Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
 struct LightUniform {
     position: [f32; 3],
-    // 由于 uniform 需要字段按 16 字节对齐，我们需要在这里使用一个填充字段
+    // 由于 Uniform 需要字段按 16 字节对齐，我们需要在这里使用一个填充字段
     _padding: u32,
     color: [f32; 3],
     _padding2: u32,
 }
 ```
 
-`LightUniform` 代表空间中的一个彩色点光源。我们只使用纯白色的光，但不同颜色的光也是允许的。
+`LightUniform` 代表空间中的一个彩色点光源。虽然通常是使用纯白色的光，但使用其它颜色的光也是可以的。
 
 
 <div class="note">
@@ -49,7 +49,7 @@ struct LightUniform {
 
 </div>
 
-接下来，创建一个 uniform 缓冲区来存储我们的光源：
+接下来，创建一个 Uniform 缓冲区来存储我们的光源：
 
 ```rust
 let light_uniform = LightUniform {
@@ -69,7 +69,7 @@ let light_buffer = device.create_buffer_init(
 );
 ```
 
-别忘记把 `light_uniform` 和 `light_buffer` 添加到 `State`。之后，我们需要为光源创建一个绑定组的**布局**及**绑定组**：
+别忘记把 `light_uniform` 和 `light_buffer` 添加到 `State`。之后，我们为光源创建一个绑定组的**布局**及**绑定组**：
 
 ```rust
 let light_bind_group_layout =
@@ -109,7 +109,7 @@ let render_pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayout
 });
 ```
 
-让我们也在 `update()` 函数中更新光源的位置，这样就可以看到**对象**在不同角度下的光照效果：
+在 `update()` 函数中更新光源的位置，这样便能看到**对象**在不同角度下的光照效果：
 
 ```rust
 // 更新光源
@@ -125,9 +125,9 @@ self.queue.write_buffer(&self.light_buffer, 0, bytemuck::cast_slice(&[self.light
 
 ## 查看光源
 
-出于调试的目的，如果能够查看**光源**的位置，以确保场景的**光照**效果是正确的，那就太好了。
+出于调试的目的，如果能够查看**光源**本身的位置，以确保场景的**光照**效果是正确的，那就太好了。
 
-尽管可以直接调整现有的**渲染管线**来绘制光源，但这可能会有碍代码的维护。所以我们把创建渲染管线的代码提取到一个叫做 `create_render_pipeline()` 的新函数中：
+尽管可以直接调整现有的**渲染管线**来绘制光源，但这可能不利于代码的维护。所以我们把创建渲染管线的代码提取到一个叫做 `create_render_pipeline()` 的新函数中：
 
 ```rust
 fn create_render_pipeline(
@@ -326,7 +326,7 @@ let light_render_pipeline = {
 
 ```wgsl
 // light.wgsl
-// Vertex shader
+// 顶点着色器
 
 struct Camera {
     view_proj: mat4x4<f32>,
@@ -361,7 +361,7 @@ fn vs_main(
     return out;
 }
 
-// Fragment shader
+// 片元着色器
 
 @fragment
 fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
@@ -369,7 +369,7 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
 }
 ```
 
-现在能在 `render()` 函数中手动实现光源的绘制代码了，但是为了保持我们之前开发的绘制模式，让我们来创建一个名为 `DrawLight` 的新 trait：
+现在就能在 `render()` 函数中手动实现光源的绘制代码了，但是为了保持之前开发的绘制模式，让我们来创建一个名为 `DrawLight` 的新 trait：
 
 ```rust
 // model.rs
@@ -452,7 +452,7 @@ where
 }
 ```
 
-最后，在我们的渲染通道中加入灯源的渲染：
+最后，在渲染通道中加入光源的渲染：
 
 ```rust
 impl State {
@@ -485,12 +485,12 @@ impl State {
 
 ## 环境光反射
 
-现实世界中，光线在进入我们的眼睛之前往往在物体表面之间经历了多次反射。这就是为什么你能看见阴影区域的东西。在计算上建立这种互动的模型是很昂贵的，所以需要作弊。
+现实世界中，光线在进入我们的眼睛之前往往在物体表面之间经历了多次**反射**。这就是为什么你能看见阴影区域的东西。在计算机上实现这种互动模型很昂贵，所以需要“作弊”（模拟）。
 
-**环境光反射**（Ambient Reflection）定义了对象表面所有点的环境光强度相同，代表从场景的其他部分反射过来的光照亮我们的**对象**。
-环境光反射值 = 片元的颜色 * 环境光颜色 * 环境光强度。
+**环境光反射**（Ambient Reflection）定义了对象表面所有点的环境光**强度**相同，代表从场景的其他部分反射过来的光照亮我们的**对象**。
+环境光反射值 = 光源颜色 * 环境光强度 * 片元的颜色。
 
-请在 `shader.wgsl` 中的**纹理** uniform 之下添加以下代码：
+请在 `shader.wgsl` 中的**纹理** Uniform 之下添加以下代码：
 
 ```wgsl
 struct Light {
@@ -501,7 +501,7 @@ struct Light {
 var<uniform> light: Light;
 ```
 
-然后更新我们的主着色器代码来计算和使用环境光的色值：
+然后更新片元色器代码来计算和使用环境光的色值：
 
 ```wgsl
 @fragment
@@ -518,16 +518,16 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
 }
 ```
 
-完成上面的修改后，我们应该能得到如下渲染效果：
+完成上面的修改后，我们将得到如下渲染效果：
 
 ![./ambient_lighting.png](./ambient_lighting.png)
 
 ## 漫反射
 
-理想的**漫反射**（Diffuse Reflection）**表面**将光线向所有方向均匀地散射，因此，这样的表面在所有的观察者看来亮度都一样。不过，反射出去的光线强度依赖于材质以及光源相对于表面的位置。
+理想的**漫反射**（Diffuse Reflection）**表面**将光线向所有方向均匀地散射，因此，这样的表面在所有的观察者看来亮度都一样。不过，反射出去的光线强度依赖于**材质**以及光源相对于表面的位置。
 
 还记得我们的模型中包含的**法向量**（Normal Vector）吗？现在终于要使用它们了。
-**法向量**（也叫做法线）代表一个表面的朝向。通过计算片元的法向量和它指向光源的向量之间的夹角，可以得到该片元**漫反射**强度值。我们使用点积来计算向量之间夹角的余弦值：
+**法向量**（也叫做法线）代表一个表面的朝向。通过计算**片元**的法向量和它指向光源的向量之间的夹角，可以得到该片元**漫反射**强度值。我们使用点积来计算向量之间夹角的**余弦**值：
 
 ![./normal_diagram.png](./normal_diagram.png)
 
@@ -543,7 +543,7 @@ struct VertexInput {
 };
 ```
 
-接着定义该值以及顶点的位置能传递给片元着色器：
+接着定义该值以及顶点的位置来传递给片元着色器：
 
 ```wgsl
 struct VertexOutput {
@@ -554,7 +554,7 @@ struct VertexOutput {
 };
 ```
 
-我们先按原样传递正常值。这是错误的，但我们稍后会修复它：
+我们先按原样传递法向量的值。这是错误的，稍后会修复它：
 
 ```wgsl
 @vertex
@@ -578,7 +578,7 @@ fn vs_main(
 }
 ```
 
-现在我们可以进行实际的计算了。在 `ambient_color` 和 `result` 代码行之间，添加如下代码：
+现在来进行实际的计算，在 `ambient_color` 和 `result` 代码行之间，添加如下代码：
 
 ```wgsl
 let light_dir = normalize(light.position - in.world_position);
@@ -608,7 +608,7 @@ const NUM_INSTANCES_PER_ROW: u32 = 1;
 let rotation = cgmath::Quaternion::from_axis_angle((0.0, 1.0, 0.0).into(), cgmath::Deg(180.0));
 ```
 
-同时从 `result` 中移除 `ambient_color`：
+同时从 `result` 中移除环境光 `ambient_color`：
 
 ```wgsl
 let result = (diffuse_color) * object_color.xyz;
@@ -618,15 +618,15 @@ let result = (diffuse_color) * object_color.xyz;
 
 ![./diffuse_wrong.png](./diffuse_wrong.png)
 
-这显然是错误的，因为光线照亮了立方体的背光侧。这是因为**法向量**并没有随对象一起旋转，因此无论对象转向哪个方向，法向量的方向始终没变：
+渲染结果显然是错误的，因为光线照亮了立方体的背光侧。这是由于**法向量**并没有随对象一起旋转，因此无论对象转向哪个方向，法向量的方向始终没变：
 
 ![./normal_not_rotated.png](./normal_not_rotated.png)
 
-我们将使用**法线矩阵**（Normal Matrix）将**法向量**变换为正确的方向。需要注意的是，法向量表示一个方向，它应该是整个计算过程中的单位向量。
+我们将使用**法线矩阵**（Normal Matrix）将**法向量**变换为正确的方向。需要注意的是，法向量表示一个方向，它应该做为**单位向量**（Unit Vector）来参与整个计算过程。
 
-虽然可以在顶点着色器中计算**法线矩阵**，但这涉及到反转 `model_matrix`，而 WGSL 实际上没有矩阵求逆的函数，必须自己编写此代码。更重要的是，矩阵求逆的计算在着色器里实际上非常昂贵，特别是每个顶点都要计算一遍。
+虽然可以在顶点着色器中计算**法线矩阵**，但这涉及到反转模型矩阵 `model_matrix`，而 WGSL 实际上没有矩阵求逆的函数，必须自己编写此代码。更重要的是，矩阵求逆的计算在着色器里实际上非常昂贵，特别是每个顶点都要计算一遍。
 
-我们的替代方案是，向 `InstanceRaw` 结构体添加一个 `normal` 字段。不用去反转**模型矩阵**，而是使用实例的旋转来创建一个 `Matrix3` 类型的法线矩阵。
+我们的替代方案是，向 `InstanceRaw` 结构体添加一个 `normal` 字段。不用去反转**模型矩阵**，而是使用模型实例的旋转来创建一个 `Matrix3` 类型的法线矩阵。
 
 <div class="note">
 
@@ -769,12 +769,12 @@ fn vs_main(
 
 <div class="note">
 
-上边的实现是基于 [世界空间](https://gamedev.stackexchange.com/questions/65783/what-are-world-space-and-eye-space-in-game-development) 的。在**视图空间**（view-space），也就是**眼空间**（eye-space）来实现是更标准的做法，因为物体在离**原点**较远的地方会产生光照问题。
+上边的实现是基于 [世界空间](https://gamedev.stackexchange.com/questions/65783/what-are-world-space-and-eye-space-in-game-development) 的。在**视图空间**（view-space），也就是**眼空间**（eye-space）来实现是更标准的做法，因为对象在离**原点**较远的地方会产生光照问题。
 如果改为使用视图空间，就需要包括由**视图矩阵**产生的旋转。还须使用 `view_matrix * model_matrix * light_position` 来变换光源的位置，以防止摄像机移动后产生计算错误。
 
-使用视图空间的最大优势是：能避免在大规模的场景中进行**光照**和其他计算时，由于**对象**之间的空间间隔导致的问题。
+使用视图空间的最大优势是：能避免在大规模的场景中进行**光照**和其他计算时，由于**对象**之间的空间间距导致的问题。
 因为当数字变得非常大时，浮点数精度会下降。视图空间使摄像机保持在**原点**，这意味着所有的计算都会使用较小的数字。
-最终的光照计算过程是一样的，它只是需要多一点设置。
+最终的光照计算过程是一样的，只是需要多一点点设置。
 
 </div>
 
@@ -784,7 +784,7 @@ fn vs_main(
 
 现在把场景中其他**对象**加回来，再加上**环境光反射**，我们就会得到如下渲染效果：
 
-![./ambient_diffuse_lighting.png](./ambient_diffuse_lighting.png);
+![./ambient_diffuse_lighting.png](./ambient_diffuse_lighting.png)
 
 <div class="note">
 
@@ -795,7 +795,7 @@ out.world_normal = (model_matrix * vec4<f32>(model.normal, 0.0)).xyz;
 ```
 
 他利用的是这样一个事实：即用一个 4x4 矩阵乘以一个 w 分量为 0 的向量时，只有旋转和缩放将被应用于向量。
-不过你需要对这个向量进行**归一化**处理，因为法向量必须是单位长度的。
+不过你需要对这个向量进行**归一化**（Normalize）处理，因为法向量必须是**单位向量**。
 
 模型矩阵的缩放因子*必须*是统一的才能适用。否则产生的法向量将是倾斜于表面的，如下图片所示：
 
@@ -805,8 +805,8 @@ out.world_normal = (model_matrix * vec4<f32>(model.normal, 0.0)).xyz;
 
 ## 镜面反射
 
-**镜面反射**（Specular Reflection）模拟了现实世界中从特定角度观察物体时出现的**高光**（亮点）。
-如果曾经在阳光下观察过汽车，定会注意到车身的高亮部分。基本上来说，我们在观察有光泽的物体时就会看到**高光**。
+**镜面反射**（Specular Reflection）模拟了现实世界中从特定角度观察物体时出现的**高光**（Highlights，亮点）。
+如果曾在阳光下观察过汽车，定会注意到车身出现的高亮部分。基本上来说，我们在观察有光泽的物体时就会看到**高光**。
 从表面光滑的物体上反射出去的光线会倾向于集中在一个角度的附近，所以高光的位置会根据你观察的角度而变化。
 
 ![./specular_diagram.png](./specular_diagram.png)
@@ -824,11 +824,11 @@ var<uniform> camera: Camera;
 
 <div class="note">
 
-别忘了也要更新 `light.wgsl` 中的 `Camera` 结构体，一旦它与 Rust 中的 `CameraUniform` 结构体不匹配，光照就会渲染错误。
+别忘了也要更新 `light.wgsl` 中的 `Camera` 结构体，一旦它与 Rust 中的 `CameraUniform` 结构体不匹配，光照效果就会渲染错误。
 
 </div>
 
-同时也需要更新 `CameraUniform` 结构：
+同时也需要更新 `CameraUniform` 结构体：
 
 ```rust
 // lib.rs
@@ -848,14 +848,14 @@ impl CameraUniform {
     }
 
     fn update_view_proj(&mut self, camera: &Camera) {
-        // 使用 vec4 纯粹是因为 uniform 的 16 字节对齐要求
+        // 使用 vec4 纯粹是因为 Uniform 的 16 字节对齐要求
         self.view_position = camera.eye.to_homogeneous().into();
         self.view_proj = (OPENGL_TO_WGPU_MATRIX * camera.build_view_projection_matrix()).into();
     }
 }
 ```
 
-由于现在要在片元着色器中使用 uniform，得修改它的可见性：
+由于现在要在片元着色器中使用 Uniform，得修改它的可见性：
 
 ```rust
 // lib.rs
@@ -872,7 +872,7 @@ let camera_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupL
 });
 ```
 
-计算从片元位置到摄像机的方向**向量**，并用此向量和法向量来计算反射方向 `reflect_dir`：
+计算从片元位置到摄像机的**方向向量**，并用此向量和法向量来计算反射方向 `reflect_dir`：
 
 ```wgsl
 // shader.wgsl
@@ -903,10 +903,10 @@ let result = (ambient_color + diffuse_color + specular_color) * object_color.xyz
 ![./specular_lighting.png](./specular_lighting.png)
 
 ## 半程向量
-所谓的**半程向量**（Halfway Vector）是一个单位向量，它正好在视图方向和光源方向的中间。
+所谓的**半程向量**（Halfway Vector）也是一个单位向量，它正好在视图方向和光源方向的中间。
 
 到目前为止，我们实际上只实现了 Blinn-Phong 的 Phong 部分。Phong 反射模型很好用，但在[某些情况下](https://learnopengl.com/Advanced-Lighting/Advanced-Lighting)会产生 bug。
-Blinn-Phong 的 Blinn 部分来自于这样的事实：如果把 `view_dir` 和 `light_dir` 加在一起，对结果进行**归一化**处理后得到一个**半程向量**，然后再与 `normal` 求点积，就会得到大致相同的渲染结果，且不会有使用反射方向 `reflect_dir` 会产生的问题。
+Blinn-Phong 的 Blinn 部分来自于这样的事实：如果把 `view_dir` 和 `light_dir` 加在一起，对结果进行**归一化**处理后得到一个**半程向量**，然后再与法向量 `normal` 求点积，就会得到大致相同的渲染结果，且不会有使用反射方向 `reflect_dir` 可能产生的问题。
 
 ```wgsl
 let view_dir = normalize(camera.view_pos.xyz - in.world_position);
@@ -915,7 +915,7 @@ let half_dir = normalize(view_dir + light_dir);
 let specular_strength = pow(max(dot(in.world_normal, half_dir), 0.0), 32.0);
 ```
 
-我们这个场景下很难看出有什么不同，但以下就是改进了光照计算后的渲染效果：
+在我们这个场景下很难看出有何不同，但以下就是改进了光照计算后的渲染效果：
 
 ![./half_dir.png](./half_dir.png)
 

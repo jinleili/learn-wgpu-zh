@@ -1,7 +1,9 @@
 # 介绍
-*为了便于中文读者的理解，本教程的翻译会增减一些内容，并对原文有歧义的地方进行重新表述。*
+*为了便于读者的理解，译者选择性的添加了一些内容，并对原文中有歧义或错误的（比如：第八章、第十一章 Srgb 部分等等）地方进行重新表述。所有的添加与修改均不会做单独标记。*
 
-*另外，翻译时采用了第一人称视角，故教程中的 **我** 主要指的是原作者 [@sorth](https://github.com/sotrh)。*
+*翻译时采用了第一人称视角，故，除了译者介绍，教程中的 **我** 主要指的是原作者 [@sorth](https://github.com/sotrh)。*
+
+*另外，专有名词在一个段落中第一次出现时做了**加粗**处理，同一段落里反复出现时就不再加粗。*
 
 ## wgpu 是什么？
 [wgpu](https://github.com/gfx-rs/wgpu) 是 [WebGPU API 规范](https://gpuweb.github.io/gpuweb/) 的 Rust 实现。
@@ -11,7 +13,7 @@ WebGPU 是由 W3C [GPU for the Web](https://www.w3.org/community/gpu/) 社区组
 wgpu 仍在开发中，本教程中的部分内容可能会发生变化。我自己也正在利用这个项目学习 wgpu，所以可能会错过一些重要的细节，或者解释得不够好。欢迎提出建设性的反馈。
 
 
-## 为何使用 Rust？
+## 为什么使用 Rust？
 wgpu 实际上提供了 C 语言绑定 ([wgpu-native](https://github.com/gfx-rs/wgpu-native))，你可以写 C/C++ 或其他能与 C 互通的语言来使用它。尽管如此，wgpu 本身是用 Rust 实现的，它便利的 Rust 绑定能减少你使用中的阻碍。更重要的是，Rust 是一门高性能，内存和线程安全且极具生产力的现代底层语言。
 
 在学习本教程之前你需要先熟悉 Rust，因为这里不会详细介绍 Rust 的语法知识。如果你对 Rust 还不太熟悉，可以回顾一下 [Rust 教程](https://www.rust-lang.org/zh-CN/learn)。另外你还需要熟悉 Rust 包管理工具 [Cargo](https://doc.rust-lang.org/cargo)。
@@ -22,20 +24,9 @@ wgpu 实际上提供了 C 语言绑定 ([wgpu-native](https://github.com/gfx-rs/
 * 如果想直接支持原作者，请查看 [patreon](https://www.patreon.com/sotrh)！
 * 也欢迎对此中译版本提出反馈及改进建议（[《Learn wgpu》中文版 repo](https://github.com/jinleili/learn-wgpu-zh)）
 
-## 特别感谢以下赞助者!
 
-- David Laban
-- Gunstein Vatnar
-- Lennart
-- Ian Gowen
-- Aron Granberg
-- Bernard Llanos
-- Jan Šipr
-- Zeh Fernando
-- Felix 
-- Youngsuk Kim
-- オリトイツキ
-- Andrea Postal
-- charlesk
+## 关于译者
+我是一名移动端（iOS，Android）工程师, 同时也擅长 HTML5，有多年使用 OpenGL ES / WebGL, Metal 的实践经验。2018 年开始接触 WebGPU，目前正积极地参与到 [wgpu 开源项目的开发与完善](https://github.com/gfx-rs/wgpu/commits?author=jinleili)之中，并且已于两年前在 AppStore 上架了基于 wgpu 实现的毛笔书法模拟 App [字习 Pro](https://apps.apple.com/cn/app/字习-pro/id1507339788)。
 
-
+## 加入 wgpu 微信学习群
+<JoinWeiChatGroup />

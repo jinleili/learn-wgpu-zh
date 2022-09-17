@@ -12,7 +12,7 @@
 function toTitleCase(str) {
   return str.replace(
     /\w\S*/g,
-    function(txt) {
+    function (txt) {
       return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
     }
   );
@@ -20,7 +20,7 @@ function toTitleCase(str) {
 
 export default {
   name: "WasmExample",
-  props: { 
+  props: {
     example: "",
     autoLoad: false,
   },
@@ -39,11 +39,13 @@ export default {
   methods: {
     async loadExample() {
       this.loading = true;
+
       try {
         await import(`./wasm/${this.example}/${this.example}.js`);
       } catch (e) {
-        // TODO: Figure out a better way to ignore "control flow" errors
-        if (`${e}` != "Error: Using exceptions for control flow, don't mind me. This isn't actually an error!") {
+        // 此处无法捕捉到发生在运行时的可忽略Error：
+        // Unhandled Promise Rejection: Error: Using exceptions for control flow, don't mind me. This isn't actually an error!
+        if (!`${e}`.includes("don't mind me. This isn't actually an error!")) {
           this.error = `An error occurred loading "${this.example}": ${e}`;
           console.error(e);
           this.exampleStarted = false;
@@ -51,6 +53,7 @@ export default {
           this.exampleStarted = true;
         }
       }
+      this.exampleStarted = true;
       this.loading = false;
     },
   },

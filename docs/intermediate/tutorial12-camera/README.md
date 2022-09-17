@@ -1,8 +1,8 @@
-# A Better Camera
+# 更好的摄像机
 
-I've been putting this off for a while. Implementing a camera isn't specifically related to using WGPU properly, but it's been bugging me so let's do it.
+这个问题已经被推迟了一段时间。实现一个**虚拟摄像机**与正确使用 wgpu 关系不大，但它一直困扰着我，所以现在来实现它吧。
 
-`lib.rs` is getting a little crowded, so let's create a `camera.rs` file to put our camera code. The first things we're going to put in it are some imports and our `OPENGL_TO_WGPU_MATRIX`.
+`lib.rs` 已经堆砌很多代码了，所以我们创建一个 `camera.rs` 文件来放置摄像机代码。先导入一些要用到的文件并移置 `OPENGL_TO_WGPU_MATRIX`：
 
 ```rust
 use cgmath::*;
@@ -24,7 +24,7 @@ const SAFE_FRAC_PI_2: f32 = FRAC_PI_2 - 0.0001;
 
 <div class="note">
 
-`std::time::Instant` panics on WASM, so we'll use the [instant crate](https://docs.rs/instant). You'll want to include it in your `Cargo.toml`:
+在 WASM 中使用 `std::time::instant` 会导致程序**恐慌**，所以我们使用 [instant](https://docs.rs/instant) 包来替代，在  `Cargo.toml` 引入此依赖：
 
 ```toml
 instant = "0.1"
@@ -32,9 +32,9 @@ instant = "0.1"
 
 </div>
 
-## The Camera
+## 虚拟摄像机
 
-Next, we need to create a new `Camera` struct. We're going to be using an FPS-style camera, so we'll store the position and the yaw (horizontal rotation), and pitch (vertical rotation). We'll have a `calc_matrix` method to create our view matrix.
+接下来，需要创建一个新的 `Camera` 结构体。我们将使用一个 FPS 风格的摄像机，所以要存储位置（position）、 yaw（偏航，水平旋转）以及 pitch（俯仰，垂直旋转）， 定义并实现一个 `calc_matrix` 函数用于创建视图矩阵：
 
 ```rust
 #[derive(Debug)]
@@ -75,9 +75,9 @@ impl Camera {
 }
 ```
 
-## The Projection
+## 投影
 
-I've decided to split the projection from the camera. The projection only really needs to change if the window resizes, so let's create a `Projection` struct.
+只有在窗口调整大小时，**投影**（Projection）才真正需要改变，所以我们将投影与摄像机分开，创建一个 `Projection` 结构体：
 
 ```rust
 pub struct Projection {
@@ -113,15 +113,15 @@ impl Projection {
 }
 ```
 
-One thing to note: `cgmath` currently returns a right-handed projection matrix from the `perspective` function. This means that the z-axis points out of the screen. If you want the z-axis to be *into* the screen (aka. a left-handed projection matrix), you'll have to code your own.
+有一点需要注意：`cgmath` 从 `perspective` 函数返回的是**右手坐标系**（right-handed coordinate system）的投影矩阵。也就是说，Z 轴是指向屏幕外的，想让 Z 轴指向*屏幕内*（也就是**左手坐标系**的投影矩阵）就得自己编码。
 
-You can tell the difference between a right-handed coordinate system and a left-handed one by using your hands. Point your thumb to the right. This is the x-axis. Point your pointer finger up. This is the y-axis. Extend your middle finger. This is the z-axis. On your right hand, your middle finger should be pointing towards you. On your left hand, it should be pointing away.
+可以这样分辨右手坐标系和左手坐标系的区别：在身体的正前方把你的拇指指向右边代表 X 轴，食指指向上方代表 Y 轴，伸出中指代表 Z 轴。此时在你的右手上，中指应该指是向你自己。而在左手上，应该是指向远方。
 
 ![./left_right_hand.gif](./left_right_hand.gif)
 
-# The Camera Controller
+# 摄像机控制器
 
-Our camera is different, so we'll need a new camera controller. Add the following to `camera.rs`.
+现在，我们需要一个新的摄像机控制器，在 `camera.rs` 中添加以下代码：
 
 ```rust
 #[derive(Debug)]
@@ -194,7 +194,7 @@ impl CameraController {
 
     pub fn process_scroll(&mut self, delta: &MouseScrollDelta) {
         self.scroll = -match delta {
-            // I'm assuming a line is about 100 pixels
+            // 假定一行为 100 个像素，你可以随意修改这个值
             MouseScrollDelta::LineDelta(_, scroll) => scroll * 100.0,
             MouseScrollDelta::PixelDelta(PhysicalPosition {
                 y: scroll,
@@ -206,37 +206,33 @@ impl CameraController {
     pub fn update_camera(&mut self, camera: &mut Camera, dt: Duration) {
         let dt = dt.as_secs_f32();
 
-        // Move forward/backward and left/right
+        // 前后左右移动
         let (yaw_sin, yaw_cos) = camera.yaw.0.sin_cos();
         let forward = Vector3::new(yaw_cos, 0.0, yaw_sin).normalize();
         let right = Vector3::new(-yaw_sin, 0.0, yaw_cos).normalize();
         camera.position += forward * (self.amount_forward - self.amount_backward) * self.speed * dt;
         camera.position += right * (self.amount_right - self.amount_left) * self.speed * dt;
 
-        // Move in/out (aka. "zoom")
-        // Note: this isn't an actual zoom. The camera's position
-        // changes when zooming. I've added this to make it easier
-        // to get closer to an object you want to focus on.
+        // 变焦（缩放）
+        // 注意：这不是一个真实的变焦。
+        // 通过摄像机的位置变化来模拟变焦，使你更容易靠近想聚焦的物体。
         let (pitch_sin, pitch_cos) = camera.pitch.0.sin_cos();
         let scrollward = Vector3::new(pitch_cos * yaw_cos, pitch_sin, pitch_cos * yaw_sin).normalize();
         camera.position += scrollward * self.scroll * self.speed * self.sensitivity * dt;
         self.scroll = 0.0;
 
-        // Move up/down. Since we don't use roll, we can just
-        // modify the y coordinate directly.
+        // 由于我们没有使用滚动，所以直接修改 y 坐标来上下移动。
         camera.position.y += (self.amount_up - self.amount_down) * self.speed * dt;
 
-        // Rotate
+        // 旋转
         camera.yaw += Rad(self.rotate_horizontal) * self.sensitivity * dt;
         camera.pitch += Rad(-self.rotate_vertical) * self.sensitivity * dt;
 
-        // If process_mouse isn't called every frame, these values
-        // will not get set to zero, and the camera will rotate
-        // when moving in a non cardinal direction.
+        // 重置旋转值为 0。没有鼠标移动发生时，摄像机就停止旋转。
         self.rotate_horizontal = 0.0;
         self.rotate_vertical = 0.0;
 
-        // Keep the camera's angle from going too high/low.
+        // 保持摄像机的角度不要太高/太低。
         if camera.pitch < -Rad(SAFE_FRAC_PI_2) {
             camera.pitch = -Rad(SAFE_FRAC_PI_2);
         } else if camera.pitch > Rad(SAFE_FRAC_PI_2) {
@@ -246,24 +242,24 @@ impl CameraController {
 }
 ```
 
-## Cleaning up `lib.rs`
+## 清理 `lib.rs`
 
-First things first we need to delete `Camera` and `CameraController` as well as the extra `OPENGL_TO_WGPU_MATRIX` from `lib.rs`. Once you've done that import `camera.rs`.
+首先，我们从 `lib.rs` 中删除 `Camera` 、 `CameraController` 以及额外的 `OPENGL_TO_WGPU_MATRIX`，然后导入 `camera.rs`：
 
 ```rust
 mod model;
 mod texture;
-mod camera; // NEW!
+mod camera; // 新增!
 ```
 
-We need to update `update_view_proj` to use our new `Camera` and `Projection`.
+接着更新 `update_view_proj` 以使用新的 `Camera` 和 `Projection`：
 
 ```rust
 
 impl CameraUniform {
     // ...
 
-    // UPDATED!
+    // 更新!
     fn update_view_proj(&mut self, camera: &camera::Camera, projection: &camera::Projection) {
         self.view_position = camera.position.to_homogeneous().into();
         self.view_proj = (projection.calc_matrix() * camera.calc_matrix()).into();
@@ -271,68 +267,70 @@ impl CameraUniform {
 }
 ```
 
-We need to change our `State` to use our `Camera`, `CameraProjection` and `Projection` as well. We'll also add a `mouse_pressed` field to store whether the mouse was pressed.
+我们还要修改 `State` 来使用新的 `Camera`、`CameraProjection` 和 `Projection`，再添加一个`mouse_pressed` 字段来存储鼠标是否被按下：
 
 ```rust
 struct State {
     // ...
-    camera: camera::Camera, // UPDATED!
-    projection: camera::Projection, // NEW!
-    camera_controller: camera::CameraController, // UPDATED!
+    camera: camera::Camera, // 更新!
+    projection: camera::Projection, // 新增!
+    camera_controller: camera::CameraController, // 更新!
     // ...
-    // NEW!
+    // 新增!
     mouse_pressed: bool,
 }
 ```
 
-You'll need to import `winit::dpi::PhysicalPosition` if you haven't already.
+别忘了需要导入 `winit::dpi::PhysicalPosition`。
 
-We need to update `new()` as well.
+然后更新 `new()` 函数：
 
 ```rust
 impl State {
     async fn new(window: &Window) -> Self {
         // ...
 
-        // UPDATED!
+        // 更新!
         let camera = camera::Camera::new((0.0, 5.0, 10.0), cgmath::Deg(-90.0), cgmath::Deg(-20.0));
         let projection = camera::Projection::new(config.width, config.height, cgmath::Deg(45.0), 0.1, 100.0);
         let camera_controller = camera::CameraController::new(4.0, 0.4);
 
         // ...
 
-        camera_uniform.update_view_proj(&camera, &projection); // UPDATED!
+        camera_uniform.update_view_proj(&camera, &projection); // 更新!
 
         // ...
 
         Self {
             // ...
             camera,
-            projection, // NEW!
+            projection, // 新增!
             camera_controller,
             // ...
-            mouse_pressed: false, // NEW!
+            mouse_pressed: false, // 新增!
         }
     }
 }
 ```
 
-We need to change our `projection` in `resize` as well.
+接着在 `resize` 函数中更新投影矩阵 `projection`：
 
 ```rust
 fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
-    // UPDATED!
+    // 更新!
     self.projection.resize(new_size.width, new_size.height);
     // ...
 }
 ```
 
-`input()` will need to be updated as well. Up to this point, we have been using `WindowEvent`s for our camera controls. While this works, it's not the best solution. The [winit docs](https://docs.rs/winit/0.24.0/winit/event/enum.WindowEvent.html?search=#variant.CursorMoved) inform us that OS will often transform the data for the `CursorMoved` event to allow effects such as cursor acceleration.
+事件输入函数 `input()` 也需要被更新。
+到目前为止，我们一直在使用 `WindowEvent` 来控制摄像机，这很有效，但它并不是最好的解决方案。[winit 文档](https://docs.rs/winit/0.24.0/winit/event/enum.WindowEvent.html?search=#variant.CursorMoved)告诉我们，操作系统通常会对 `CursorMoved` 事件的数据进行转换，以实现光标加速等效果。
 
-Now to fix this we could change the `input()` function to process `DeviceEvent` instead of `WindowEvent`, but keyboard and button presses don't get emitted as `DeviceEvent`s on MacOS and WASM. Instead, we'll just remove the `CursorMoved` check in `input()`, and a manual call to `camera_controller.process_mouse()` in the `run()` function.
+现在为了解决这个问题，可以修改 `input()` 函数来处理 `DeviceEvent` 而不是 `WindowEvent`，但是在 macOS 和 WASM 上，键盘和按键事件不会被当作 `DeviceEvent` 发送出来。
+做为替代方案，我们删除 `input()` 中的 `CursorMoved` 检查，并在 `run()` 函数中手动调用 `camera_controller.process_mouse()`：
 
 ```rust
-// UPDATED!
+// 更新!
 fn input(&mut self, event: &WindowEvent) -> bool {
     match event {
         WindowEvent::KeyboardInput {
@@ -361,7 +359,7 @@ fn input(&mut self, event: &WindowEvent) -> bool {
 }
 ```
 
-Here are the changes to `run()`:
+下面是对事件循环代理（event_loop）的 `run()` 函数的修改：
 
 ```rust
 fn main() {
@@ -370,14 +368,14 @@ fn main() {
         *control_flow = ControlFlow::Poll;
         match event {
             // ...
-            // NEW!
+            // 新增!
             Event::DeviceEvent {
                 event: DeviceEvent::MouseMotion{ delta, },
-                .. // We're not using device_id currently
+                .. // 我们现在没有用到 device_id 
             } => if state.mouse_pressed {
                 state.camera_controller.process_mouse(delta.0, delta.1)
             }
-            // UPDATED!
+            // 更新!
             Event::WindowEvent {
                 ref event,
                 window_id,
@@ -409,11 +407,11 @@ fn main() {
 }
 ```
 
-The `update` function requires a bit more explanation. The `update_camera` function on the `CameraController` has a parameter `dt: Duration` which is the delta time or time between frames. This is to help smooth out the camera movement so that it's not locked by the framerate. Currently, we aren't calculating `dt`, so I decided to pass it into `update` as a parameter.
+`update` 函数需要多解释一下：`CameraController` 上的 `update_camera` 函数有一个参数 `dt`，它是**帧**之间的**时间差**（delta time，也可以说是时间间隔），用来辅助实现摄像机的平滑移动，使其不被**帧速率**所锁定。所以将它作为一个参数传入 `update`：
 
 ```rust
 fn update(&mut self, dt: instant::Duration) {
-    // UPDATED!
+    // 更新!
     self.camera_controller.update_camera(&mut self.camera, dt);
     self.camera_uniform.update_view_proj(&self.camera, &self.projection);
 
@@ -421,26 +419,26 @@ fn update(&mut self, dt: instant::Duration) {
 }
 ```
 
-While we're at it, let's use `dt` for the light's rotation as well.
+既然如此，我们也用 `dt` 来平滑光源的旋转：
 
 ```rust
 self.light_uniform.position =
     (cgmath::Quaternion::from_axis_angle((0.0, 1.0, 0.0).into(), cgmath::Deg(60.0 * dt.as_secs_f32()))
-    * old_position).into(); // UPDATED!
+    * old_position).into(); // 更新!
 ```
 
-We still need to calculate `dt`. Let's do that in the `main` function.
+让我们在 `main` 函数中来实现 `dt` 的具体计算：
 
 ```rust
 fn main() {
     // ...
     let mut state = State::new(&window).await;
-    let mut last_render_time = instant::Instant::now();  // NEW!
+    let mut last_render_time = instant::Instant::now();  // 新增!
     event_loop.run(move |event, _, control_flow| {
         *control_flow = ControlFlow::Poll;
         match event {
             // ...
-            // UPDATED!
+            // 更新!
             Event::RedrawRequested(window_id) if window_id == window.id() => {
                 let now = instant::Instant::now();
                 let dt = now - last_render_time;
@@ -454,7 +452,7 @@ fn main() {
 }
 ```
 
-With that, we should be able to move our camera wherever we want.
+现在，我们应该可以自由控制摄像机了：
 
 ![./screenshot.png](./screenshot.png)
 

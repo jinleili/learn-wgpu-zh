@@ -1,4 +1,4 @@
-// Vertex shader
+// 顶点着色器
 
 struct Camera {
     view_proj: mat4x4<f32>,
@@ -39,7 +39,7 @@ fn vs_main(
     return out;
 }
 
-// Fragment shader
+// 片元着色器
 
 @group(0) @binding(0)
 var t_diffuse: texture_2d<f32>;

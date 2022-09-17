@@ -93,7 +93,7 @@ async fn new(window: &Window) -> Self {
 
 ## Uniform 缓冲区
 
-到目前为止，我们已经使用**缓冲区**来存储顶点和索引数据，甚至加载**纹理**。我们将再次使用它来创建一个称之为 `uniform` 的缓冲区。uniform 缓冲区也是一个数据块，在一组着色器的每个调用都中都可以使用，从技术的角度来看，我们已经为**纹理**和**采样器**使用了 uniform 缓冲区。下面将再次使用它们来存储视图投影**矩阵**，我们先创建一个结构体来保存 uniform：
+到目前为止，我们已经使用**缓冲区**来存储顶点和索引数据，甚至加载**纹理**。我们将再次使用它来创建一个称之为 `uniform` 的缓冲区。Uniform 缓冲区也是一个数据块，在一组着色器的每个调用都中都可以使用，从技术的角度来看，我们已经为**纹理**和**采样器**使用了 Uniform 缓冲区。下面将再次使用它们来存储视图投影**矩阵**，我们先创建一个结构体来保存 uniform：
 
 ```rust
 // 此属性标注数据的内存布局兼容 C-ABI，令其可用于着色器
@@ -120,7 +120,7 @@ impl CameraUniform {
 }
 ```
 
-封装好了数据，接下来创建一个名为 `camera_buffer` 的 uniform 缓冲区：
+封装好了数据，接下来创建一个名为 `camera_buffer` 的 Uniform 缓冲区：
 
 ```rust
 // 在 new() 函数中创建 `camera` 后
@@ -139,7 +139,7 @@ let camera_buffer = device.create_buffer_init(
 
 ## Uniform 缓冲区和绑定组
 
-现在有了一个 uniform 缓冲区，那该如何使用呢？答案是为它创建一个**绑定组**。我们得先创建绑定组的布局：
+现在有了一个 Uniform 缓冲区，那该如何使用呢？答案是为它创建一个**绑定组**。我们得先创建绑定组的布局：
 
 ```rust
 let camera_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
@@ -160,7 +160,7 @@ let camera_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupL
 ```
 
 1. 我们只在**顶点着色器**中需要**虚拟摄像机**信息，因为要用它来操作**顶点**。
-2. `has_dynamic_offset` 字段表示这个**缓冲区**是否会动态改变偏移量。如果我们想一次性在 uniform 中存储多组数据，并实时修改偏移量来告诉**着色器**当前使用哪组数据时，这就很有用。
+2. `has_dynamic_offset` 字段表示这个**缓冲区**是否会动态改变偏移量。如果我们想一次性在 Uniform 中存储多组数据，并实时修改偏移量来告诉**着色器**当前使用哪组数据时，这就很有用。
 
 现在，我们可以创建实际的**绑定组**了：
 
@@ -233,7 +233,7 @@ render_pass.draw_indexed(0..self.num_indices, 0, 0..1);
 修改顶点着色器以加入如下代码：
 
 ```wgsl
-// Vertex shader
+// 顶点着色器
 struct CameraUniform {
     view_proj: mat4x4<f32>,
 };

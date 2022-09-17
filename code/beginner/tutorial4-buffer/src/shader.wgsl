@@ -1,4 +1,4 @@
-// Vertex shader
+// 顶点着色器
 
 struct VertexInput {
     @location(0) position: vec3<f32>,
@@ -20,7 +20,7 @@ fn vs_main(
     return out;
 }
 
-// Fragment shader
+// 片元着色器
 
 @fragment
 fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {

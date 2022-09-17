@@ -351,10 +351,10 @@ const VERTICES: &[Vertex] = &[
 
 ## 修改着色器
 
-有了新的 `Vertex` 结构体，现在是时候更新着色器了。首先需要将 `tex_coords` 传递给顶点着色器，然后将它们用于片段着色器，以便从采样器获得最终的颜色。让我们从顶点着色器开始：
+有了新的 `Vertex` 结构体，现在是时候更新着色器了。首先需要将 `tex_coords` 传递给顶点着色器，然后将它们用于片元着色器，以便从采样器获得最终的颜色。让我们从顶点着色器开始：
 
 ```wgsl
-// Vertex shader
+// 顶点着色器
 
 struct VertexInput {
     @location(0) position: vec3<f32>,

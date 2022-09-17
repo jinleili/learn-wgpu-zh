@@ -4,6 +4,8 @@ import { registerComponentsPlugin } from '@vuepress/plugin-register-components'
 import { getDirname, path } from '@vuepress/utils'
 import { backToTopPlugin } from '@vuepress/plugin-back-to-top'
 
+import { webpackBundler } from '@vuepress/bundler-webpack'
+
 const __dirname = getDirname(import.meta.url)
 
 export default defineUserConfig({
@@ -15,6 +17,23 @@ export default defineUserConfig({
             componentsDir: path.resolve(__dirname, './components'),
         }),
     ],
+    // bundler: viteBundler({
+    //     viteOptions: {
+    //         plugins: [
+    //             wasm(),
+    //             //ViteRsw(),
+    //         ],
+    //     },
+    // }),
+
+    // vite + vite-plugin-wasm | vite-plugin-rsw 在加载 wasm 时都会报错
+    // 目前只有使用 webpack 能成功加载 wasm 模块（20220917）
+    bundler: webpackBundler({
+        configureWebpack: (config, isServer, isBuild) => {
+            config.experiments = { syncWebAssembly: true };
+        },
+        sass: {}
+    }),
     locales: {
         '/': {
             lang: 'zh-CN',
