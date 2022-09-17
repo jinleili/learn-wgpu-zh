@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="generator" content="VuePress 2.0.0-beta.51">
+    <style>
+      :root {
+        --c-bg: #fff;
+      }
+      html.dark {
+        --c-bg: #22272e;
+      }
+      html, body {
+        background-color: var(--c-bg);
+      }
+    </style>
+    <script>
+      const userMode = localStorage.getItem('vuepress-color-scheme');
+			const systemDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+			if (userMode === 'dark' || (userMode !== 'light' && systemDarkMode)) {
+				document.documentElement.classList.toggle('dark', true);
+			}
+    </script>
+    <title>学习 wgpu</title><meta name="description" content="使用 Rust 学习 wgpu">
+    <link rel="preload" href="/learn-wgpu-zh/assets/js/runtime~app.da394f90.js" as="script"><link rel="preload" href="/learn-wgpu-zh/assets/css/styles.f5314d33.css" as="style"><link rel="preload" href="/learn-wgpu-zh/assets/js/9141.74699445.js" as="script"><link rel="preload" href="/learn-wgpu-zh/assets/js/app.7a8054bf.js" as="script"><link rel="prefetch" href="/learn-wgpu-zh/assets/js/v-2d69bb60.4ad7e3d5.js"><link rel="prefetch" href="/learn-wgpu-zh/assets/js/v-bfc81dd6.7610dd06.js"><link rel="prefetch" href="/learn-wgpu-zh/assets/js/v-4249d10f.c8f08817.js"><link rel="prefetch" href="/learn-wgpu-zh/assets/js/v-82a25e06.36227ce7.js"><link rel="prefetch" href="/learn-wgpu-zh/assets/js/v-2168b6f4.082f69c8.js"><link rel="prefetch" href="/learn-wgpu-zh/assets/js/v-1d87647f.7013bab7.js"><link rel="prefetch" href="/learn-wgpu-zh/assets/js/v-5ffceace.798009a5.js"><link rel="prefetch" href="/learn-wgpu-zh/assets/js/v-b2c95ce4.cd4e566f.js"><link rel="prefetch" href="/learn-wgpu-zh/assets/js/v-5d0cc617.32ce7bdf.js"><link rel="prefetch" href="/learn-wgpu-zh/assets/js/v-627538dd.522e9dbf.js"><link rel="prefetch" href="/learn-wgpu-zh/assets/js/v-220b0cd1.77e47817.js"><link rel="prefetch" href="/learn-wgpu-zh/assets/js/v-64802336.4bd624e8.js"><link rel="prefetch" href="/learn-wgpu-zh/assets/js/v-31840cac.52f72f62.js"><link rel="prefetch" href="/learn-wgpu-zh/assets/js/v-b117cf7e.f771a00f.js"><link rel="prefetch" href="/learn-wgpu-zh/assets/js/1162.2ea6707c.js"><link rel="prefetch" href="/learn-wgpu-zh/assets/js/3475.a809e012.js"><link rel="prefetch" href="/learn-wgpu-zh/assets/js/5883.5147f7d5.js"><link rel="prefetch" href="/learn-wgpu-zh/assets/js/7937.ce4c90cb.js"><link rel="prefetch" href="/learn-wgpu-zh/assets/js/1426.87fee456.js"><link rel="prefetch" href="/learn-wgpu-zh/assets/js/2307.a4b1569f.js"><link rel="prefetch" href="/learn-wgpu-zh/assets/js/381.14108687.js"><link rel="prefetch" href="/learn-wgpu-zh/assets/js/662.1adc6c1b.js"><link rel="prefetch" href="/learn-wgpu-zh/assets/js/v-b3ccb192.66c258ab.js"><link rel="prefetch" href="/learn-wgpu-zh/assets/js/2277.bf1af19b.js"><link rel="prefetch" href="/learn-wgpu-zh/assets/js/4970.5aae0d9f.js"><link rel="prefetch" href="/learn-wgpu-zh/assets/js/5137.72720074.js"><link rel="prefetch" href="/learn-wgpu-zh/assets/js/v-0440027a.2a7be179.js"><link rel="prefetch" href="/learn-wgpu-zh/assets/js/v-2b11540d.ce61c40a.js"><link rel="prefetch" href="/learn-wgpu-zh/assets/js/v-1f0489a3.40efb4d9.js"><link rel="prefetch" href="/learn-wgpu-zh/assets/js/v-7db95cc0.8067cf73.js"><link rel="prefetch" href="/learn-wgpu-zh/assets/js/v-25d83dbe.21b8ce4e.js"><link rel="prefetch" href="/learn-wgpu-zh/assets/js/6321.2154bf48.js"><link rel="prefetch" href="/learn-wgpu-zh/assets/js/5421.ea0a9875.js"><link rel="prefetch" href="/learn-wgpu-zh/assets/js/4839.38de57f2.js"><link rel="prefetch" href="/learn-wgpu-zh/assets/js/416.263c3017.js"><link rel="prefetch" href="/learn-wgpu-zh/assets/js/2922.07ac6f22.js"><link rel="prefetch" href="/learn-wgpu-zh/assets/js/4607.4c710cc5.js"><link rel="prefetch" href="/learn-wgpu-zh/assets/js/1769.a6f87e60.js"><link rel="prefetch" href="/learn-wgpu-zh/assets/js/7854.4bf820b5.js"><link rel="prefetch" href="/learn-wgpu-zh/assets/js/7255.ec42f8b1.js"><link rel="prefetch" href="/learn-wgpu-zh/assets/js/5734.0dce093b.js"><link rel="prefetch" href="/learn-wgpu-zh/assets/js/6402.6d66210a.js"><link rel="prefetch" href="/learn-wgpu-zh/assets/js/9292.fb0e80aa.js"><link rel="prefetch" href="/learn-wgpu-zh/assets/js/v-b2a9f5e8.70cbf4c7.js"><link rel="prefetch" href="/learn-wgpu-zh/assets/js/4204.63b46fe4.js"><link rel="prefetch" href="/learn-wgpu-zh/assets/js/v-6b60e296.6e133223.js"><link rel="prefetch" href="/learn-wgpu-zh/assets/js/v-b2a9f626.1e209a62.js"><link rel="prefetch" href="/learn-wgpu-zh/assets/js/v-8daa1a0e.254e2e03.js"><link rel="prefetch" href="/learn-wgpu-zh/assets/js/v-8b4c6ddc.9dddfbb2.js"><link rel="prefetch" href="/learn-wgpu-zh/assets/js/9944.efbaf280.js"><link rel="prefetch" href="/learn-wgpu-zh/assets/js/v-afc761bc.82f0088e.js"><link rel="prefetch" href="/learn-wgpu-zh/assets/js/2076.158ecac5.js"><link rel="prefetch" href="/learn-wgpu-zh/assets/js/v-3706649a.a69da219.js"><link rel="prefetch" href="/learn-wgpu-zh/assets/js/75.ccb1e0c7.js"><link rel="prefetch" href="/learn-wgpu-zh/assets/css/9253.styles.173ab900.css"><link rel="prefetch" href="/learn-wgpu-zh/assets/css/1610.styles.a289f906.css">
+    <link rel="stylesheet" href="/learn-wgpu-zh/assets/css/styles.f5314d33.css">
+  </head>
+  <body>
+    <div id="app"><!--[--><div class="theme-container"><main class="page"><div class="theme-default-content"><h1>404</h1><blockquote>That&#39;s a Four-Oh-Four.</blockquote><a href="/learn-wgpu-zh/" class="">回到首页</a></div></main></div><!----><!--]--></div>
+    <script src="/learn-wgpu-zh/assets/js/runtime~app.da394f90.js" defer></script><script src="/learn-wgpu-zh/assets/js/9141.74699445.js" defer></script><script src="/learn-wgpu-zh/assets/js/app.7a8054bf.js" defer></script>
+  </body>
+</html>

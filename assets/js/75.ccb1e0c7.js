@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunklearn_wgpu_zh=self.webpackChunklearn_wgpu_zh||[]).push([[75],{75:(e,r,n)=>{n.r(r),n.d(r,{default:()=>a});var s=n(6252);const u=["src"],t={name:"JoinWeiChatGroup"},a=(0,n(3744).Z)(t,[["render",function(e,r,n,t,a,h){return(0,s.wg)(),(0,s.iD)("img",{src:e.$withBase("/res/wx.jpg"),style:{width:"312px"}},null,8,u)}]])}}]);
