@@ -259,3 +259,7 @@ wasm-pack build --target web
 <WasmExample example="tutorial1_window"></WasmExample>
 
 <AutoGithubLink/>
+
+## 加入 wgpu 微信学习群
+
+<JoinWeiChatGroup />

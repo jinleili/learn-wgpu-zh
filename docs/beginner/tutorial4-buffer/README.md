@@ -430,7 +430,7 @@ render_pass.draw_indexed(0..self.num_indices, 0, 0..1); // 2.
 ```
 
 有几点需要注意：
-1. 命令名称是 `set_index_buffer` 而不是 `set_index_buffers`, 一次绘制（draw_XXX()）只能设置一个索引缓冲区。但是，你可以在一个 `RenderPass` 内调用多次绘制，每次都设置不同的索引缓冲区。
+1. 命令名称是 `set_index_buffer` 而不是 `set_index_buffers`, 一次绘制（draw_XXX()）只能设置一个索引缓冲区。但是，你可以在一个**渲染通道**内调用多次绘制，每次都设置不同的索引缓冲区。
 2. 当使用索引缓冲区时，需使用 `draw_indexed` 来绘制，`draw` 命令会忽略索引缓冲区。还需确保你使用的是索引数（`num_indices`）而非顶点数，否则你的模型要么画错，要么因为没有足够的索引数而导致程序**恐慌**（panic）。
 
 完成这些后，运行程序应该就能看到窗口里有一个洋红色的五边形了：

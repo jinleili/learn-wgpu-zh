@@ -82,7 +82,7 @@ export default defineUserConfig({
                     '/intermediate/tutorial10-lighting/',
                     '/intermediate/tutorial11-normals/',
                     '/intermediate/tutorial12-camera/',
-                    '/intermediate/tutorial13-terrain/',
+                    // '/intermediate/tutorial13-terrain/',
                 ],
             },
             {

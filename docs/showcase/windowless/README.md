@@ -1,10 +1,10 @@
-# Wgpu without a window
+# 离屏渲染
 
-Sometimes we just want to leverage the gpu. Maybe we want to crunch a large set of numbers in parallel. Maybe we're working on a 3D movie, and need to create a realistic-looking scene with path tracing. Maybe we're mining a cryptocurrency. In all these situations, we don't necessarily *need* to see what's going on.
+有时我们只是想利用 gpu，也许是要并行地计算一组大的数字; 也许是正在制作一部 3D 电影，并需要用路径追踪来创建一个看起来很真实的场景; 也许正在挖掘一种加密货币。在所有这些情况下，我们可能 *不需要* 从窗口看到正在发生的事情。
 
-## So what do we need to do?
+## 如何使用？
 
-It's actually quite simple. We don't *need* a window to create an `Instance`, we don't *need* a window to select an `Adapter`, nor do we *need* a window to create a `Device`. We only needed the window to create a `Surface` which we needed to create the `SwapChain`. Once we have a `Device`, we have all we need to start sending commands to the gpu.
+**离屏渲染**（Off-Screen Rendering, 也叫做 Windowless  Rendering）其实很简单：事实上，我们不*需要*一个**窗口**（Window）来创建一个**GPU 实例**，不*需要*一个窗口来选择**适配器**，也不*需要*一个窗口来创建**逻辑设备**。我们只需要窗口来创建一个**展示平面**及**交换链**（SwapChain）。所以，只要有了**逻辑设备**，就可以开始向 GPU 发送命令。
 
 ```rust
 let adapter = instance
@@ -20,9 +20,11 @@ let (device, queue) = adapter
     .unwrap();
 ```
 
-## A triangle without a window
+## 离屏绘制一个三角形
 
-Now we've talked about not needing to see what the gpu is doing, but we do need to see the results at some point. If we look back to talking about the [surface](/beginner/tutorial2-surface/#render) we see that we use `surface.get_current_texture()` to grab a texture to draw to. We'll skip that step by creating the texture ourselves. One thing to note here is we need to specify `wgpu::TextureFormat::Rgba8UnormSrgb` to `format` instead of `surface.get_preferred_format(&adapter)` since PNG uses RGBA, not BGRA.
+虽然我们已经说过不需要看到 gpu 在做什么，但确实需要在某些时候看到结果。如果回顾一下关于 [surface](/beginner/tutorial2-surface/#render) 的讨论，会发现我们是使用 `surface.get_current_texture()` 获取一个纹理来绘制。
+
+现在，我们跳过这一步，自己创建纹理。这里需要注意的是，需要指定 `TextureFormat::Rgba8UnormSrgb` 为纹理像素格式而不是 `surface.get_preferred_format(&adapter)`，因为 PNG 使用 RGBA 而不是 BGRA 像素格式：
 
 ```rust
 let texture_size = 256u32;
@@ -46,19 +48,20 @@ let texture = device.create_texture(&texture_desc);
 let texture_view = texture.create_view(&Default::default());
 ```
 
-We're using `TextureUsages::RENDER_ATTACHMENT` so wgpu can render to our texture. The `TextureUsages::COPY_SRC` is so we can pull data out of the texture so we can save it to a file.
+usage 字段的 `RENDER_ATTACHMENT` 位令 wgpu 可以渲染到此纹理，`COPY_SRC` 位令我们能够从纹理中提取数据，以便能够将其保存到文件中。
 
-While we can use this texture to draw our triangle, we need some way to get at the pixels inside it. Back in the [texture tutorial](/beginner/tutorial5-textures/) we used a buffer to load color data from a file that we then copied into our buffer. Now we are going to do the reverse: copy data into a buffer from our texture to save into a file. We'll need a buffer big enough for our data.
+虽然我们可以使用这个纹理来绘制三角形，但还需要一些方法来获取它里面的像素。在[纹理](/beginner/tutorial5-textures/)教程中，我们用一个**缓冲区**从一个文件中加载颜色数据，然后复制到另一个缓冲区。
+
+我们要做的是反过来：从纹理中把数据复制到**缓冲区**，然后保存到文件中。我们得创建一个足够大的缓冲区来容纳数据：
 
 ```rust
-// we need to store this for later
 let u32_size = std::mem::size_of::<u32>() as u32;
 
 let output_buffer_size = (u32_size * texture_size * texture_size) as wgpu::BufferAddress;
 let output_buffer_desc = wgpu::BufferDescriptor {
     size: output_buffer_size,
     usage: wgpu::BufferUsages::COPY_DST
-        // this tells wpgu that we want to read this buffer from the cpu
+        // MAP_READ 告诉 wpgu 我们要在 cpu 端读取此缓冲区
         | wgpu::BufferUsages::MAP_READ,
     label: None,
     mapped_at_creation: false,
@@ -66,80 +69,41 @@ let output_buffer_desc = wgpu::BufferDescriptor {
 let output_buffer = device.create_buffer(&output_buffer_desc);
 ```
 
-Now that we have something to draw to, let's make something to draw. Since we're just drawing a triangle, let's grab the shader code from the [pipeline tutorial](/beginner/tutorial3-pipeline/#writing-the-shaders).
+现在已经做好了离屏绘制的准备，让我们来绘制点东西试试。由于只是画一个三角形，可以重用[管线](/beginner/tutorial3-pipeline/#writing-the-shaders)教程中的着色器代码:
 
-```glsl
-// shader.vert
-#version 450
+```wgsl
+// 顶点着色器
 
-const vec2 positions[3] = vec2[3](
-    vec2(0.0, 0.5),
-    vec2(-0.5, -0.5),
-    vec2(0.5, -0.5)
-);
+struct VertexOutput {
+    @builtin(position) clip_position: vec4<f32>,
+};
 
-void main() {
-    gl_Position = vec4(positions[gl_VertexIndex], 0.0, 1.0);
+@vertex
+fn vs_main(
+    @builtin(vertex_index) in_vertex_index: u32,
+) -> VertexOutput {
+    var out: VertexOutput;
+    let x = f32(1 - i32(in_vertex_index)) * 0.5;
+    let y = f32(i32(in_vertex_index & 1u) * 2 - 1) * 0.5;
+    out.clip_position = vec4<f32>(x, y, 0.0, 1.0);
+    return out;
+}
+
+// 片元着色器
+
+@fragment
+fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
+    return vec4<f32>(0.3, 0.2, 0.1, 1.0);
 }
 ```
 
-```glsl
-// shader.frag
-#version 450
-
-layout(location=0) out vec4 f_color;
-
-void main() {
-    f_color = vec4(0.3, 0.2, 0.1, 1.0);
-}
-```
-
-Update dependencies to support SPIR-V module.
-
-```toml
-[dependencies]
-image = "0.23"
-shaderc = "0.7"
-wgpu = { version = "0.13", features = ["spirv"] }
-pollster = "0.2"
-```
-
-Using that we'll create a simple `RenderPipeline`.
+然后用着色器来创建一个简单的**渲染管线** `RenderPipeline`：
 
 ```rust
-let vs_src = include_str!("shader.vert");
-let fs_src = include_str!("shader.frag");
-let mut compiler = shaderc::Compiler::new().unwrap();
-let vs_spirv = compiler
-    .compile_into_spirv(
-        vs_src,
-        shaderc::ShaderKind::Vertex,
-        "shader.vert",
-        "main",
-        None,
-    )
-    .unwrap();
-let fs_spirv = compiler
-    .compile_into_spirv(
-        fs_src,
-        shaderc::ShaderKind::Fragment,
-        "shader.frag",
-        "main",
-        None,
-    )
-    .unwrap();
-let vs_data = wgpu::util::make_spirv(vs_spirv.as_binary_u8());
-let fs_data = wgpu::util::make_spirv(fs_spirv.as_binary_u8());
-let vs_module = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-    label: Some("Vertex Shader"),
-    source: vs_data,
-    flags: wgpu::ShaderFlags::default(),
-});
-let fs_module = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-    label: Some("Fragment Shader"),
-    source: fs_data,
-    flags: wgpu::ShaderFlags::default(),
-});
+ let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+            label: Some("Shader"),
+            source: wgpu::ShaderSource::Wgsl(include_str!("shader.wgsl").into()),
+        });
 
 let render_pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
     label: Some("Render Pipeline Layout"),
@@ -151,8 +115,8 @@ let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescrip
     label: Some("Render Pipeline"),
     layout: Some(&render_pipeline_layout),
     vertex: wgpu::VertexState {
-        module: &vs_module,
-        entry_point: "main",
+        module: &shader,
+        entry_point: "vs_main",
         buffers: &[],
     },
     fragment: Some(wgpu::FragmentState {
@@ -170,7 +134,6 @@ let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescrip
         strip_index_format: None,
         front_face: wgpu::FrontFace::Ccw,
         cull_mode: Some(wgpu::Face::Back),
-        // Setting this to anything other than Fill requires Features::NON_FILL_POLYGON_MODE
         polygon_mode: wgpu::PolygonMode::Fill,
     },
     depth_stencil: None,
@@ -182,7 +145,7 @@ let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescrip
 });
 ```
 
-We're going to need an encoder, so let's do that.
+接着创建一个**命令编码器** `CommandEncoder`：
 
 ```rust
 let mut encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
@@ -190,7 +153,7 @@ let mut encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor 
 });
 ```
 
-The `RenderPass` is where things get interesting. A render pass requires at least one color attachment. A color attachment requires a `TextureView` to attach to. We used to use a texture from `SwapChain` for this, but any `TextureView` will do, including our `texture_view`.
+离屏渲染最关键的地方就是**渲染通道** 的设置了。一个渲染通道至少需要一个**颜色附件**，一个颜色附件需要绑定一个**纹理视图**。前面的教程我们一直使用的是**交换链**（`SwapChain`）的纹理视图，但事实上任何纹理视图都可以，包括我们自己创建的 `texture_view`：
 
 ```rust
 {
@@ -220,7 +183,7 @@ The `RenderPass` is where things get interesting. A render pass requires at leas
 }
 ```
 
-There's not much we can do with the data when it's stuck in a `Texture`, so let's copy it into our `output_buffer`.
+让我们把绘制在**纹理**（`Texture`）中的像素数据复制到 `output_buffer` **缓冲区**：
 
 ```rust
 encoder.copy_texture_to_buffer(
@@ -242,24 +205,23 @@ encoder.copy_texture_to_buffer(
 );
 ```
 
-Now that we've made all our commands, let's submit them to the gpu.
+上面已经**编码**（Encode）好了所有的**命令**（Command），现在把它们提交给 GPU 来执行：
 
 ```rust
 queue.submit(Some(encoder.finish()));
 ```
 
-## Getting data out of a buffer
+## 从缓冲区中读取数据
 
-In order to get the data out of the buffer, we need to first map it, then we can get a `BufferView` that we can treat like a `&[u8]`.
+为了从**缓冲区**中读取数据，首先需要对它进行**映射**（Map），然后执行 `get_mapped_range()` 就可以得到一个**缓冲区视图** （`BufferView`）实例，它实质上就是一个 `&[u8]` 类型数据的容器：
 
 ```rust
-// We need to scope the mapping variables so that we can
-// unmap the buffer
+// 需要对映射变量设置范围，以便我们能够解除缓冲区的映射
 {
     let buffer_slice = output_buffer.slice(..);
 
-    // NOTE: We have to create the mapping THEN device.poll() before await
-    // the future. Otherwise the application will freeze.
+    // 注意：我们必须在 await future 之前先创建映射，然后再调用 device.poll()。
+    // 否则，应用程序将停止响应。
     let (tx, rx) = futures_intrusive::channel::shared::oneshot_channel();
     buffer_slice.map_async(wgpu::MapMode::Read, move |result| {
         tx.send(result).unwrap();
@@ -275,28 +237,29 @@ In order to get the data out of the buffer, we need to first map it, then we can
     buffer.save("image.png").unwrap();
 
 }
+// 解除缓冲区映射
 output_buffer.unmap();
 ```
 
 <div class="note">
 
-I used [futures-intrusive](https://docs.rs/futures-intrusive) as that's the crate they use in the [exampls on the wgpu repo](https://github.com/gfx-rs/wgpu/tree/master/wgpu/examples/capture).
+这个程序使用了 [futures-intrusive](https://docs.rs/futures-intrusive)，那也是 [wgpu 的 demo](https://github.com/gfx-rs/wgpu/tree/master/wgpu/examples/capture) 中使用的**包**。
 
 </div>
 
-## Main is not asyncable
+## Main 函数不能异步化
 
-The `main()` method can't return a future, so we can't use the `async` keyword. We'll get around this by putting our code into a different function so that we can block it in `main()`. You'll need to use a crate that can poll futures such as the [pollster crate](https://docs.rs/pollster).
+`main()` 做为程序的入口函数，它默认无法返回一个 **Future**（异步任务抽象单元），所以不能使用 `async` 关键字。我们将通过把代码封装到另一个函数中来解决此问题，这样就可以在 `main()` 中**阻塞**它（也就是等待函数真正执行完成）。异步函数被调用时会立即返回一个 **Future** 对象，此时函数内的任务可能还没有真正开始执行， 我们需要使用一个可以轮询 Future 的**包**，比如[pollster crate](https://docs.rs/pollster)。
 
 <div class="note">
 
-There are crates such as [async-std](https://docs.rs/async-std), and [tokio](https://docs.rs/tokio) that you can use to annotate `main()` so it can be async. I opted not to do that as both those crates are a little more hefty for this project. You're welcome to use whatever async setup you like :slightly_smiling_face:
+有一些**包**可以用来标注 `main()` 函数为异步，如 [async-std](https://docs.rs/async-std) 和 [tokio](https://docs.rs/tokio)。我选择不这样做，因为这两个包对咱们的项目来说都有点儿重了。当然，你可以使用你喜欢的任何异步包和设置。
 
 </div>
 
 ```rust
 async fn run() {
-    // Windowless drawing code...
+    // 离屏绘制代码...
 }
 
 fn main() {
@@ -304,7 +267,7 @@ fn main() {
 }
 ```
 
-With all that you should have an image like this.
+现在运行代码，就会在项目根目录输出这样一张名为 `image.png` 的图像：
 
 ![a brown triangle](./image-output.png)
 

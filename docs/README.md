@@ -28,5 +28,3 @@ wgpu 实际上提供了 C 语言绑定 ([wgpu-native](https://github.com/gfx-rs/
 ## 关于译者
 我是一名移动端（iOS，Android）工程师, 同时也擅长 HTML5，有多年使用 OpenGL ES / WebGL, Metal 的实践经验。2018 年开始接触 WebGPU，目前正积极地参与到 [wgpu 开源项目的开发与完善](https://github.com/gfx-rs/wgpu/commits?author=jinleili)之中，并且已于两年前在 AppStore 上架了基于 wgpu 实现的毛笔书法模拟 App [字习 Pro](https://apps.apple.com/cn/app/字习-pro/id1507339788)。
 
-## 加入 wgpu 微信学习群
-<JoinWeiChatGroup />

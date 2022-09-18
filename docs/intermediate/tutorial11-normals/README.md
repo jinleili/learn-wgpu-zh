@@ -533,7 +533,7 @@ pub async fn load_model(
 
 ## 试试其他材质
 
-现在改用其他材质来试试效果，在 `DrawModel` trait 中添加了一个 `draw_model_instanced_with_material()` 接口并为 `RenderPass` 实现它：
+现在改用其他材质来试试效果，在 `DrawModel` trait 中添加了一个 `draw_model_instanced_with_material()` 接口并在**渲染通道**对象上实现此接口：
 
 ```rust
 pub trait DrawModel<'a> {

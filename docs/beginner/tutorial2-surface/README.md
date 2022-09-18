@@ -370,7 +370,7 @@ let mut encoder = self.device.create_command_encoder(&wgpu::CommandEncoderDescri
 });
 ```
 
-现在可以开始执行期盼已久的**清屏**（用统一的颜色填充指定渲染区域）了。我们需要使用 `encoder` 来创建 `RenderPass`。`RenderPass` 拥有所有实际绘制的**命令**。创建 `RenderPass` 的代码嵌套层级有点深，所以在谈论它之前，我先把代码全部复制到这里：
+现在可以开始执行期盼已久的**清屏**（用统一的颜色填充指定渲染区域）了。我们需要使用 `encoder` 来创建**渲染通道**（`RenderPass`）。**渲染通道**编码所有实际绘制的**命令**。创建渲染通道的代码嵌套层级有点深，所以在谈论它之前，我先把代码全部复制到这里：
 
 ```rust
     {
@@ -437,7 +437,7 @@ event_loop.run(move |event, _, control_flow| {
 
 ![蓝色背景的窗口](./cleared-window.png)
 
-## 关于 RenderPassDescriptor
+## 关于渲染通道描述符
 
 部分读者可能光看代码就能理解，但如果我不把它介绍一遍，那就是失职。让我们再看一下代码：
 
@@ -451,7 +451,7 @@ event_loop.run(move |event, _, control_flow| {
 }
 ```
 
-`RenderPassDescriptor` 只有三个字段: `label`, `color_attachments` 和 `depth_stencil_attachment`。`color_attachments` 描述了要将颜色绘制到哪里。我们使用之前创建的**纹理视图**来确保渲染到屏幕上。
+**渲染通道描述符**（`RenderPassDescriptor`）只有三个字段: `label`, `color_attachments` 和 `depth_stencil_attachment`。`color_attachments` 描述了要将颜色绘制到哪里。我们使用之前创建的**纹理视图**来确保渲染到屏幕上。
 
 <div class="note">
 
