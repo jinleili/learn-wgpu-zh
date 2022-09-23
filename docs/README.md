@@ -1,7 +1,7 @@
 # 介绍
 *为了便于读者的理解，译者选择性的添加了一些内容，并对原文中有歧义或错误的（比如：第八章、第十一章 Srgb 部分等等）地方进行重新表述。所有的添加与修改均不会做单独标记。*
 
-*翻译时采用了第一人称视角，故，除了译者介绍，教程中的 **我** 主要指的是原作者 [@sorth](https://github.com/sotrh)。*
+*翻译时采用了第一人称视角，故，除了带 🆕 标记的章节，教程中的 **我** 主要指的是原作者 [@sorth](https://github.com/sotrh)。*
 
 *另外，专有名词在一个段落中第一次出现时做了**加粗**处理，同一段落里反复出现时就不再加粗。*
 
@@ -10,32 +10,30 @@
 
 **wgpu** 可以在 macOS / iOS、Android、Window 和 Linux 等系统上原生运行，也可以在 Web 环境运行。
 
-**WebGPU** 是由 W3C [GPU for the Web](https://www.w3.org/community/gpu/) 社区组所发布的规范，目标是允许网页代码以高性能且安全可靠的方式访问 GPU 功能。它通过借鉴 Vulkan API，并将其转换为宿主硬件上使用的各式 API（如DirectX、Metal、Vulkan）来实现这一目标。
+**WebGPU** 是由 W3C [GPU for the Web](https://www.w3.org/community/gpu/) 社区组所发布的规范，目标是允许网页代码以高性能且安全可靠的方式访问 GPU 功能。它通过借鉴 Vulkan API，并将其转换为宿主硬件上使用的各式 API（如 DirectX、Metal、Vulkan）来实现这一目标。
 
 *WebGPU 规范及 wgpu 都仍在完善阶段，本教程中的部分内容可能会发生变化。如果有错过一些重要的细节，或者解释得不够好，欢迎提出建设性的反馈。*
 
 ## 为什么使用 Rust？
 wgpu 实际上提供了 C 语言绑定 ([wgpu-native](https://github.com/gfx-rs/wgpu-native))，你可以写 C/C++ 或其他能与 C 互通的语言来使用它。尽管如此，wgpu 本身是用 Rust 实现的，它便利的 Rust 绑定能减少你使用中的阻碍。更重要的是，Rust 是一门高性能，内存和线程安全且极具生产力的现代底层语言。
 
-在学习本教程之前你需要先熟悉 Rust，因为这里不会详细介绍 Rust 的语法知识。如果对 Rust 还不太熟悉，可以回顾一下 [Rust 教程](https://www.rust-lang.org/zh-CN/learn)。另外还需要熟悉 Rust 包管理工具 [Cargo](https://doc.rust-lang.org/cargo)。
+在学习本教程之前你需要先熟悉 Rust，因为这里不会详细介绍 Rust 的语法知识。如果对 Rust 还不太熟悉，可以回顾一下 [Rust 教程](https://www.rust-lang.org/zh-CN/learn)或 [Rust 语言圣经](https://course.rs/about-book.html)。另外还需要熟悉 Rust 包管理工具 [Cargo](https://doc.rust-lang.org/cargo)。
 
 <div class="note">
 
-如果你还没有学习过任何一门底层语言，那么现在开始学习 Rust 吧？它不像 C++ 有那么多复杂难懂的概念;
+如果你还没有学习过任何一门底层语言，那就学 Rust 吧？它不像 C++ 有那么多复杂难懂的概念;
 
-如果你觉得学 C/C++ 很难，那么学 Rust 吧，你必将受益于它的高性能，内存和线程安全;
+如果你觉得学 C/C++ 很难，那就学 Rust 吧，你会受益于它的高性能，内存和线程安全;
 
-如果你已精通 C/C++，那么也学学 Rust 吧，那么难的都学得会，掌握 Rust 只是小菜一碟;
+如果你已精通 C/C++，那也学学 Rust 吧，那么难的都学得会，掌握 Rust 不过是小菜一碟;
 
 </div>
-
 
 ## 贡献与支持
 
 * 原作者接受 PR（[GitHub repo](https://github.com/sotrh/learn-wgpu)）以修复本教程的问题，如错别字、错误信息和其他不一致之处。
 * 如果想直接支持原作者，请查看 [patreon](https://www.patreon.com/sotrh)！
 * 也欢迎对此中译版本提出反馈及改进建议（[《Learn wgpu》中文版 repo](https://github.com/jinleili/learn-wgpu-zh)）
-
 
 ## 关于译者
 我是一名移动端（iOS，Android）工程师, 同时也擅长 HTML5，有多年使用 OpenGL ES / WebGL, Metal 的实践经验。2018 年开始接触 WebGPU，目前正积极地参与到 [wgpu 开源项目的开发与完善](https://github.com/gfx-rs/wgpu/commits?author=jinleili)之中，并且已于两年前在 AppStore 上架了基于 wgpu 实现的毛笔书法模拟 App [字习 Pro](https://apps.apple.com/cn/app/字习-pro/id1507339788)。

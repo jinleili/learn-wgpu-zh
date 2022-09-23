@@ -1,12 +1,14 @@
-# Creating gifs
+# 生成 GIF 动图
 
-Sometimes you've created a nice simulation/animation, and you want to show it off. While you can record a video, that might be a bit overkill to break out your video recording if you just want something to post on Twitter. That's where what [GIF](https://en.wikipedia.org/wiki/GIF)s are for.
+假如你想要展示一个自己实现的，漂亮的 WebGPU 模拟动画，当然可以录制一个视频，但如果只是想在微博或朋友圈以九宫格来展示呢？
 
-Also, GIF is pronounced GHIF, not JIF as JIF is not only [peanut butter](https://en.wikipedia.org/wiki/Jif_%28peanut_butter%29), it is also a [different image format](https://filext.com/file-extension/JIF).
+这，就是 [GIF](https://en.wikipedia.org/wiki/GIF) 的用武之地。
 
-## How are we making the GIF?
+另外，GIF 的发音是 GHIF，而不是 JIF，因为 JIF 不仅是[花生酱](https://en.wikipedia.org/wiki/Jif_%28peanut_butter%29)，它也是一种[不同的图像格式](https://filext.com/file-extension/JIF)。
 
-We're going to create a function using the [gif crate](https://docs.rs/gif/) to encode the actual image.
+## 如何制作 GIF？
+
+我们使用 [gif 包](https://docs.rs/gif/)创建一个函数来对渲染的图像进行编码：
 
 ```rust
 fn save_gif(path: &str, frames: &mut Vec<Vec<u8>>, speed: i32, size: u16) -> Result<(), failure::Error> {
@@ -24,31 +26,14 @@ fn save_gif(path: &str, frames: &mut Vec<Vec<u8>>, speed: i32, size: u16) -> Res
 }
 ```
 
-<!-- image-rs doesn't currently support looping, so I switched to gif -->
-<!-- A GIF is a type of image, and fortunately, the [image crate](https://docs.rs/image/) supports GIFs natively. It's pretty simple to use. -->
+上面的函数所需要的参数是 GIF 的帧数，它应该运行多快，以及 GIF 的大小。
 
-<!-- ```rust
-fn save_gif(path: &str, frames: &mut Vec<Vec<u8>>, speed: i32, size: u16) -> Result<(), failure::Error> {
-    let output = std::fs::File::create(path)?;
-    let mut encoder = image::gif::Encoder::new(output);
+## 如何生成帧数据？
 
-    for mut data in frames {
-        let frame = image::gif::Frame::from_rgba_speed(size, size, &mut data, speed);
-        encoder.encode(&frame)?;
-    }
-
-    Ok(())
-}
-``` -->
-
-All we need to use this code is the frames of the GIF, how fast it should run, and the size of the GIF (you could use width and height separately, but I didn't).
-
-## How do we make the frames?
-
-If you checked out the [windowless showcase](../windowless/#a-triangle-without-a-window), you'll know that we render directly to a `wgpu::Texture`. We'll create a texture to render to and a buffer to copy the output to.
+如果看过[离屏渲染案例](.../windowless/#a-triangle-without-a-window)，你就知道我们可以直接渲染到一个**纹理**。我们将创建一个用于渲染的纹理和一个用于复制纹理的**纹素**数据的**缓冲区**：
 
 ```rust
-// create a texture to render to
+// 创建一个用于渲染的纹理
 let texture_size = 256u32;
 let rt_desc = wgpu::TextureDescriptor {
     size: wgpu::Extent3d {
@@ -66,17 +51,15 @@ let rt_desc = wgpu::TextureDescriptor {
 };
 let render_target = framework::Texture::from_descriptor(&device, rt_desc);
 
-// wgpu requires texture -> buffer copies to be aligned using
-// wgpu::COPY_BYTES_PER_ROW_ALIGNMENT. Because of this we'll
-// need to save both the padded_bytes_per_row as well as the
-// unpadded_bytes_per_row
+// wgpu 需要使用 wgpu::COPY_BYTES_PER_ROW_ALIGNMENT 对齐纹理 -> 缓冲区的复制
+// 因此，我们需要同时保存 padded_bytes_per_row 和 unpadded_bytes_per_row
 let pixel_size = mem::size_of::<[u8;4]>() as u32;
 let align = wgpu::COPY_BYTES_PER_ROW_ALIGNMENT;
 let unpadded_bytes_per_row = pixel_size * texture_size;
 let padding = (align - unpadded_bytes_per_row % align) % align;
 let padded_bytes_per_row = unpadded_bytes_per_row + padding;
 
-// create a buffer to copy the texture to so we can get the data
+// 创建一个用于复制纹素数据的缓冲区
 let buffer_size = (padded_bytes_per_row * texture_size) as wgpu::BufferAddress;
 let buffer_desc = wgpu::BufferDescriptor {
     size: buffer_size,
@@ -87,7 +70,7 @@ let buffer_desc = wgpu::BufferDescriptor {
 let output_buffer = device.create_buffer(&buffer_desc);
 ```
 
-With that, we can render a frame, and then copy that frame to a `Vec<u8>`.
+现在，我们可以渲染一帧了，然后把这个帧缓冲区数据（也就是我们上面创建的纹理的纹素数据）复制到一个 `Vec<u8>` 数组。
 
 ```rust
 let mut frames = Vec::new();
@@ -143,10 +126,10 @@ for c in &colors {
 
     queue.submit(std::iter::once(encoder.finish()));
     
-    // Create the map request
+    // 创建一个缓冲区数据异步映射
     let buffer_slice = output_buffer.slice(..);
     let request = buffer_slice.map_async(wgpu::MapMode::Read);
-    // wait for the GPU to finish
+    // 等待 GPU 完成上面的任务
     device.poll(wgpu::Maintain::Wait);
     let result = request.await;
     
@@ -169,14 +152,14 @@ for c in &colors {
 }
 ```
 
-Once that's done we can pass our frames into `save_gif()`.
+完成后，就可以将我们的帧数据传递给 `save_gif()` 函数了：
 
 ```rust
 save_gif("output.gif", &mut frames, 1, texture_size as u16).unwrap();
 ```
 
-That's the gist of it. We can improve things using a texture array, and sending the draw commands all at once, but this gets the idea across. With the shader I wrote we get the following GIF.
-
+我们还可以使用纹理数组来做优化，并一次发送所有绘制命令。
+但上面的简单程序就是生成 GIF 动图的全部要点了，运行示例代码将得到以下 GIF 图：
 
 ![./output.gif](./output.gif)
 
