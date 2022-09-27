@@ -83,13 +83,21 @@ export default defineUserConfig({
                     '/intermediate/tutorial10-lighting/',
                     '/intermediate/tutorial11-normals/',
                     '/intermediate/tutorial12-camera/',
-                    '/intermediate/xcode/',
                     // '/intermediate/tutorial13-terrain/',
                 ],
             },
             {
+                text: '集成与调试',
+                children: [
+                    '/integration-and-debugging/',
+                    // '/integration-and-debugging/ios/',
+                    '/integration-and-debugging/android/',
+                    '/integration-and-debugging/xcode/',
+                ],
+            },
+            {
                 text: '案例展示',
-                collapsable: true,
+                collapsible: true,
                 children: [
                     '/showcase/windowless/',
                     '/showcase/gifs/',

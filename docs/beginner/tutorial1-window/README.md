@@ -1,5 +1,5 @@
 # 依赖与窗口
-部分读者可能已经熟悉如何在 Rust 中打开窗口程序，且有自己偏好的窗口**包**（crate）。但本教程是为所有人设计的，所以不免要涉及这部分的内容。所幸你可以跳过这部分，但有一点值得了解，即无论使用什么样的窗口解决方案，都需要实现  [raw-window-handle](https://github.com/rust-windowing/raw-window-handle) **包**定义的 trait。如果有兴趣自己动手来为 wgpu 实现一个基础的窗口，可以参考 [wgpu-on-app](https://github.com/jinleili/wgpu-on-app).
+部分读者可能已经熟悉如何在 Rust 中打开窗口程序，且有自己偏好的窗口管理库。但本教程是为所有人设计的，所以不免要涉及这部分的内容。所幸你可以跳过这部分，但有一点值得了解，即无论使用什么样的窗口解决方案，都需要实现 [raw-window-handle](https://github.com/rust-windowing/raw-window-handle) 里定义的 `raw_window_handle()` 及 `raw_display_handle()` 两个抽象接口。如果有兴趣自己动手来为 wgpu 实现一个基础的窗口，可以参考 [wgpu-on-app](https://github.com/jinleili/wgpu-on-app)，[与 Android App 集成](../../integration-and-debugging/android/)这一章节也有详情的介绍。
 
 ## 我们要使用哪些包?
 我们将尽量保持基础部分的简单性。后续我们会逐渐添加依赖，先列出相关的 `Cargo.toml` 依赖项如下：
@@ -260,6 +260,3 @@ wasm-pack build --target web
 
 <AutoGithubLink/>
 
-## 加入 wgpu 微信学习群
-
-<JoinWeiChatGroup />
