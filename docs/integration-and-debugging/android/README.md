@@ -93,20 +93,21 @@ Rust 有一个关键字 `extern`（kotlin 中定义 JNI 函数时也有一个对
 ```rust
 #[no_mangle]
 #[jni_fn("name.jinleili.wgpu.RustBridge")]
-pub unsafe fn createWgpuCanvas(env: *mut JNIEnv, _: JClass, surface: jobject, idx: jint) -> jlong {
+pub fn createWgpuCanvas(env: *mut JNIEnv, _: JClass, surface: jobject, idx: jint) -> jlong {
     android_logger::init_once(Config::default().with_min_level(Level::Trace));
     let canvas = WgpuCanvas::new(AppSurface::new(env as *mut _, surface), idx as i32);
     info!("WgpuCanvas created!");
     // 使用 Box 对 Rust 对象进行装箱操作。
-    // 我们无法将 Rust 对象直接传递给外部语言，通过装箱来传递此对象的胖指针 
+    // 我们无法将 Rust 对象直接传递给外部语言，通过装箱来传递此对象的裸指针 
+    // into_raw 返回指针的同时，也将此对象的内存管理权转交给调用方
     Box::into_raw(Box::new(canvas)) as jlong
 }
 
 #[no_mangle]
 #[jni_fn("name.jinleili.wgpu.RustBridge")]
-pub unsafe fn enterFrame(_env: *mut JNIEnv, _: JClass, obj: jlong) {
-    // 拆箱操作，获取到指针指代的实际 Rust 对象
-    let obj = &mut *(obj as *mut WgpuCanvas);
+pub fn enterFrame(_env: *mut JNIEnv, _: JClass, obj: jlong) {
+    // 直接获取到指针指代的 Rust 对象的可变借用
+    let obj = unsafe { &mut *(obj as *mut WgpuCanvas) };
     obj.enter_frame();
 }
 ```
@@ -230,7 +231,7 @@ sh ./release.sh
 ``` 
 
 
-## 自定义 SurfaceView
+## 自定义 WGPUSurfaceView
 
 安卓视图组件 `SurfaceView` 提供了一个可嵌入在视图层级结构中的专用于绘制的视图。它负责**绘制表面**（Surface）在屏幕上的正确位置，还控制着绘制表面的像素格式及分辨率大小。
 `SurfaceView` 持有的**绘制表面**是独立于 App 窗口的，可以在单独的线程中进行绘制而不占用主线程资源。所以使用 `SurfaceView` 可以实现复杂而高效的渲染（比如，游戏、视频播放、相机预览等），且不会阻塞用户交互（触摸、键盘输入等）的响应。
@@ -266,7 +267,7 @@ pub struct Surface {
 需要注意的是，如果覆盖内容存在透明度，则每次绘制表面渲染完成后，都会进行一次完整的 `alpha` 混合合成，这会对性能产生不利影响。
 
 我们只能通过 `SurfaceHolder` 接口来访问绘制表面。当 `SurfaceView` 在窗口中可见时，绘制表面就会被创建，而不可见时（比如，App 被切换到后台运行）绘制表面会被销毁，所以需要实现 `SurfaceHolder` 的回调接口 `surfaceCreated` 及 `surfaceDestroyed` 来发现绘制表面的创建和销毁。
-下边的代码实现了一个自定义的 `SurfaceView`, `RustBridge` 及 `wgpuObj` 我们后面再详细讨论：
+下边的代码实现了一个继承自 `SurfaceView` 的 `WGPUSurfaceView`：
 
 ```kotlin
 // 为当前类实现 SurfaceHolder 的回调接口
@@ -314,13 +315,58 @@ class WGPUSurfaceView : SurfaceView, SurfaceHolder.Callback2 {
 ```
 
 
+## App 中加载 WGPUSurfaceView
+现在可以在 Activity 或 Fragment（此处仅指安卓 Fragment，与着色器里的**片元**无关）里加载 `WGPUSurfaceView` 实例了，通过 XML 或者 Java/Kotlin 代码来加载很常见，下面我们来看看在安卓上的新一代 UI 开发框架 [Jetpack Compose](https://developer.android.com/jetpack/compose) 中如何加载：
+
+```kotlin
+class MainActivity : ComponentActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        setContent {
+            MyApplicationTheme {
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = colorResource(id = R.color.white)
+                ) {
+                    SurfaceCard()
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun SurfaceCard() {
+    val screenWidth = LocalConfiguration.current.screenWidthDp.dp
+    Column(modifier = Modifier.fillMaxSize()) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Text(text = "wgpu on Android", fontSize = 20.sp, fontWeight = FontWeight.Bold)
+        }
+        // ...
+
+        // 通过 AndroidView 容器来加载我们的 WGPUSurfaceView
+        AndroidView(
+            factory = { ctx ->
+                WGPUSurfaceView(context = ctx)
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(screenWidth),
+        )
+    }
+}
+```
+
 基于以上代码，我写了一个叫 wgpu-on-app 的示例程序，效果如下：
 
 <img src="./on_android.png" />
 
-## 查看完整项目源码
-<div class="auto-github-link">
+<div class="github-link">
     <a href="https://github.com/jinleili/wgpu-on-app" target="_blank" rel="noopener noreferrer">
-        查看 wgpu-on-app 源码！
+        查看 wgpu-on-app 完整项目源码！
     </a>
 </div>

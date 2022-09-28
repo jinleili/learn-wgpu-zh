@@ -44,6 +44,10 @@ $MQMobileNarrow: 419px;
 //     margin-top: 0px;
 // }
 
+.github-link {
+    margin-top: 2rem;
+}
+
 .note {
     background-color: $noteColor;
     @include excerpt(6px);

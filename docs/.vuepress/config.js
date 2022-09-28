@@ -90,7 +90,7 @@ export default defineUserConfig({
                 text: '集成与调试',
                 children: [
                     '/integration-and-debugging/',
-                    // '/integration-and-debugging/ios/',
+                    '/integration-and-debugging/ios/',
                     '/integration-and-debugging/android/',
                     '/integration-and-debugging/xcode/',
                 ],
