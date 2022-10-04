@@ -13,15 +13,12 @@ use wasm_bindgen::prelude::*;
 
 struct State {
     app: AppSurface,
-    size: winit::dpi::PhysicalSize<u32>,
     // NEW!
     render_pipeline: wgpu::RenderPipeline,
 }
 
 impl State {
     async fn new(window: Window) -> Self {
-        let size = window.inner_size();
-
         let app = AppSurface::new(window);
 
         let shader = app
@@ -87,7 +84,6 @@ impl State {
 
         Self {
             app,
-            size,
             render_pipeline,
         }
     }
