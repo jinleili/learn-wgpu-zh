@@ -1,30 +1,31 @@
 {
-  "name": "learn-wgpu-zh",
-  "version": "1.0.0",
-  "description": "使用 Rust 学习 wgpu",
-  "packageManager": "yarn@3.2.3",
-  "engines": {
-    "node": ">=16.10"
-  },
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "./build-wasm.sh && vuepress dev docs",
-    "build": "./build-wasm.sh && vuepress build docs",
-    "deploy": "sh deploy.sh",
-    "just-build": "vuepress build docs",
-    "just-dev": "vuepress dev docs"
-  },
-  "author": "",
-  "license": "MIT",
-  "lint-staged": {
-    "*.{cjs,js,ts,vue}": "eslint --fix",
-    "*.{json,yml,css,scss}": "prettier --write",
-    "package.json": "sort-package-json"
-  },
-  "devDependencies": {
-    "@vuepress/bundler-webpack": "^2.0.0-beta.51",
-    "@vuepress/plugin-back-to-top": "^2.0.0-beta.51",
-    "@vuepress/plugin-register-components": "^2.0.0-beta.51",
-    "vuepress": "next"
-  }
+    "name": "learn-wgpu-zh",
+    "version": "1.0.0",
+    "description": "使用 Rust 学习 wgpu",
+    "packageManager": "yarn@3.2.3",
+    "engines": {
+        "node": ">=16.10"
+    },
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "dev": "./build-wasm.sh && vuepress dev docs",
+        "build": "./build-wasm.sh && vuepress build docs",
+        "deploy": "sh deploy.sh",
+        "just-build": "vuepress build docs",
+        "just-dev": "vuepress dev docs"
+    },
+    "author": "",
+    "license": "MIT",
+    "lint-staged": {
+        "*.{cjs,js,ts,vue}": "eslint --fix",
+        "*.{json,yml,css,scss}": "prettier --write",
+        "package.json": "sort-package-json"
+    },
+    "devDependencies": {
+        "@vuepress/plugin-back-to-top": "^2.0.0-beta.51",
+        "@vuepress/plugin-register-components": "^2.0.0-beta.51",
+        "@vuepress/plugin-search": "^2.0.0-beta.51",
+        "vuepress": "next",
+        "vuepress-webpack": "next"
+    }
 }

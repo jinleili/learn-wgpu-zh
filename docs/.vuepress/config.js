@@ -1,10 +1,13 @@
 import { defineUserConfig } from '@vuepress/cli'
 import { defaultTheme } from '@vuepress/theme-default'
+
 import { registerComponentsPlugin } from '@vuepress/plugin-register-components'
 import { getDirname, path } from '@vuepress/utils'
 import { backToTopPlugin } from '@vuepress/plugin-back-to-top'
+import { searchPlugin } from '@vuepress/plugin-search'
 
-import { webpackBundler } from '@vuepress/bundler-webpack'
+// import { webpackBundler } from '@vuepress/bundler-webpack'
+import { webpackBundler } from 'vuepress-webpack'
 
 const __dirname = getDirname(import.meta.url)
 
@@ -16,16 +19,14 @@ export default defineUserConfig({
         registerComponentsPlugin({
             componentsDir: path.resolve(__dirname, './components'),
         }),
+        searchPlugin({
+            locales: {
+                '/': {
+                    placeholder: '搜索',
+                },
+            },
+        }),
     ],
-    // bundler: viteBundler({
-    //     viteOptions: {
-    //         plugins: [
-    //             wasm(),
-    //             //ViteRsw(),
-    //         ],
-    //     },
-    // }),
-
     // vite + vite-plugin-wasm | vite-plugin-rsw 在加载 wasm 时都会报错
     // 目前只有使用 webpack 能成功加载 wasm 模块（20220917）
     bundler: webpackBundler({
@@ -45,8 +46,9 @@ export default defineUserConfig({
     },
     theme: defaultTheme({
         repo: 'jinleili/learn-wgpu-zh',
-        repoLabel: '《Learn wgpu》中文版',
+        repoLabel: 'GitHub',
         docsDir: 'docs',
+        logo: '/res/wgpu-logo.png',
         lastUpdatedText: '上次更新',
         contributors: false,
         editLink: false,
@@ -93,6 +95,7 @@ export default defineUserConfig({
                     '/integration-and-debugging/ios/',
                     '/integration-and-debugging/android/',
                     '/integration-and-debugging/xcode/',
+                    '/integration-and-debugging/snapdragon-profiler/',
                 ],
             },
             {

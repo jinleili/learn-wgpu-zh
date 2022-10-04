@@ -238,16 +238,16 @@ func callback_to_swift(arg: Int32) {
 ## 编译与运行
 
 ```sh
-// 编译为 iOS 真机支持的库
-// debug 库
+# 编译为 iOS 真机支持的库
+# debug 库
 cargo build --target aarch64-apple-ios
-// release 库
+# release 库
 cargo build --target aarch64-apple-ios --release
 
-// 编译为 iOS 模拟器支持的库
-// M1+ Mac 上执行：
+# 编译为 iOS 模拟器支持的库
+# M1+ Mac 上执行：
 cargo build --target aarch64-apple-ios-sim 
-// Intel 芯片的 Mac 上执行：
+# Intel 芯片的 Mac 上执行：
 cargo build --target x86_64-apple-ios
 ```
 
