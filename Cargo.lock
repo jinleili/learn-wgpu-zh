@@ -3265,6 +3265,7 @@ name = "tutorial4-buffer"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "app-surface",
  "bytemuck",
  "cfg-if",
  "console_error_panic_hook",

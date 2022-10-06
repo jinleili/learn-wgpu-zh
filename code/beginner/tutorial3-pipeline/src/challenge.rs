@@ -157,10 +157,7 @@ impl State {
     fn update(&mut self) {}
 
     fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
-        let output = self.app.surface.get_current_texture()?;
-        let view = output
-            .texture
-            .create_view(&wgpu::TextureViewDescriptor::default());
+        let (output, view) = self.app.get_current_frame_view();
 
         let mut encoder = self
             .app
