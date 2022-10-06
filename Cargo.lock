@@ -106,7 +106,7 @@ checksum = "98161a4e3e2184da77bb14f02184cdd111e83bbbcc9979dfee3c44b9a85f5602"
 [[package]]
 name = "app-surface"
 version = "0.1.1"
-source = "git+https://github.com/jinleili/wgpu-on-app?tag=0.1.1#2107c7d39f18b40203e753778f5e794f48bb5d1d"
+source = "git+https://github.com/jinleili/wgpu-on-app?tag=0.1.2#6c32b27285557fa26f8c303526489fc995dfa9ff"
 dependencies = [
  "android_logger",
  "async-executor",

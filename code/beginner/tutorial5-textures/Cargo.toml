@@ -16,7 +16,7 @@ log = "0.4"
 pollster = "0.2"
 wgpu = "0.14"
 winit = "0.27.1"
-app-surface = { git = "https://github.com/jinleili/wgpu-on-app", tag = "0.1.1" }
+app-surface = { git = "https://github.com/jinleili/wgpu-on-app", tag = "0.1.2" }
 
 [dependencies.image]
 version = "0.24"
