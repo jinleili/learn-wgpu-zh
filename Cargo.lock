@@ -105,8 +105,8 @@ checksum = "98161a4e3e2184da77bb14f02184cdd111e83bbbcc9979dfee3c44b9a85f5602"
 
 [[package]]
 name = "app-surface"
-version = "0.1.0"
-source = "git+https://github.com/jinleili/wgpu-on-app?tag=0.1#4e1557e50711f5cb33f0ba5644ac01c2d02de4e6"
+version = "0.1.1"
+source = "git+https://github.com/jinleili/wgpu-on-app?tag=0.1.1#2107c7d39f18b40203e753778f5e794f48bb5d1d"
 dependencies = [
  "android_logger",
  "async-executor",
@@ -116,12 +116,13 @@ dependencies = [
  "lazy_static",
  "libc",
  "log",
- "ndk-sys 0.4.0",
+ "ndk-sys 0.3.0",
  "objc",
  "objc-foundation",
  "pollster",
  "raw-window-handle 0.5.0",
  "wasm-bindgen",
+ "web-sys",
  "wgpu 0.14.0",
  "winit",
 ]
@@ -3128,6 +3129,7 @@ name = "tutorial10-lighting"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "app-surface",
  "bytemuck",
  "cfg-if",
  "cgmath",
@@ -3153,6 +3155,7 @@ name = "tutorial11-normals"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "app-surface",
  "bytemuck",
  "cfg-if",
  "cgmath",
@@ -3178,6 +3181,7 @@ name = "tutorial12-camera"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "app-surface",
  "bytemuck",
  "cfg-if",
  "cgmath",
@@ -3334,6 +3338,7 @@ name = "tutorial7-instancing"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "app-surface",
  "bytemuck",
  "cfg-if",
  "cgmath",
@@ -3357,6 +3362,7 @@ name = "tutorial8-depth"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "app-surface",
  "bytemuck",
  "cfg-if",
  "cgmath",
@@ -3380,6 +3386,7 @@ name = "tutorial9-models"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "app-surface",
  "bytemuck",
  "cfg-if",
  "cgmath",

@@ -14,7 +14,7 @@ env_logger = "0.9"
 log = "0.4"
 wgpu = "0.14"
 pollster = "0.2"
-app-surface = { git = "https://github.com/jinleili/wgpu-on-app", tag = "0.1" }
+app-surface = { git = "https://github.com/jinleili/wgpu-on-app", tag = "0.1.1" }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 console_error_panic_hook = "0.1.6"
