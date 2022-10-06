@@ -1,7 +1,7 @@
 <template>
     <div class="auto-github-link">
         <a :href="link" target="_blank" rel="noopener noreferrer">
-            "查看源码！"
+            查看源码！
         </a>
         <OutboundLink />
     </div>
@@ -22,5 +22,6 @@ export default {
 <style>
 .auto-github-link {
     margin-top: 1rem;
+    line-height: 34px;
 }
 </style>

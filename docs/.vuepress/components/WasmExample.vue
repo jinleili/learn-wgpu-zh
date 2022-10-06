@@ -70,4 +70,8 @@ export default {
 #wasm-example canvas {
   background-color: black;
 }
+
+#wasm-example.button {
+  height: 33px;
+}
 </style>
