@@ -74,13 +74,10 @@ struct State {
     challenge_index_buffer: wgpu::Buffer,
     num_challenge_indices: u32,
     use_complex: bool,
-
-    size: winit::dpi::PhysicalSize<u32>,
 }
 
 impl State {
     async fn new(window: Window) -> Self {
-        let size = window.inner_size();
         let app = AppSurface::new(window);
 
         let shader = app
@@ -206,7 +203,6 @@ impl State {
             challenge_index_buffer,
             num_challenge_indices,
             use_complex,
-            size,
         }
     }
 
@@ -328,19 +324,16 @@ async fn run() {
                 state.update();
                 match state.render() {
                     Ok(_) => {}
-                    // Reconfigure the surface if it's lost or outdated
-                    Err(wgpu::SurfaceError::Lost | wgpu::SurfaceError::Outdated) => {
-                        state.app.resize_surface()
-                    }
-                    // The system is out of memory, we should probably quit
+                    // 当展示平面的上下文丢失，就需重新配置
+                    Err(wgpu::SurfaceError::Lost) => state.app.resize_surface(),
+                    // 系统内存不足时，程序应该退出。
                     Err(wgpu::SurfaceError::OutOfMemory) => *control_flow = ControlFlow::Exit,
-                    // We're ignoring timeouts
-                    Err(wgpu::SurfaceError::Timeout) => log::warn!("Surface timeout"),
+                    // 所有其他错误（过期、超时等）应在下一帧解决
+                    Err(e) => eprintln!("{:?}", e),
                 }
             }
             Event::MainEventsCleared => {
-                // RedrawRequested will only trigger once, unless we manually
-                // request it.
+                // 除非我们手动请求，RedrawRequested 将只会触发一次。
                 state.app.view.request_redraw();
             }
             _ => {}

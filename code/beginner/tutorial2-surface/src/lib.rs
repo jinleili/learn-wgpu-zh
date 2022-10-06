@@ -197,19 +197,16 @@ pub async fn run() {
                 state.update();
                 match state.render() {
                     Ok(_) => {}
-                    // Reconfigure the surface if it's lost or outdated
-                    Err(wgpu::SurfaceError::Lost | wgpu::SurfaceError::Outdated) => {
-                        state.resize(state.size)
-                    }
-                    // The system is out of memory, we should probably quit
+                    // 当展示平面的上下文丢失，就需重新配置
+                    Err(wgpu::SurfaceError::Lost) => state.resize(state.size),
+                    // 系统内存不足时，程序应该退出。
                     Err(wgpu::SurfaceError::OutOfMemory) => *control_flow = ControlFlow::Exit,
-
-                    Err(wgpu::SurfaceError::Timeout) => log::warn!("Surface timeout"),
+                    // 所有其他错误（过期、超时等）应在下一帧解决
+                    Err(e) => eprintln!("{:?}", e),
                 }
             }
-            Event::RedrawEventsCleared => {
-                // RedrawRequested will only trigger once, unless we manually
-                // request it.
+            Event::MainEventsCleared => {
+                // 除非我们手动请求，RedrawRequested 将只会触发一次。
                 window.request_redraw();
             }
             _ => {}
