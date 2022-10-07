@@ -379,7 +379,7 @@ fn main() {
             Event::WindowEvent {
                 ref event,
                 window_id,
-            } if window_id == window.id() && !state.input(event) => {
+            } if window_id == state.app.view.id() && !state.input(event) => {
                 match event {
                     #[cfg(not(target_arch="wasm32"))]
                     WindowEvent::CloseRequested
@@ -439,7 +439,7 @@ fn main() {
         match event {
             // ...
             // 更新!
-            Event::RedrawRequested(window_id) if window_id == window.id() => {
+            Event::RedrawRequested(window_id) if window_id == state.app.view.id() => {
                 let now = instant::Instant::now();
                 let dt = now - last_render_time;
                 last_render_time = now;
