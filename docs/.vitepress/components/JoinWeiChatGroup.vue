@@ -1,5 +1,5 @@
 <template>
-    <img :src="$withBase('/res/wx.jpg')" style="width: 312px;">
+    <img src="/res/wx.jpg" style="width: 312px; margin-top: 24px;">
 </template>
 
 <script>

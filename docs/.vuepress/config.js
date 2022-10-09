@@ -117,15 +117,28 @@ export default defineUserConfig({
                 text: '基础',
                 children: [
                     '/beginner/tutorial1-window/',
-                    '/beginner/tutorial2-surface/',
-                    '/beginner/tutorial3-pipeline/',
-                    // '/beginner/wgsl/',
-                    '/beginner/tutorial4-buffer/',
-                    '/beginner/tutorial5-textures/',
-                    '/beginner/tutorial6-uniforms/',
-                    '/beginner/tutorial7-instancing/',
-                    '/beginner/tutorial8-depth/',
-                    '/beginner/tutorial9-models/',
+                    {
+                        text: 'Introduction', link: '/beginner/tutorial2-surface/'
+                    },
+                    {
+                        text: 'Introduction', link: '/beginner/tutorial3-pipeline/'
+                    },
+                    {
+                        text: 'Introduction', link: '/beginner/tutorial4-buffer/'
+                    },
+                    {
+                        text: 'Introduction', link: '/beginner/tutorial5-textures/'
+                    },
+                    {
+                        text: 'Introduction', link: '/beginner/tutorial6-uniforms/'
+                    },
+                    {
+                        text: 'Introduction', link: '/beginner/tutorial7-instancing/'
+                    },
+                    {
+                        text: 'Introduction', link: '/beginner/tutorial8-depth/'
+                    },
+                    { text: 'Introduction', link: '/beginner/tutorial9-models/' },
                 ],
             },
             {

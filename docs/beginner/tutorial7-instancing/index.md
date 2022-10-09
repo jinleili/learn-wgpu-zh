@@ -9,7 +9,7 @@
 
 如果查阅 [wgpu 文档](https://docs.rs/wgpu/latest/wgpu/struct.RenderPass.html#method.draw_indexed) 中 `draw_indexed` 函数的参数 ，我们可以看到解决这一问题的方式：
 
-```rust=
+```rust
 pub fn draw_indexed(
     &mut self,
     indices: Range<u32>,
