@@ -597,7 +597,7 @@ dependencies = [
  "glob",
  "image",
  "log",
- "naga 0.9.0",
+ "naga 0.10.0",
  "pollster",
  "rayon",
  "tobj 2.0.4",
@@ -1888,6 +1888,7 @@ dependencies = [
  "indexmap",
  "log",
  "num-traits",
+ "pp-rs",
  "rustc-hash",
  "spirv",
  "termcolor",
@@ -3357,8 +3358,8 @@ dependencies = [
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
- "wgpu 0.14.0",
- "winit 0.27.3",
+ "wgpu 0.13.1",
+ "winit 0.26.1",
 ]
 
 [[package]]
