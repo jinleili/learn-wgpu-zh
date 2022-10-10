@@ -1,4 +1,4 @@
-# 🆕 使用 Snapdragon Profiler 调试
+# 使用 Snapdragon Profiler 调试
 
 在[与 Android App 集成](../android/)章节我们已经学习了 wgpu 与 Android App 的集成，现在来看看集成后的调试。
 
@@ -26,7 +26,7 @@ USB 连接要调试的 Android 手机后打开 Snapdragon Profiler，点击窗�
 
 <div style="display: flex;">
     <div>
-        <img src="./realtime-left.jpg" alt="实时模式">
+        <img src="./realtime-left.jpg" alt="实时模式" />
     </div>
     <div style="width: 20px;"></div>
     <div>
@@ -39,6 +39,7 @@ USB 连接要调试的 Android 手机后打开 Snapdragon Profiler，点击窗�
 ## 追踪模式检查片上内存装载
 
 **片上内存**（on-chip memory）装载是影响移动应用中 GPU 性能的常见问题之一。在本节中，我们来学习如何使用 Snapdragon Profiler 查找和定位引起片上内存装载的应用程序代码。
+
 <div class="note">
 
 Snapdragon Profiler 里将**片上内存**称之为**图形内存**（GMEM，全称 Graphic Memory），但是这里的图形内存跟显存容易混淆，它俩并不是一回事。故，下边统一使用**片上内存**来指代 GMEM。
@@ -71,7 +72,8 @@ Snapdragon Profiler 里将**片上内存**称之为**图形内存**（GMEM，全
 <div class="note">
 
 GPU 应用必须在项目的 AndroidManifest.xml 文件中包含 `INTERNET` 权限以启用图形 API 及 GPU 指标的追踪：
-```xml
+
+```toml
 <uses-permission android:name="android.permission.INTERNET" />
 ```
 
@@ -120,7 +122,7 @@ ops: wgpu::Operations {
 
 <div style="display: flex;">
     <div>
-        <img src="./resource-left.jpg">
+        <img src="./resource-left.jpg" />
     </div>
     <div style="width: 20px;"></div>
     <div>

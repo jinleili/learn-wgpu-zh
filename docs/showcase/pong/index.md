@@ -260,7 +260,8 @@ This example works on the web, but there are a few steps that I needed to take t
 
 In order for wasm-pack to work properly I first needed to add some dependencies:
 
-```toml[dependencies]
+```toml
+[dependencies]
 cfg-if = "1"
 env_logger = "0.9"
 winit = "0.27.1"

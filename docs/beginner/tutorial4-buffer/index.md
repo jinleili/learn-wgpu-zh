@@ -279,7 +279,7 @@ render_pass.draw(0..self.num_vertices, 0..1);
 
 在上面的修改生效之前，还需要更新着色器，以便从顶点缓冲区中获取数据。
 
-```wgsl
+```rust
 // 顶点着色器
 
 struct VertexInput {

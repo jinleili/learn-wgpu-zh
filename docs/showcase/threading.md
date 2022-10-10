@@ -10,7 +10,7 @@ The main selling point of Vulkan, DirectX 12, Metal, and by extension Wgpu is th
 
 <div class="note">
 
-This example is based on the code for [tutorial12-camera](../intermediate/tutorial12-camera)
+This example is based on the code for [tutorial12-camera](../intermediate/tutorial12-camera/)
 
 </div>
 

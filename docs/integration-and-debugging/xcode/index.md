@@ -1,4 +1,4 @@
-# 🆕 使用 Xcode 调试 wgpu 程序
+# 使用 Xcode 调试 wgpu 程序
 
 ## Xcode 与 Metal
 **Xcode** 是苹果官方提供的运行在 macOS 系统上的 **IDE**，它提供了一整套工具来方便为苹果设备（比如，iPad、iPhone、Mac 等等）创建、测试、优化 App 并最终发布到 App Store。Xcode 是免费的，如果你使用的是 macOS 系统，就可以从 [App Store](https://apps.apple.com/cn/app/xcode/id497799835?mt=12) 上下载安装。
@@ -75,7 +75,7 @@
 <div class="note">
 
 ##### 如何找到 cargo 创建的二进制可执行文件？
-我们以[管线](../../beginner/tutorial3-pipeline)教程的示例代码为例，先在项目根目录（learn-wgpu-zh/）运行管线示例：
+我们以[管线](../../beginner/tutorial3-pipeline/)教程的示例代码为例，先在项目根目录（learn-wgpu-zh/）运行管线示例：
 
 `cargo run --bin tutorial3-pipeline` 
 
@@ -104,7 +104,7 @@
 <img src="./capture.png" />
 
 ## 调试帧数据
-我们以 [Uniform 缓冲区](../../beginner/tutorial6-uniforms) 教程的示例为例来调试 Uniform **缓冲区**中的数据: 捕获一帧之后，在**调试导航栏**选择 `Render Pass` 下的 `All Resources` 项，右边的列表里将会列出当前程序使用到的各种资源（纹理，缓冲区等）（左图），双击 `Camera Buffer` 就能格式化展示此缓冲区的数据了，同时数据展示区的下边会多出来一栏工具，方便我们切换数据的**格式化**类型及展示列数等（右图）。
+我们以 [Uniform 缓冲区](../../beginner/tutorial6-uniforms/) 教程的示例为例来调试 Uniform **缓冲区**中的数据: 捕获一帧之后，在**调试导航栏**选择 `Render Pass` 下的 `All Resources` 项，右边的列表里将会列出当前程序使用到的各种资源（纹理，缓冲区等）（左图），双击 `Camera Buffer` 就能格式化展示此缓冲区的数据了，同时数据展示区的下边会多出来一栏工具，方便我们切换数据的**格式化**类型及展示列数等（右图）。
 <div style="display: flex;">
     <div>
         <img src="./debug_navigator.png" alt="Debug 导航栏">

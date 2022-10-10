@@ -103,20 +103,20 @@ let adapter = instance
 让我们使用**适配器**来创建**逻辑设备** (Device) 和**命令队列** (Queue)。
 
 ```rust
-    let (device, queue) = adapter.request_device(
-        &wgpu::DeviceDescriptor {
-            features: wgpu::Features::empty(),
-            // WebGL 后端并不支持 wgpu 的所有功能，
-            // 所以如果要以 web 为构建目标，就必须禁用一些功能。
-            limits: if cfg!(target_arch = "wasm32") {
-                wgpu::Limits::downlevel_webgl2_defaults()
-            } else {
-                wgpu::Limits::default()
-            },
-            label: None,
+let (device, queue) = adapter.request_device(
+    &wgpu::DeviceDescriptor {
+        features: wgpu::Features::empty(),
+        // WebGL 后端并不支持 wgpu 的所有功能，
+        // 所以如果要以 web 为构建目标，就必须禁用一些功能。
+        limits: if cfg!(target_arch = "wasm32") {
+            wgpu::Limits::downlevel_webgl2_defaults()
+        } else {
+            wgpu::Limits::default()
         },
-        None, // 追踪 API 调用路径
-    ).await.unwrap();
+        label: None,
+    },
+    None, // 追踪 API 调用路径
+).await.unwrap();
 ```
 
 `DeviceDescriptor`上的 `features` 字段允许我们指定想要的扩展功能。对于这个简单的例子，我决定不使用任何额外的功能。
@@ -134,14 +134,14 @@ let adapter = instance
 `limits` 字段描述了创建某些类型的资源的限制。我们在本教程中使用默认值，所以可以支持大多数设备。你可以[在这里](https://docs.rs/wgpu/0.13.1/wgpu/struct.Limits.html)查看限制列表。
 
 ```rust
-    let config = wgpu::SurfaceConfiguration {
-        usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
-        format: surface.get_supported_formats(&adapter)[0],
-        width: size.width,
-        height: size.height,
-        present_mode: wgpu::PresentMode::Fifo,
-    };
-    surface.configure(&device, &config);
+let config = wgpu::SurfaceConfiguration {
+    usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
+    format: surface.get_supported_formats(&adapter)[0],
+    width: size.width,
+    height: size.height,
+    present_mode: wgpu::PresentMode::Fifo,
+};
+surface.configure(&device, &config);
 ```
 
 这里我们为**展示平面**定义了一个配置。它将定义展示平面如何创建其底层的 `SurfaceTexture`。讲 `render` 函数时我们再具体讨论 `SurfaceTexture`，现在先谈谈此配置的字段。

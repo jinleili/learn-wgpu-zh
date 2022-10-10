@@ -22,7 +22,7 @@ fn main() -> Result<()> {
     //     .parent().unwrap()
     //     .parent().unwrap()
     //     .parent().unwrap()
-    //     .join("docs/.vuepress/public/res/tutorial9-models");
+    //     .join("docs/.vitepress/public/res/tutorial9-models");
     // create_all(&out_dir, false)?;
     // copy_items(&paths_to_copy, out_dir, &copy_options)?;
 

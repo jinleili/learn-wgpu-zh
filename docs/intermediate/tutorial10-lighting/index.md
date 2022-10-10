@@ -324,7 +324,7 @@ let light_render_pipeline = {
 
 之后，我们来编写实际的着色器代码：
 
-```wgsl
+```rust
 // light.wgsl
 // 顶点着色器
 
@@ -492,7 +492,7 @@ impl State {
 
 请在 `shader.wgsl` 中的**纹理** Uniform 之下添加以下代码：
 
-```wgsl
+```rust
 struct Light {
     position: vec3<f32>,
     color: vec3<f32>,
@@ -503,7 +503,7 @@ var<uniform> light: Light;
 
 然后更新片元色器代码来计算和使用环境光的色值：
 
-```wgsl
+```rust
 @fragment
 fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
     let object_color: vec4<f32> = textureSample(t_diffuse, s_diffuse, in.tex_coords);
@@ -535,7 +535,7 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
 
 我们将**法向量**加入到 `shader.wgsl` 中：
 
-```wgsl
+```rust
 struct VertexInput {
     @location(0) position: vec3<f32>,
     @location(1) tex_coords: vec2<f32>;
@@ -545,7 +545,7 @@ struct VertexInput {
 
 接着定义该值以及顶点的位置来传递给片元着色器：
 
-```wgsl
+```rust
 struct VertexOutput {
     @builtin(position) clip_position: vec4<f32>;
     @location(0) tex_coords: vec2<f32>;
@@ -556,7 +556,7 @@ struct VertexOutput {
 
 我们先按原样传递法向量的值。这是错误的，稍后会修复它：
 
-```wgsl
+```rust
 @vertex
 fn vs_main(
     model: VertexInput,
@@ -580,7 +580,7 @@ fn vs_main(
 
 现在来进行实际的计算，在 `ambient_color` 和 `result` 代码行之间，添加如下代码：
 
-```wgsl
+```rust
 let light_dir = normalize(light.position - in.world_position);
 
 let diffuse_strength = max(dot(in.world_normal, light_dir), 0.0);
@@ -589,7 +589,7 @@ let diffuse_color = light.color * diffuse_strength;
 
 然后在 `result` 中包含漫反射光（`diffuse_color`）:
 
-```wgsl
+```rust
 let result = (ambient_color + diffuse_color) * object_color.xyz;
 ```
 
@@ -610,7 +610,7 @@ let rotation = cgmath::Quaternion::from_axis_angle((0.0, 1.0, 0.0).into(), cgmat
 
 同时从 `result` 中移除环境光 `ambient_color`：
 
-```wgsl
+```rust
 let result = (diffuse_color) * object_color.xyz;
 ```
 
@@ -721,7 +721,7 @@ impl Instance {
 
 现在，我们在顶点着色器中重构法线矩阵：
 
-```wgsl
+```rust
 struct InstanceInput {
     @location(5) model_matrix_0: vec4<f32>;
     @location(6) model_matrix_1: vec4<f32>;
@@ -790,7 +790,7 @@ fn vs_main(
 
 如果能保证**模型矩阵**总是对**对象**应用统一的缩放因子，你就可以只使用模型矩阵了。Github 用户 @julhe 与我分享的这段代码可以做到这一点：
 
-```wgsl
+```rust
 out.world_normal = (model_matrix * vec4<f32>(model.normal, 0.0)).xyz;
 ```
 
@@ -813,7 +813,7 @@ out.world_normal = (model_matrix * vec4<f32>(model.normal, 0.0)).xyz;
 
 因为**镜面反射**是相对于视角而言的，所以我们需要将摄像机的位置传入顶点及片元着色器中：
 
-```wgsl
+```rust
 struct Camera {
     view_pos: vec4<f32>,
     view_proj: mat4x4<f32>,
@@ -874,7 +874,7 @@ let camera_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupL
 
 计算从片元位置到摄像机的**方向向量**，并用此向量和法向量来计算反射方向 `reflect_dir`：
 
-```wgsl
+```rust
 // shader.wgsl
 // 片元着色器内...
 let view_dir = normalize(camera.view_pos.xyz - in.world_position);
@@ -883,14 +883,14 @@ let reflect_dir = reflect(-light_dir, in.world_normal);
 
 然后使用**点积**来计算镜面反射的强度 `specular_strength`，并用它算出高光颜色 `specular_color`：
 
-```wgsl
+```rust
 let specular_strength = pow(max(dot(view_dir, reflect_dir), 0.0), 32.0);
 let specular_color = specular_strength * light.color;
 ```
 
 最后，将高光颜色合成到片元输出结果中：
 
-```wgsl
+```rust
 let result = (ambient_color + diffuse_color + specular_color) * object_color.xyz;
 ```
 
@@ -908,7 +908,7 @@ let result = (ambient_color + diffuse_color + specular_color) * object_color.xyz
 到目前为止，我们实际上只实现了 Blinn-Phong 的 Phong 部分。Phong 反射模型很好用，但在[某些情况下](https://learnopengl.com/Advanced-Lighting/Advanced-Lighting)会产生 bug。
 Blinn-Phong 的 Blinn 部分来自于这样的事实：如果把 `view_dir` 和 `light_dir` 加在一起，对结果进行**归一化**处理后得到一个**半程向量**，然后再与法向量 `normal` 求点积，就会得到大致相同的渲染结果，且不会有使用反射方向 `reflect_dir` 可能产生的问题。
 
-```wgsl
+```rust
 let view_dir = normalize(camera.view_pos.xyz - in.world_position);
 let half_dir = normalize(view_dir + light_dir);
 

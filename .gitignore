@@ -12,6 +12,9 @@ target/
 .temp
 .cache
 
+/docs/.vitepress/components/wasm/*
+/docs/.vitepress/dist/*
+
 /image.png
 /output*.*
 output/

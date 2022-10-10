@@ -16,7 +16,7 @@ pub struct ModelVertex {
 
 This structure works perfectly fine when used as a vertex buffer. Using it as a storage buffer proved less convenient. My previous code used a GLSL struct similar to my `ModelVertex`.
 
-```glsl
+```shader
 struct ModelVertex {
     vec3 position;
     vec2 tex_coords;
@@ -32,7 +32,7 @@ At first glance, this seems just fine, but OpenGL experts would likely see a pro
 
 I could have fixed this by adding a padding field after `tex_coords` on the Rust side, but that would require modifying the `VertexBufferLayout`. I ended up solving this problem by using the components of the vectors directly which resulted in a struct like this:
 
-```glsl
+```shader
 struct ModelVertex {
     float x; float y; float z;
     float uv; float uw;
@@ -54,7 +54,7 @@ Those black triangles were the result of multiple GPU threads trying to modify t
 
 While on the CPU we could introduce a synchronization primitive such as a `Mutex` to fix this issue, AFAIK there isn't really such a thing on the GPU. Instead, I decided to swap my code to work with each vertex individually. There are some hurdles with that, but those will be easier to explain in code. Let's start with the `main` function.
 
-```glsl
+```shader
 void main() {
     uint vertexIndex = gl_GlobalInvocationID.x;
     ModelVertex result = calcTangentBitangent(vertexIndex);
@@ -64,7 +64,7 @@ void main() {
 
 We use the `gl_GlobalInvocationID.x` to get the index of the vertex we want to compute the tangents for. I opted to put the actual calculation into its own method. Let's take a look at that.
 
-```glsl
+```shader
 ModelVertex calcTangentBitangent(uint vertexIndex) {
     ModelVertex v = srcVertices[vertexIndex];
 

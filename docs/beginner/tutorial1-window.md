@@ -1,5 +1,5 @@
 # 依赖与窗口
-部分读者可能已经熟悉如何在 Rust 中打开窗口程序，且有自己偏好的窗口管理库。但本教程是为所有人设计的，所以不免要涉及这部分的内容。所幸你可以跳过这部分，但有一点值得了解，即无论使用什么样的窗口解决方案，都需要实现 [raw-window-handle](https://github.com/rust-windowing/raw-window-handle) 里定义的 `raw_window_handle()` 及 `raw_display_handle()` 两个抽象接口。如果有兴趣自己动手来为 wgpu 实现一个基础的窗口，可以参考 [wgpu-on-app](https://github.com/jinleili/wgpu-on-app)，[与 Android App 集成](../../integration-and-debugging/android/)这一章节也有详情的介绍。
+部分读者可能已经熟悉如何在 Rust 中打开窗口程序，且有自己偏好的窗口管理库。但本教程是为所有人设计的，所以不免要涉及这部分的内容。所幸你可以跳过这部分，但有一点值得了解，即无论使用什么样的窗口解决方案，都需要实现 [raw-window-handle](https://github.com/rust-windowing/raw-window-handle) 里定义的 `raw_window_handle()` 及 `raw_display_handle()` 两个抽象接口。如果有兴趣自己动手来为 wgpu 实现一个基础的窗口，可以参考 [wgpu-on-app](https://github.com/jinleili/wgpu-on-app)，[与 Android App 集成](../integration-and-debugging/android/)这一章节也有详情的介绍。
 
 ## 我们要使用哪些包?
 我们将尽量保持基础部分的简单性。后续我们会逐渐添加依赖，先列出相关的 `Cargo.toml` 依赖项如下：
@@ -212,7 +212,7 @@ const init = await import('./pkg/game.js');
 init().then(() => console.log("WASM Loaded"));
 ```
 
-这个网站使用了 [Vuepress](https://vuepress.vuejs.org/)，所以我是在 Vue 组件中加载 WASM。你如何使用 WASM 将取决于你想做什么。如果想看看我是怎么做的，可以查看[这里](https://github.com/sotrh/learn-wgpu/blob/master/docs/.vuepress/components/WasmExample.vue)。
+这个网站使用了 [VitePress](https://vitepress.vuejs.org)，并且是在 Vue 组件中加载 WASM。如果想看看我是怎么做的，可以查看[这里](https://github.com/sotrh/learn-wgpu/blob/master/docs/.vitepress/components/WasmExample.vue)。
 
 <div class="note">
 

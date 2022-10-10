@@ -9,18 +9,18 @@
     "scripts": {
         "dev": "./build-wasm.sh && vitepress dev docs",
         "build": "./build-wasm.sh && vitepress build docs",
-        "deploy": "sh deploy.sh",
         "just-build": "vitepress build docs",
         "just-dev": "vitepress dev docs"
     },
-    "author": "",
+    "author": "Jinlei Li",
     "license": "MIT",
     "lint-staged": {
-        "*.{cjs,js,ts,vue}": "eslint --fix",
+        "*.{cjs,js,vue}": "eslint --fix",
         "*.{json,yml,css,scss}": "prettier --write",
         "package.json": "sort-package-json"
     },
     "devDependencies": {
+        "sass": "^1.55.0",
         "vitepress": "^1.0.0-alpha.19",
         "vue": "^3.2.40"
     }

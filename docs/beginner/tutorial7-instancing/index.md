@@ -226,7 +226,7 @@ render_pass.draw_indexed(0..self.num_indices, 0, 0..self.instances.len() as _);
 
 `shader.wgsl` 中需要引入我们新增的**矩阵**，这样才能在实例中使用它。请在 `shader.wgsl` 文件的顶部添加以下代码：
 
-```wgsl
+```rust
 struct InstanceInput {
     @location(5) model_matrix_0: vec4<f32>,
     @location(6) model_matrix_1: vec4<f32>,
@@ -237,7 +237,7 @@ struct InstanceInput {
 
 在使用之前，我们需要将**矩阵**重新组装出来：
 
-```wgsl
+```rust
 @vertex
 fn vs_main(
     model: VertexInput,
@@ -255,7 +255,7 @@ fn vs_main(
 
 我们得在应用 `camera_uniform.view_proj` 之前先应用 `model_matrix`。因为 `view_proj` 将坐标系从**世界空间**（World Space）变换为**相机空间**（Camera Space），而 `model_matrix` 是一个**世界空间**的变换，所以在使用它时不希望处于**相机空间**。
 
-```wgsl
+```rust
 @vertex
 fn vs_main(
     model: VertexInput,

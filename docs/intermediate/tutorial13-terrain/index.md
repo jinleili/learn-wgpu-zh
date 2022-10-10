@@ -13,7 +13,7 @@
 
 让我们从计算着色器的代码开始，创建一个名为 `terrain.wgsl` 的新文件，在文件内先实现一个**噪声函数**（Noise Function），然后再创建着色器的入口函数。具体代码如下：
 
-```wgsl
+```rust
 // ============================
 // 地形生成
 // ============================
@@ -61,7 +61,7 @@ fn snoise2(v: vec2<f32>) -> f32 {
 
 这个函数的代码其实很简单：
 
-```wgsl
+```rust
 fn fbm(p: vec2<f32>) -> f32 {
     let NUM_OCTAVES: u32 = 5u;
     var x = p * 0.01;
@@ -92,7 +92,7 @@ fn fbm(p: vec2<f32>) -> f32 {
 
 为了生成地形网格，需要向着色器传递一些信息：
 
-```wgsl
+```rust
 struct ChunkData {
     chunk_size: vec2<u32>,
     chunk_corner: vec2<i32>,
@@ -123,7 +123,7 @@ struct IndexBuffer {
 
 着色器的下一个部分是在网格上生成一个点，以及该点的一个顶点：
 
-```wgsl
+```rust
 fn terrain_point(p: vec2<f32>) -> vec3<f32> {
     return vec3<f32>(
         p.x,
@@ -163,7 +163,7 @@ fn terrain_vertex(p: vec2<f32>) -> Vertex {
 
 现在我们可以在地形表面获得一个实际的顶点数据，并用来填充顶点和索引缓冲区了。我们将创建一个 `gen_terrain()` 函数作为计算着色器的入口：
 
-```wgsl
+```rust
 @compute @workgroup_size(64)
 fn gen_terrain(
     @builtin(global_invocation_id) gid: vec3<u32>

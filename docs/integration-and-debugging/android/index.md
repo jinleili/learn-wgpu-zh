@@ -1,4 +1,4 @@
-# 🆕 与 Android App 集成
+# 与 Android App 集成
 
 ## 开发环境配置
 假设你的电脑上已经安装了 Android Studio，从菜单栏打开 SDK 管理器（`Tools` > `SDK Manager` > `Android SDK` > `SDK Tools`），勾选以下 3 个选项后点击 `OK` 按钮确认:
@@ -146,6 +146,7 @@ class RustBridge {
 <div class="note">
 
 你可以使用任意符合安卓规范的命名空间，只需要记得让 Rust 端 `#[jni_fn("")]` 属性里的字符串与安卓端代码里的命名空间一致。
+
 </div>
 
 ## 实现 cargo so 子命令
@@ -238,6 +239,7 @@ sh ./release.sh
 
 安卓系统上的**绘制表面**是纵深排序（Z-Ordered）的，它默认处在 App 窗口的后面， `SurfaceView` 通过在 App 窗口上面设置透明区域来展示处在后面的绘制表面。
 如果想将绘制表面放置到窗口的最上层，可以通过 `setZOrderOnTop()` 函数来实现：
+
 ```kotlin
 mySurfaceView.setZOrderOnTop(true)
 ```
@@ -245,6 +247,7 @@ mySurfaceView.setZOrderOnTop(true)
 <div class="note">
 
 这里有必要多解释一句：wgpu 里的 `Surface` 对象虽然最终指向的就是 SurfaceView 持有的`绘制表面`，但它是一个经过统一封装的结构体，所以并不是同一个对象：
+
 ```rust
 pub struct Surface {
     pub(crate) presentation: Option<Presentation>,

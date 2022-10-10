@@ -43,7 +43,7 @@ WGSL 规范及其在 WGPU 中的应用仍在开发中。如果在使用中遇到
 ## 编写着色器
 在 `main.rs` 所在的目录中创建一个 `shader.wgsl` 文件。在其中写入以下代码：
 
-```wgsl
+```rust
 // 顶点着色器
 
 struct VertexOutput {
@@ -92,7 +92,7 @@ fn vs_main(
 
 从技术的角度来看，在我们这个例子中并不需要使用 stuct，可以直接按以下代码来实现：
 
-```wgsl
+```rust
 @vertex
 fn vs_main(
     @builtin(vertex_index) in_vertex_index: u32
@@ -107,7 +107,7 @@ fn vs_main(
 
 接下来是片元着色器。还是在 `shader.wgsl` 中添加以下代码：
 
-```wgsl
+```rust
 // 片元着色器
 
 @fragment

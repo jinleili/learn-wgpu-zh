@@ -30,7 +30,7 @@ fn save_gif(path: &str, frames: &mut Vec<Vec<u8>>, speed: i32, size: u16) -> Res
 
 ## 如何生成帧数据？
 
-如果看过[离屏渲染案例](.../windowless/#a-triangle-without-a-window)，你就知道我们可以直接渲染到一个**纹理**。我们将创建一个用于渲染的纹理和一个用于复制纹理的**纹素**数据的**缓冲区**：
+如果看过[离屏渲染案例](../windowless/#a-triangle-without-a-window)，你就知道我们可以直接渲染到一个**纹理**。我们将创建一个用于渲染的纹理和一个用于复制纹理的**纹素**数据的**缓冲区**：
 
 ```rust
 // 创建一个用于渲染的纹理

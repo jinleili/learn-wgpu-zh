@@ -75,5 +75,12 @@ export default {
 #wasm-example button {
   height: 33px;
   font-size: 14px;
+  padding: 0px 8px;
+  border: 1px solid var(--vp-c-divider-light);
+  border-radius: 8px;
+}
+
+#wasm-example button:hover {
+  border-color: var(--vp-c-brand-dark);
 }
 </style>

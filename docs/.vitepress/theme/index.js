@@ -1,4 +1,5 @@
 import DefaultTheme from 'vitepress/theme'
+import './index.scss'
 
 import AutoGithubLink from '../components/AutoGithubLink.vue'
 import JoinWeiChatGroup from '../components/JoinWeiChatGroup.vue'

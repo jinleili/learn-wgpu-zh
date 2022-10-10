@@ -1,4 +1,4 @@
-# 🆕 与 iOS App 集成
+# 与 iOS App 集成
 
 与 iOS App 集成相比于 Android 要简单一些。
 
@@ -24,6 +24,7 @@ rustup target add aarch64-apple-ios-sim
 苹果为**模拟器**单独提供了一个设备对象，其功能被限制为苹果 GPU 家族的 Apple2 型号（也就是古早的 A8 芯片），这意味着模拟器往往比实际的 GPU 支持更少的功能或更多的限制。从[这篇文档](https://developer.apple.com/documentation/metal/developing_metal_apps_that_run_in_simulator) 可以查看到功能限制的详情。
 
 开发调试 GPU 应用，使用真机永远是最好的选择。
+
 </div>
 
 ## 定义 FFI
@@ -67,6 +68,7 @@ ABI 是⼀个规范，它涵盖以下内容：
 
 #### 为什么使用 C-ABI？
 不同的操作系统、编程语⾔、每种编程语⾔的不同编译器 实现基本都有⾃⼰规定或者遵循的 ABI 和调⽤规范。⽬前只能通过 FFI 技术遵循 C 语⾔ ABI 才可以做到编程语⾔的相互调⽤。也就是说，**C-ABI** 是唯⼀通⽤的稳定的标准 ABI。这是由历史原因决定的，C 语⾔伴随着操作系 统⼀路发展⽽来，导致其成为事实上的标准 ABI。
+
 </div>
 
 假设我们已经实现好了一个 wgpu 程序叫 WgpuCanvas, 现在来实现两个供 iOS 端调用的、控制 WgpuCanvas 初始化及帧渲染的函数:

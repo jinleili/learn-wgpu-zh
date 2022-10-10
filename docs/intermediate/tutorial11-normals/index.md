@@ -120,7 +120,7 @@ impl Material {
 
 现在我们可以在片元着色器中使用纹理了：
 
-```wgsl
+```rust
 // 片元着色器
 
 @group(0) @binding(0)
@@ -181,7 +181,7 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
 
 我们将创建一个矩阵，代表相对于顶点法向量的**坐标空间**（Coordinate Space）。然后使用它来变换法线贴图数据，使其处于世界空间：
 
-```wgsl
+```rust
 let coordinate_system = mat3x3<f32>(
     vec3(1, 0, 0), // x axis (右)
     vec3(0, 1, 0), // y axis (上)
@@ -354,7 +354,7 @@ let meshes = models
 
 由于法线贴图默认是在**切空间**中，该计算中使用的所有其他变量也得变换为切空间。我们需要在顶点着色器中构建切向量矩阵，首先，修改 `VertexInput` 来包括之前计算的切向量与副切向量：
 
-```wgsl
+```rust
 struct VertexInput {
     @location(0) position: vec3<f32>,
     @location(1) tex_coords: vec2<f32>;
@@ -366,7 +366,7 @@ struct VertexInput {
 
 接下来构建切向量矩阵 `tangent_matrix`，然后将顶点，光源和视图坐标变换到切空间：
 
-```wgsl
+```rust
 struct VertexOutput {
     @builtin(position) clip_position: vec4<f32>;
     @location(0) tex_coords: vec2<f32>;
@@ -412,7 +412,7 @@ fn vs_main(
 
 最后，更新片元着色器以使用这些转换后的光照值：
 
-```wgsl
+```rust
 @fragment
 fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
     // Sample textures..

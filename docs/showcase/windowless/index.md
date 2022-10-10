@@ -71,7 +71,7 @@ let output_buffer = device.create_buffer(&output_buffer_desc);
 
 现在已经做好了离屏绘制的准备，让我们来绘制点东西试试。由于只是画一个三角形，可以重用[管线](/beginner/tutorial3-pipeline/#writing-the-shaders)教程中的着色器代码:
 
-```wgsl
+```rust
 // 顶点着色器
 
 struct VertexOutput {

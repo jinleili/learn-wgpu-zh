@@ -232,7 +232,7 @@ render_pass.draw_indexed(0..self.num_indices, 0, 0..1);
 
 修改顶点着色器以加入如下代码：
 
-```wgsl
+```rust
 // 顶点着色器
 struct CameraUniform {
     view_proj: mat4x4<f32>,
@@ -397,7 +397,7 @@ fn input(&mut self, event: &WindowEvent) -> bool {
 
 到目前为止，摄像机**控制器**还没有真正工作起来。uniform **缓冲区**中的值需要被更新。有几种方式可以做到这一点：
 1. 可以创建一个单独的缓冲区，并将其数据复制到 `camera_buffer`。这个新的缓冲区被称为**中继缓冲区**（Staging Buffer）。这种方法允许主缓冲区（在这里是指 `camera_buffer`）的数据只被 GPU 访问，从而令 GPU 能做一些速度上的优化。如果缓冲区能被 CPU 访问，就无法实现此类优化。
-2. 可以在**缓冲区**本身调用内存映射函数 `map_read_async` 和 `map_write_async`。此方式允许我们直接访问缓冲区的数据，但是需要处理**异步**代码，也需要缓冲区使用 `BufferUsages::MAP_READ` 和/或 `BufferUsages::MAP_WRITE`。在此不再详述，如果你想了解更多，可以查看 [wgpu without a window](./showcase/windowless) 教程。
+2. 可以在**缓冲区**本身调用内存映射函数 `map_read_async` 和 `map_write_async`。此方式允许我们直接访问缓冲区的数据，但是需要处理**异步**代码，也需要缓冲区使用 `BufferUsages::MAP_READ` 和/或 `BufferUsages::MAP_WRITE`。在此不再详述，如果你想了解更多，可以查看 [wgpu without a window](../../showcase/windowless/) 教程。
 3. 可以在 `queue` 上使用 `write_buffer` 函数。
 
 我们将使用第 3 种方式。

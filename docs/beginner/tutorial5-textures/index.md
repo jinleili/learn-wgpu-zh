@@ -129,7 +129,7 @@ encoder.copy_buffer_to_texture(
 queue.submit(std::iter::once(encoder.finish()));
 ```
 
-值得注意的是 `bytes_per_row` 字段，这个值需要是 256 的倍数。查看 [gif 教程](../showcase/gifs/#how-do-we-make-the-frames) 以了解更多细节。
+值得注意的是 `bytes_per_row` 字段，这个值需要是 256 的倍数。查看 [gif 教程](../../showcase/gifs/#how-do-we-make-the-frames) 以了解更多细节。
 
 </div>
 
@@ -278,7 +278,7 @@ render_pass.draw_indexed(0..self.num_indices, 0, 0..1);
 
 ## 管线布局
 
-还记得在[管线](/learn-wgpu-zh/beginner/tutorial3-pipeline#how-do-we-use-the-shaders)章节创建的**管线布局**（`PipelineLayout`）吗？现在我们终于可以使用它了! 管线布局包含一个管线可以使用的**绑定组布局**的列表。修改 `render_pipeline_layout` 以使用 `texture_bind_group_layout`：
+还记得在[管线](../tutorial3-pipeline/#how-do-we-use-the-shaders)章节创建的**管线布局**（`PipelineLayout`）吗？现在我们终于可以使用它了! 管线布局包含一个管线可以使用的**绑定组布局**的列表。修改 `render_pipeline_layout` 以使用 `texture_bind_group_layout`：
 
 ```rust
 async fn new(...) {
@@ -353,7 +353,7 @@ const VERTICES: &[Vertex] = &[
 
 有了新的 `Vertex` 结构体，现在是时候更新着色器了。首先需要将 `tex_coords` 传递给顶点着色器，然后将它们用于片元着色器，以便从采样器获得最终的颜色。让我们从顶点着色器开始：
 
-```wgsl
+```rust
 // 顶点着色器
 
 struct VertexInput {
@@ -379,7 +379,7 @@ fn vs_main(
 
 现在顶点着色器输出了 `tex_coords`，我们需要改变片元着色器来接收它们。有了这些坐标，就可以使用采样器从纹理中获取**纹素**的颜色了:
 
-```wgsl
+```rust
 // 片元着色器
 
 @group(0) @binding(0)
@@ -393,7 +393,7 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
 }
 ```
 
-变量 `t_diffuse` 和 `s_diffuse` 就是所谓的 uniforms。我们将在 [相机部分](/learn-wgpu-zh/beginner/tutorial6-uniforms/) 中进一步讨论 uniforms。现在，我们需要知道的是，`@group(x)` 对应于 `set_bind_group()` 中的第一个参数，`@binding(x)` 与我们创建**绑定组布局**和**绑定组**时指定的 `binding` 值对应。
+变量 `t_diffuse` 和 `s_diffuse` 就是所谓的 uniforms。我们将在 [相机部分](../tutorial6-uniforms/) 中进一步讨论 uniforms。现在，我们需要知道的是，`@group(x)` 对应于 `set_bind_group()` 中的第一个参数，`@binding(x)` 与我们创建**绑定组布局**和**绑定组**时指定的 `binding` 值对应。
 
 ## 渲染结果
 
