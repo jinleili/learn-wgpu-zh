@@ -1,16 +1,21 @@
 export RES_PATH=learn-wgpu-zh
-# (trap 'killall background' INT;
-# wasm-pack build --out-dir ../../../docs/.vuepress/components/wasm/pong code/showcase/pong
-wasm-pack build --out-dir ../../../docs/.vuepress/components/wasm/tutorial1_window code/beginner/tutorial1-window
-wasm-pack build --out-dir ../../../docs/.vuepress/components/wasm/tutorial2_surface code/beginner/tutorial2-surface
-wasm-pack build --out-dir ../../../docs/.vuepress/components/wasm/tutorial3_pipeline code/beginner/tutorial3-pipeline
-wasm-pack build --out-dir ../../../docs/.vuepress/components/wasm/tutorial4_buffer code/beginner/tutorial4-buffer
-wasm-pack build --out-dir ../../../docs/.vuepress/components/wasm/tutorial5_textures code/beginner/tutorial5-textures
-wasm-pack build --out-dir ../../../docs/.vuepress/components/wasm/tutorial6_uniforms code/beginner/tutorial6-uniforms
-wasm-pack build --out-dir ../../../docs/.vuepress/components/wasm/tutorial7_instancing code/beginner/tutorial7-instancing
-wasm-pack build --out-dir ../../../docs/.vuepress/components/wasm/tutorial8_depth code/beginner/tutorial8-depth
-wasm-pack build --out-dir ../../../docs/.vuepress/components/wasm/tutorial9_models code/beginner/tutorial9-models
-wasm-pack build --out-dir ../../../docs/.vuepress/components/wasm/tutorial10_lighting code/intermediate/tutorial10-lighting
-wasm-pack build --out-dir ../../../docs/.vuepress/components/wasm/tutorial11_normals code/intermediate/tutorial11-normals
-wasm-pack build --out-dir ../../../docs/.vuepress/components/wasm/tutorial12_camera code/intermediate/tutorial12-camera
-# )
+
+RUSTFLAGS=--cfg=web_sys_unstable_apis cargo build --no-default-features --release --target wasm32-unknown-unknown \
+--bin tutorial1-window \
+--bin tutorial2-surface \
+--bin tutorial3-pipeline \
+--bin tutorial4-buffer \
+--bin tutorial5-textures \
+--bin tutorial6-uniforms \
+--bin tutorial7-instancing \
+--bin tutorial8-depth \
+--bin tutorial9-models \
+--bin tutorial10-lighting \
+--bin tutorial11-normals \
+--bin tutorial12-camera
+
+# Generate bindings
+for i in target/wasm32-unknown-unknown/release/*.wasm;
+do
+    wasm-bindgen --no-typescript --out-dir docs/.vitepress/components/wasm --web "$i";
+done

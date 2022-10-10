@@ -10,9 +10,11 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - name: Install wasm-bindgen-cli
+        run: cargo install wasm-bindgen-cli --version=0.2.83
+
       - name: Build WASM
         run: |
-          curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
           sh build-wasm.sh
 
       - name: Install and Build Vuepress

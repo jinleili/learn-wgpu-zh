@@ -3,7 +3,8 @@
     <div class="error" v-if="error">
       {{ error }}
     </div>
-    <button v-if="!exampleStarted && !autoLoad" @click="loadExample()" :disabled="loading">Try {{exampleName}}!</button>
+    <button v-if="!exampleStarted && !autoLoad" @click="loadExample()" :disabled="loading">点击运行
+      {{exampleName}}</button>
   </div>
 </template>
 
@@ -39,9 +40,9 @@ export default {
   methods: {
     async loadExample() {
       this.loading = true;
-
       try {
-        await import(`./wasm/${this.example}/${this.example}.js`);
+        const module = await import(`./wasm/${this.example}.js`.replace('_', '-'));
+        module.default();
       } catch (e) {
         // 此处无法捕捉到发生在运行时的可忽略Error：
         // Unhandled Promise Rejection: Error: Using exceptions for control flow, don't mind me. This isn't actually an error!
@@ -71,7 +72,8 @@ export default {
   background-color: black;
 }
 
-#wasm-example.button {
+#wasm-example button {
   height: 33px;
+  font-size: 14px;
 }
 </style>
