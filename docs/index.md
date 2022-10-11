@@ -12,8 +12,6 @@
 
 **WebGPU** 是由 W3C [GPU for the Web](https://www.w3.org/community/gpu/) 社区组所发布的规范，目标是允许网页代码以高性能且安全可靠的方式访问 GPU 功能。它通过借鉴 Vulkan API，并将其转换为宿主硬件上使用的各式 API（如 DirectX、Metal、Vulkan）来实现这一目标。
 
-*WebGPU 规范及 wgpu 都仍在完善阶段，本教程中的部分内容可能会发生变化。如果有错过一些重要的细节，或者解释得不够好，欢迎提出建设性的反馈。*
-
 ## 为什么使用 Rust？
 wgpu 实际上提供了 C 语言绑定 ([wgpu-native](https://github.com/gfx-rs/wgpu-native))，你可以写 C/C++ 或其他能与 C 互通的语言来使用它。尽管如此，wgpu 本身是用 Rust 实现的，它便利的 Rust 绑定能减少你使用中的阻碍。更重要的是，Rust 是一门高性能，内存和线程安全且极具生产力的现代底层语言。
 
@@ -28,6 +26,13 @@ wgpu 实际上提供了 C 语言绑定 ([wgpu-native](https://github.com/gfx-rs/
 如果你已精通 C/C++，那也学学 Rust 吧，那么难的都学得会，掌握 Rust 不过是小菜一碟;
 
 </div>
+
+## 现在学习 wgpu 是不是为时尚早？
+虽然 WebGPU 1.0 可能要到 2023 年才能正式发布，但 API 目前已经趋于稳定了，后面的修订更多是内部实现层的完善。
+
+从 wgpu 及 dawn 这两个主要的 WebGPU 标准的实现库的开发动向可以看出，大量的扩展特性目前只有 PC、Mac、iOS、Android 等系统上本地运行才能支持。wgpu 更是将本地运行做为首要目标，WebGPU 是做为最低支持的特性集而存在。
+
+使用 wgpu 在移动端做跨平台开发的体验极好，甚至我偏向于认为：**WebGPU 更容易在 iOS、Android 上得到普及**。因为不用受限于 1.0 标准啥时候发布，用户的浏览器是否支持等问题。
 
 ## 贡献与支持
 
