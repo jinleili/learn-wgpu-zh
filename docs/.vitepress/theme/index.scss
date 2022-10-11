@@ -54,6 +54,10 @@ $MQMobileNarrow: 419px;
     // }
 }
 
+.loading {
+    color: gray;
+}
+
 @media screen and (max-width: $MQMobile) {
     .note {
         @include excerpt(0px);

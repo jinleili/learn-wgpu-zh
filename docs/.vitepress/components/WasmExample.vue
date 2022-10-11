@@ -3,6 +3,9 @@
     <div class="error" v-if="error">
       {{ error }}
     </div>
+    <div class="loading" v-if="loading">
+      正在加载 WASM 模块 ...
+    </div>
     <button v-if="!exampleStarted && !autoLoad" @click="loadExample()" :disabled="loading">点击运行
       {{exampleName}}</button>
   </div>
@@ -42,21 +45,29 @@ export default {
       this.loading = true;
       try {
         const module = await import(`./wasm/${this.example}.js`.replace('_', '-'));
-        module.default();
-      } catch (e) {
-        // 此处无法捕捉到发生在运行时的可忽略Error：
-        // Unhandled Promise Rejection: Error: Using exceptions for control flow, don't mind me. This isn't actually an error!
-        if (!`${e}`.includes("don't mind me. This isn't actually an error!")) {
-          this.error = `An error occurred loading "${this.example}": ${e}`;
-          console.error(e);
-          this.exampleStarted = false;
-        } else {
+        module.default().then((instance) => {
+          this.loading = false;
           this.exampleStarted = true;
-        }
+        }, (e) => {
+          if (!`${e}`.includes("don't mind me. This isn't actually an error!")) {
+            showErr(e);
+          } else {
+            this.exampleStarted = true;
+            this.loading = false;
+          }
+        });
+
+      } catch (e) {
+        showErr(e);
       }
-      this.exampleStarted = true;
-      this.loading = false;
     },
+
+    showErr(err) {
+      this.error = `An error occurred loading "${this.example}": ${e}`;
+      console.error(e);
+      this.exampleStarted = false;
+      this.loading = false;
+    }
   },
   async mounted() {
     await this.$nextTick()

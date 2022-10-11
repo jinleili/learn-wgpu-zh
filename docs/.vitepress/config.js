@@ -44,6 +44,11 @@ export default defineConfig({
         //     apiKey: "67756efd9c1a012a2c2f5edd0d26222b",
         //     indexName: "learn_wgpu_zh",
         // },
+        // algolia: {
+        //     appId: "141Z7KL53C",
+        //     apiKey: "4ec796e7f2bdbe7eb00e28d355b91f06",
+        //     indexName: "learn-gpu-zh",
+        // },
     }
 })
 
