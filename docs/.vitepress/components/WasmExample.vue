@@ -6,7 +6,7 @@
     <div class="loading" v-if="loading">
       正在加载 WASM 模块 ...
     </div>
-    <button v-if="!exampleStarted && !autoLoad" @click="loadExample()" :disabled="loading">点击运行
+    <button v-if="!exampleStarted" @click="loadExample()" :disabled="loading">点击运行
       {{exampleName}}</button>
   </div>
 </template>
@@ -43,6 +43,7 @@ export default {
   methods: {
     async loadExample() {
       this.loading = true;
+      this.exampleStarted = true;
       try {
         const module = await import(`./wasm/${this.example}.js`.replace('_', '-'));
         module.default().then((instance) => {

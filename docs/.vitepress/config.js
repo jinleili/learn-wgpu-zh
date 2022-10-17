@@ -14,9 +14,6 @@ export default defineConfig({
 
     markdown: {
         lineNumbers: true,
-        headers: {
-            level: [0, 2]
-        }
     },
 
     themeConfig: {
@@ -24,7 +21,8 @@ export default defineConfig({
         lastUpdated: true,
         lastUpdatedText: '上次更新',
         outline: true,
-        outlineTitle: '本页大纲',
+        // 这个配置目前不生效
+        // outlineTitle: '本页大纲',
         localeLinks: {
             text: '简体中文',
             items: [
@@ -120,6 +118,7 @@ function sidebarConfig() {
         {
             text: '案例展示',
             collapsible: true,
+            collapsed: true,
             items: [
                 {
                     text: '离屏渲染', link: '/showcase/windowless/'

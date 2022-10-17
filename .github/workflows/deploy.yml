@@ -3,6 +3,7 @@ on:
   push:
     branches: [ master ]
 env:
+  RUST_VERSION: 1.64
   CARGO_TERM_COLOR: always
 jobs:
   build:

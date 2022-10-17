@@ -2,15 +2,16 @@
 name = "windowless"
 version = "0.1.0"
 authors = ["Ben Hansen <bhbenjaminhansen@gmail.com>"]
-edition = "2018"
+edition.workspace = true
+rust-version.workspace = true
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-image = "0.24"
-wgpu = { version = "0.14" }
-pollster = "0.2"
-futures-intrusive = "0.4"
+image.workspace = true
+wgpu.workspace = true
+pollster.workspace = true
+futures-intrusive.workspace = true
 
 [[bin]]
 name = "windowless"

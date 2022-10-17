@@ -2,26 +2,27 @@
 name = "tutorial2-surface"
 version = "0.1.0"
 authors = ["Ben Hansen <bhbenjaminhansen@gmail.com>"]
-edition = "2018"
+edition.workspace = true
+rust-version.workspace = true
 
 [lib]
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-cfg-if = "1"
-winit = "0.27.1"
-env_logger = "0.9"
-log = "0.4"
-wgpu = "0.14"
-pollster = "0.2"
+cfg-if.workspace = true
+winit.workspace = true
+env_logger.workspace = true
+log.workspace = true
+wgpu.workspace = true
+pollster.workspace = true
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-console_error_panic_hook = "0.1.6"
-console_log = "0.2.0"
-wgpu = { version = "0.14", features = ["webgl"] }
-wasm-bindgen = "0.2.83"
-wasm-bindgen-futures = "0.4"
-web-sys = { version = "0.3.60", features = [
+console_error_panic_hook.workspace = true
+console_log.workspace = true
+wgpu = { workspace = true, features = ["webgl"] }
+wasm-bindgen.workspace = true
+wasm-bindgen-futures.workspace = true
+web-sys = { workspace = true, features = [
     "Document",
     "Window",
     "Element"
