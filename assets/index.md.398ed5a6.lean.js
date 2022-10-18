@@ -1,1 +1,0 @@
-import{_ as e,c as r,o as t,a}from"./app.52787cfe.js";const f=JSON.parse('{"title":"\u4ECB\u7ECD","description":"","frontmatter":{},"headers":[],"relativePath":"index.md","lastUpdated":1666070982000}'),n={name:"index.md"},p=a("",20),o=[p];function s(h,i,u,g,l,d){return t(),r("div",null,o)}const b=e(n,[["render",s]]);export{f as __pageData,b as default};
