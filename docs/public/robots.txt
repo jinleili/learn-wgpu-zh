@@ -1,0 +1,6 @@
+User-agent: Googlebot
+
+User-agent: *
+Allow: /
+
+Sitemap: https://jinleili.github.io/learn-wgpu-zh/sitemap.xml
