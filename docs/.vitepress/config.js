@@ -14,13 +14,16 @@ export default defineConfig({
 
     markdown: {
         lineNumbers: true,
+        headers: {
+            level: [0, 0]
+        }
     },
 
     themeConfig: {
         logo: '/res/wgpu-logo.png',
         lastUpdated: true,
         lastUpdatedText: '上次更新',
-        outline: true,
+        // outline: true,
         // 这个配置目前不生效
         // outlineTitle: '本页大纲',
         localeLinks: {
