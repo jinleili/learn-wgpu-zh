@@ -15,6 +15,8 @@ export default defineConfig({
     markdown: {
         lineNumbers: true,
         headers: {
+            // 这个配置目前的版本 (alpha-21) 不能改
+            // 修改后，右边栏将只会在 dev 模式下显示
             level: [0, 0]
         }
     },

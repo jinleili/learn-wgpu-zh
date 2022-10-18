@@ -1,23 +1,23 @@
-<?xml version="1.0"?>
-<urls>
-    <url>https://jinleili.github.io/learn-wgpu-zh/</url>
-    <url>https://jinleili.github.io/learn-wgpu-zh/integration-and-debugging/</url>
-    <url>https://jinleili.github.io/learn-wgpu-zh/integration-and-debugging/ios/</url>
-    <url>https://jinleili.github.io/learn-wgpu-zh/integration-and-debugging/android/</url>
-    <url>https://jinleili.github.io/learn-wgpu-zh/integration-and-debugging/xcode/</url>
-    <url>https://jinleili.github.io/learn-wgpu-zh/integration-and-debugging/snapdragon-profiler/</url>
-    <url>https://jinleili.github.io/learn-wgpu-zh/beginner/tutorial1-window</url>
-    <url>https://jinleili.github.io/learn-wgpu-zh/beginner/tutorial2-surface/</url>
-    <url>https://jinleili.github.io/learn-wgpu-zh/beginner/tutorial3-pipeline/</url>
-    <url>https://jinleili.github.io/learn-wgpu-zh/beginner/tutorial4-buffer/</url>
-    <url>https://jinleili.github.io/learn-wgpu-zh/beginner/tutorial5-textures/</url>
-    <url>https://jinleili.github.io/learn-wgpu-zh/beginner/tutorial6-uniforms/</url>
-    <url>https://jinleili.github.io/learn-wgpu-zh/beginner/tutorial7-instancing/</url>
-    <url>https://jinleili.github.io/learn-wgpu-zh/beginner/tutorial8-depth/</url>
-    <url>https://jinleili.github.io/learn-wgpu-zh/beginner/tutorial9-models/</url>
-    <url>https://jinleili.github.io/learn-wgpu-zh/intermediate/tutorial10-lighting/</url>
-    <url>https://jinleili.github.io/learn-wgpu-zh/intermediate/tutorial11-normals/</url>
-    <url>https://jinleili.github.io/learn-wgpu-zh/intermediate/tutorial12-camera/</url>
-    <url>https://jinleili.github.io/learn-wgpu-zh/showcase/windowless/</url>
-    <url>https://jinleili.github.io/learn-wgpu-zh/showcase/gifs/</url>
-</urls>
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <url><loc>https://jinleili.github.io/learn-wgpu-zh/</loc></url>
+    <url><loc>https://jinleili.github.io/learn-wgpu-zh/integration-and-debugging/</loc></url>
+    <url><loc>https://jinleili.github.io/learn-wgpu-zh/integration-and-debugging/ios/</loc></url>
+    <url><loc>https://jinleili.github.io/learn-wgpu-zh/integration-and-debugging/android/</loc></url>
+    <url><loc>https://jinleili.github.io/learn-wgpu-zh/integration-and-debugging/xcode/</loc></url>
+    <url><loc>https://jinleili.github.io/learn-wgpu-zh/integration-and-debugging/snapdragon-profiler/</loc></url>
+    <url><loc>https://jinleili.github.io/learn-wgpu-zh/beginner/tutorial1-window</loc></url>
+    <url><loc>https://jinleili.github.io/learn-wgpu-zh/beginner/tutorial2-surface/</loc></url>
+    <url><loc>https://jinleili.github.io/learn-wgpu-zh/beginner/tutorial3-pipeline/</loc></url>
+    <url><loc>https://jinleili.github.io/learn-wgpu-zh/beginner/tutorial4-buffer/</loc></url>
+    <url><loc>https://jinleili.github.io/learn-wgpu-zh/beginner/tutorial5-textures/</loc></url>
+    <url><loc>https://jinleili.github.io/learn-wgpu-zh/beginner/tutorial6-uniforms/</loc></url>
+    <url><loc>https://jinleili.github.io/learn-wgpu-zh/beginner/tutorial7-instancing/</loc></url>
+    <url><loc>https://jinleili.github.io/learn-wgpu-zh/beginner/tutorial8-depth/</loc></url>
+    <url><loc>https://jinleili.github.io/learn-wgpu-zh/beginner/tutorial9-models/</loc></url>
+    <url><loc>https://jinleili.github.io/learn-wgpu-zh/intermediate/tutorial10-lighting/</loc></url>
+    <url><loc>https://jinleili.github.io/learn-wgpu-zh/intermediate/tutorial11-normals/</loc></url>
+    <url><loc>https://jinleili.github.io/learn-wgpu-zh/intermediate/tutorial12-camera/</loc></url>
+    <url><loc>https://jinleili.github.io/learn-wgpu-zh/showcase/windowless/</loc></url>
+    <url><loc>https://jinleili.github.io/learn-wgpu-zh/showcase/gifs/</loc></url>
+</urlset>
