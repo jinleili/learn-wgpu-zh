@@ -12,6 +12,10 @@ export default defineConfig({
 
     cleanUrls: 'without-subfolders',
 
+    head: [
+        ['link', { rel: "icon", href: "/learn-wgpu-zh/favicon.svg" }],
+    ],
+
     markdown: {
         lineNumbers: true,
         headers: {
