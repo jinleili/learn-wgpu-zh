@@ -5,7 +5,7 @@ export default defineConfig({
     // lang: 'zh-CN',
     lang: 'en-US',
     title: '学习 wgpu',
-    description: '使用 Rust 学习 wgpu',
+    description: '学习 wgpu：面向下一个十年的跨平台图形接口 WebGPU 的 Rust 实现',
     base: '/learn-wgpu-zh/',
     appearance: true,
     lastUpdated: true,
