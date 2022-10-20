@@ -265,6 +265,11 @@ cargo build --target x86_64-apple-ios
 
 <img src="./links.png" />
 
+<div class="note">
+
+当 Xcode 版本 >= 13 且 `iOS Deployment Target` >= 12.0 时，`Other Linker Flags` 栏的设置可以省略。
+
+</div>
 
 以上就是所有的关键代码和步骤了，我写了一个叫 wgpu-on-app 的示例程序，效果如下：
 
