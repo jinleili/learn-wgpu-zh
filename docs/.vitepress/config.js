@@ -2,8 +2,7 @@ import { defineConfig } from 'vitepress'
 
 export default defineConfig({
     // https://vitepress.vuejs.org/config/app-configs
-    // lang: 'zh-CN',
-    lang: 'en-US',
+    lang: 'zh-CN',
     title: '学习 wgpu',
     description: '学习 wgpu：面向下一个十年的跨平台图形接口 WebGPU 的 Rust 实现',
     base: '/learn-wgpu-zh/',
@@ -29,9 +28,13 @@ export default defineConfig({
         logo: '/res/wgpu-logo.png',
         lastUpdated: true,
         lastUpdatedText: '上次更新',
+        docFooter: {
+            prev: "上一章",
+            next: "下一章",
+        },
         // outline: true,
         // 这个配置目前不生效
-        // outlineTitle: '本页大纲',
+        outlineTitle: '本页大纲',
         localeLinks: {
             text: '简体中文',
             items: [

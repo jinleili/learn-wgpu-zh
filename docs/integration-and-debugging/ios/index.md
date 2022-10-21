@@ -206,8 +206,8 @@ override func viewDidAppear(_ animated: Bool) {
     // 我们需要保证 WgpuCanvas 只被实例化一次
     if wgpuCanvas == nil {
         // 将 Swift 对象转换为裸指针
-        let viewPointer = UnsafeMutableRawPointer(Unmanaged.passRetained(self.metalV).toOpaque())
-        let metalLayer = UnsafeMutableRawPointer(Unmanaged.passRetained(self.metalV.layer).toOpaque())
+        let viewPointer = Unmanaged.passRetained(self.metalV).toOpaque()
+        let metalLayer = Unmanaged.passRetained(self.metalV.layer).toOpaque()
         let maximumFrames = UIScreen.main.maximumFramesPerSecond
         
         // 创建 IOSViewObj 实例

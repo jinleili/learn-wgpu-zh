@@ -1,4 +1,4 @@
-# 使用 Snapdragon Profiler 调试
+# 使用 Snapdragon Profiler 调试 wgpu 程序
 
 在[与 Android App 集成](../android/)章节我们已经学习了 wgpu 与 Android App 的集成，现在来看看集成后的调试。
 
