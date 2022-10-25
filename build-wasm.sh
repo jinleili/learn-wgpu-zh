@@ -15,7 +15,7 @@ RUSTFLAGS=--cfg=web_sys_unstable_apis cargo build --no-default-features --releas
 --example tutorial12-camera
 
 # Generate bindings
-for i in target/wasm32-unknown-unknown/release/*.wasm;
+for i in target/wasm32-unknown-unknown/release/examples/*.wasm;
 do
     wasm-bindgen --no-typescript --out-dir docs/.vitepress/components/wasm --web "$i";
 done
