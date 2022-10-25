@@ -81,13 +81,13 @@ let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescrip
 use model::Vertex;
 ```
 
-现在，我们需要一个用于渲染的模型。你可以使用自己的模型，我这也提供了一个模型及其纹理的 [zip 压缩包](https://github.com/sotrh/learn-wgpu/blob/master/code/beginner/tutorial9-models/res/cube.zip ) 。我们将新建一个与 `src` 文件夹同级的 `res` 文件夹来安置这个模型。
+现在，我们需要一个用于渲染的模型。你可以使用自己的模型，我这也提供了一个模型及其纹理的 [zip 压缩包](https://github.com/sotrh/learn-wgpu/blob/master/code/beginner/tutorial9-models/res/cube.zip ) 。我们将新建一个与 `src` 目录同级的 `res` 目录来安置这个模型。
 
 ## 访问资源文件
 
-cargo 在构建并运行程序时会设置一个当前工作目录，该目录通常就是放置了 `Cargo.toml` 文件的项目根目录。**资源**（res）文件夹的路径会因项目的结构而异。本节教程示例代码的**资源**文件夹位于 `code/beginner/tutorial9-models/res/`。我们加载模型时可以使用这个路径，仅需在路径后拼上 `cube.obj`。这似乎很完美，可一旦修改项目的目录结构，写在代码里的路径就不可用了。
+cargo 在构建并运行程序时会设置一个当前工作目录，该目录通常就是放置了 `Cargo.toml` 文件的项目根目录。**资源**（res）目录的路径会因项目的结构而异。本节教程示例代码的**资源**目录位于 `code/beginner/tutorial9-models/res/`。我们加载模型时可以使用这个路径，仅需在路径后拼上 `cube.obj`。这似乎很完美，可一旦修改项目的目录结构，写在代码里的路径就不可用了。
 
-所以，我们通过修改**构建脚本**，将 `res` 文件夹复制到 cargo 创建可执行文件的位置来解决此问题，然后再从那里引用资源文件。创建一个 `build.rs`（构建文件的默认名称）文件并添加以下代码：
+所以，我们通过修改**构建脚本**，将 `res` 目录复制到 cargo 创建可执行文件的位置来解决此问题，然后再从那里引用资源文件。创建一个 `build.rs`（构建文件的默认名称）文件并添加以下代码：
 
 ```rust
 use anyhow::*;
@@ -96,7 +96,7 @@ use fs_extra::dir::CopyOptions;
 use std::env;
 
 fn main() -> Result<()> {
-    // 这一行告诉 cargo 如果 /res/ 文件夹中的内容发生了变化，就重新运行脚本
+    // 这一行告诉 cargo 如果 /res/ 目录中的内容发生了变化，就重新运行脚本
     println!("cargo:rerun-if-changed=res/*");
 
     let out_dir = env::var("OUT_DIR")?;
@@ -112,7 +112,7 @@ fn main() -> Result<()> {
 
 <div class="note">
 
-确保将 `build.rs` 放在与 `Cargo.toml` 相同的文件夹中，只有这样，在项目构建时 cargo 才能此运行构建脚本。
+确保将 `build.rs` 放在与 `Cargo.toml` 相同的目录中，只有这样，在项目构建时 cargo 才能此运行构建脚本。
 
 </div>
 <div class="note">
@@ -196,7 +196,7 @@ pub async fn load_binary(file_name: &str) -> anyhow::Result<Vec<u8>> {
 
 <div class="note">
 
-在**桌面环境**里，我们是使用 `OUT_DIR` 环境变量来访问资源文件夹。
+在**桌面环境**里，我们是使用 `OUT_DIR` 环境变量来访问资源目录。
 
 </div>
 

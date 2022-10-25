@@ -6,11 +6,24 @@ edition.workspace = true
 rust-version.workspace = true
 
 [lib]
-crate-type = ["cdylib", "rlib"]
+# crate-type = ["cdylib", "rlib"]
 
-[[bin]]
+[[example]]
 name = "tutorial1-window"
 path = "src/main.rs"
+
+[features]
+default = []
+webgl = ["wgpu/webgl"]
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies.wgc]
+workspace = true
+features = ["raw-window-handle"]
+
+[target.'cfg(target_arch = "wasm32")'.dependencies.wgc]
+workspace = true
+features = ["raw-window-handle"]
+optional = true
 
 [dependencies]
 cfg-if.workspace = true

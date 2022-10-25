@@ -25,6 +25,10 @@ rust-version = "1.64"
 version = "0.24"
 default-features = false
 
+[workspace.dependencies.wgc]
+package = "wgpu-core"
+version = "0.14"
+
 [workspace.dependencies]
 app-surface = { git = "https://github.com/jinleili/wgpu-on-app", tag = "0.1.2" }
 bytemuck = "1.4"

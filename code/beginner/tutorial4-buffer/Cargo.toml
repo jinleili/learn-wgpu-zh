@@ -37,10 +37,10 @@ anyhow.workspace = true
 fs_extra.workspace = true
 glob.workspace = true
 
-[[bin]]
+[[example]]
 name = "tutorial4-buffer"
 path = "src/main.rs"
 
-[[bin]]
+[[example]]
 name = "tutorial4-challenge"
 path = "src/challenge.rs"

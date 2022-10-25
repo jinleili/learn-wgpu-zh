@@ -20,6 +20,19 @@
 
 使用 wgpu 在移动端做跨平台开发的体验极好，甚至我偏向于认为：**WebGPU 更容易在 iOS、Android 上得到普及**。因为不用受限于 1.0 标准啥时候发布，用户的浏览器是否支持等问题。
 
+## 如何运行示例代码
+本教程的所有的示例代码都在 [`code/`](https://github.com/jinleili/learn-wgpu-zh/tree/master/code) 目录下，且示例程序的名称与程序目录同名。
+比如，第一章 **依赖与窗口** 所有在的目录是 **code/beginner/`tutorial1-window`**, 此示例程序的名称也叫 `tutorial1-window`:
+
+```sh
+# 在桌面环境本地运行
+cargo run --example tutorial1-window
+# 在浏览器中运行：使用 WebGPU（需要使用 FireFox Nightly 或 Chrome Canary 并开启 WebGPU 试验功能）
+cargo run-wasm --example tutorial1-window
+# 在浏览器中运行：使用 WebGL 2.0
+cargo run-wasm --example tutorial1-window --features webgl
+```
+
 ## 关于译者
 我是一名移动端（iOS，Android）工程师, 同时也擅长 HTML5，有多年使用 OpenGL ES / WebGL, Metal 的实践经验。2018 年开始接触 WebGPU，目前正积极地参与到 [wgpu 开源项目的开发与完善](https://github.com/gfx-rs/wgpu/commits?author=jinleili)之中，并且已于两年前在 AppStore 上架了基于 wgpu 实现的毛笔书法模拟 App [字习 Pro](https://apps.apple.com/cn/app/字习-pro/id1507339788)。
 

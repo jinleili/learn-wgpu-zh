@@ -44,6 +44,6 @@ anyhow.workspace = true
 fs_extra.workspace = true
 glob.workspace = true
 
-[[bin]]
+[[example]]
 name = "tutorial11-normals"
 path = "src/main.rs"

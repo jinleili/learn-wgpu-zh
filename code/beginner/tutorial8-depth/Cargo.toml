@@ -41,11 +41,11 @@ anyhow.workspace = true
 fs_extra.workspace = true
 glob.workspace = true
 
-[[bin]]
+[[example]]
 name = "tutorial8-depth"
 path = "src/main.rs"
 
 
-[[bin]]
+[[example]]
 name = "tutorial8-challenge"
 path = "src/challenge.rs"

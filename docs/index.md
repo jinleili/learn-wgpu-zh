@@ -35,6 +35,18 @@ wgpu 实际上提供了 C 语言绑定 ([wgpu-native](https://github.com/gfx-rs/
 
 使用 wgpu 在移动端做跨平台开发的体验极好，甚至我偏向于认为：**WebGPU 更容易在 iOS、Android 上得到普及**。因为不用受限于 1.0 标准啥时候发布，用户的浏览器是否支持等问题。
 
+## 如何运行示例代码
+本教程的所有的示例代码都在 [`code/`](https://github.com/jinleili/learn-wgpu-zh/tree/master/code) 目录下，且示例程序的名称与程序目录同名。
+比如，第一章 **依赖与窗口** 所有在的目录是 **code/beginner/`tutorial1-window`**, 此示例程序的名称也叫 `tutorial1-window`:
+```sh
+# 在桌面环境本地运行
+cargo run --example tutorial1-window
+# 在浏览器中运行：使用 WebGPU（需要使用 FireFox Nightly 或 Chrome Canary 并开启 WebGPU 试验功能）
+cargo run-wasm --example tutorial1-window
+# 在浏览器中运行：使用 WebGL 2.0
+cargo run-wasm --example tutorial1-window --features webgl
+```
+
 ## 贡献与支持
 
 * 原作者接受 PR（[GitHub repo](https://github.com/sotrh/learn-wgpu)）以修复本教程的问题，如错别字、错误信息和其他不一致之处。

@@ -40,11 +40,11 @@ anyhow.workspace = true
 fs_extra.workspace = true
 glob.workspace = true
 
-[[bin]]
+[[example]]
 name = "tutorial5-textures"
 path = "src/main.rs"
 
 
-[[bin]]
+[[example]]
 name = "tutorial5-challenge"
 path = "src/challenge.rs"
