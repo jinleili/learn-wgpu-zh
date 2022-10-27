@@ -30,7 +30,7 @@ pub fn run<A: Action + 'static>() {
     use wasm_bindgen::{prelude::*, JsCast};
 
     std::panic::set_hook(Box::new(console_error_panic_hook::hook));
-    console_log::init_with_level(log::Level::Warn).expect("Could't initialize logger");
+    console_log::init_with_level(log::Level::Warn).expect("无法初始化日志库");
 
     wasm_bindgen_futures::spawn_local(async move {
         let (event_loop, instance) = create_action_instance::<A>().await;

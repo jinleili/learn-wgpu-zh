@@ -1,6 +1,5 @@
-use std::iter;
-
 use app_surface::{AppSurface, SurfaceFrame};
+use std::iter;
 use winit::window::WindowId;
 
 #[path = "../../../framework.rs"]

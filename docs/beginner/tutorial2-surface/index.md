@@ -41,6 +41,28 @@ impl State {
 
 此处省略了 `State` 的字段概述，在后续章节中解释这些函数背后的代码时，它们才会变得更有意义。
 
+<div class="note">
+
+`surface`、`device`、`queue`、`config` 等对象是每个 wgpu 程序都需要的，且它们的创建过程涉及到很多模板代码，所以，从第 3 章开始，我将它们统一封装到了 [AppSurface](https://github.com/jinleili/wgpu-on-app/tree/master/app-surface) 对象中。
+
+`State` 中的这些函数在所有章节示例中都有用到，所以，在第 3～8 章，我将其抽象为了 `Action` trait:
+```rust
+pub trait Action {
+    fn new(app: app_surface::AppSurface) -> Self;
+    fn get_adapter_info(&self) -> wgpu::AdapterInfo;
+    fn current_window_id(&self) -> WindowId;
+    fn resize(&mut self);
+    fn request_redraw(&mut self);
+    fn input(&mut self, _event: &WindowEvent) -> bool {
+        false
+    }
+    fn update(&mut self) {}
+    fn render(&mut self) -> Result<(), wgpu::SurfaceError>;
+}
+```
+
+</div>
+
 ## 实例化 State
 这段代码很简单，但还是值得好好讲讲：
 
@@ -235,7 +257,6 @@ pollster = "0.2"
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 console_error_panic_hook = "0.1.6"
 console_log = "0.2.0"
-wgpu = { version = "0.14", features = ["webgl"]}
 wasm-bindgen = "0.2.83"
 wasm-bindgen-futures = "0.4"
 web-sys = { version = "0.3.60", features = [

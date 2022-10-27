@@ -8,6 +8,7 @@ rust-version.workspace = true
 [lib]
 crate-type = ["cdylib", "rlib"]
 
+# wgpu_glyph 还没有更新，导致 wgpu 只能继续使用 0.13
 [dependencies]
 cfg-if = "1"
 env_logger = "0.9"
@@ -35,7 +36,7 @@ web-sys = { version = "0.3.53", features = [
     "Window",
     "Element"
 ] }
-wgpu = { version = "0.13", features = ["spirv", "webgl"] }
+wgpu = { version = "0.13", features = ["spirv"] }
 
 [build-dependencies]
 anyhow = "1.0"

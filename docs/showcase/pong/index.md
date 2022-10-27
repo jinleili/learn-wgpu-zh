@@ -288,7 +288,7 @@ web-sys = { version = "0.3.53", features = [
     "Window",
     "Element",
 ]}
-wgpu = { version = "0.14", features = ["spirv", "webgl"]}
+wgpu = { version = "0.14", features = ["spirv"]}
 
 [build-dependencies]
 anyhow = "1.0"

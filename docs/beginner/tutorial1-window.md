@@ -25,7 +25,7 @@ wgpu = "0.14"
 (下面的例子中我使用了 `tutorial1_window`)
 
 ## 示例代码
-这一部分没有什么特别之处，所以直接贴出完整的代码。只需将其粘贴到你的 `lib.rs` 或类似位置即可：
+这一部分没有什么特别之处，所以直接贴出完整的代码。只需将其粘贴到你的 `main.rs` 中即可：
 
 ```rust
 use winit::{
@@ -62,11 +62,9 @@ pub fn run() {
 
 ```
 
-上述代码所做的全部工作就是创建了一个窗口，并在用户关闭或按下 escape 键前使其保持打开。接下来，我们需要在 `main.rs` 中运行这些代码。很简单，只需导入 `run()`，然后运行!
+上述代码所做的全部工作就是创建了一个窗口，并在用户关闭或按下 escape 键前使其保持打开。接下来，我们需要在**入口函数**中运行这些代码。很简单，只需在 `main()` 函数中调用 `run()`，然后运行!
 
 ```rust
-use tutorial1_window::run;
-
 fn main() {
     run();
 }
@@ -85,7 +83,13 @@ fn main() {
 [lib]
 crate-type = ["cdylib", "rlib"]
 ```
-这几行告诉 cargo 允许我们的项目**构建**（build)一个本地的 Rust 静态库（rlib）和一个 C/C++ 兼容库（cdylib）。 我们需要 rlib 来在桌面环境中运行 wgpu，需要 cdylib 来构建在浏览器中运行的 Web Assembly。
+这几行告诉 cargo 允许项目**构建**（build)一个本地的 Rust 静态库（rlib）和一个 C/C++ 兼容库（cdylib）。 我们需要 rlib 来在桌面环境中运行 wgpu，需要 cdylib 来构建在浏览器中运行的 Web Assembly。
+
+<div class="note">
+
+仅在需要将项目做为其他 Rust 项目的**包**（crate）提供时，`[lib]` 项的配置才是必须的。所以我们的示例程序可以省略上面这一步。
+
+</div>
 
 <div class="note">
 
@@ -105,7 +109,6 @@ cfg-if = "1"
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 console_error_panic_hook = "0.1.6"
 console_log = "0.2.0"
-wgpu = { version = "0.14", features = ["webgl"]}
 wasm-bindgen = "0.2.83"
 wasm-bindgen-futures = "0.4.30"
 web-sys = { version = "0.3.60", features = [
@@ -130,7 +133,7 @@ web-sys = { version = "0.3.60", features = [
 
 ## 更多示例代码
 
-首先, 我们需要在 `lib.rs` 内引入 `wasm-bindgen` :
+首先, 我们需要在 `main.rs` 内引入 `wasm-bindgen` :
 
 ```rust
 #[cfg(target_arch="wasm32")]
@@ -160,6 +163,34 @@ cfg_if::cfg_if! {
 ```
 
 上边的代码判断了**构建**目标，在 web 构建中设置 `console_log` 和 `console_error_panic_hook`。这很重要，因为 `env_logger` 目前不支持 Web Assembly。
+
+<div class="note">
+
+## 另一种实现
+
+在第 3~8 章，`run()` 函数及遍历 event_loop 的代码被统一封装到了 `framework.rs` 中, 还定义了 `Action` trait 来抽象每一章中不同的 `State` 。
+然后通过调用 wasm_bindgen_futures 包的 `spawn_local` 函数来创建 `State` 实例并处理 JS 异常。
+
+第 1～2 章的代码通过 `cargo run-wasm --example xxx` 运行时，在浏览器的控制台中会看到的 `...Using exceptions for control flow, don't mind me. This isn't actually an error!` 错误现在被消除了：
+
+```rust
+#[cfg(target_arch = "wasm32")]
+pub fn run<A: Action + 'static>() {
+    // ...
+    wasm_bindgen_futures::spawn_local(async move {
+        let (event_loop, instance) = create_action_instance::<A>().await;
+        let run_closure = Closure::once_into_js(move || start_event_loop::<A>(event_loop, instance));
+
+        // 处理运行过程中抛出的 JS 异常。
+        // 否则 wasm_bindgen_futures 队列将中断，且不再处理任何任务。
+        if let Err(error) = call_catch(&run_closure) {
+            // ...
+        }
+    }
+}
+```
+
+</div>
 
 接下来，在创建了事件循环与窗口之后，我们需要在应用程序所在的 HTML 网页中添加一个**画布**（canvas)：
 

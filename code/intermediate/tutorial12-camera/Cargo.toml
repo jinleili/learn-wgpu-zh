@@ -34,7 +34,6 @@ features = ["png", "jpeg"]
 console_error_panic_hook.workspace = true
 console_log.workspace = true
 reqwest.workspace = true
-wgpu = { workspace = true, features = ["webgl"] }
 wasm-bindgen.workspace = true
 wasm-bindgen-futures.workspace = true
 web-sys = { workspace = true, features = [
