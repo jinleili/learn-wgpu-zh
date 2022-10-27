@@ -3,11 +3,12 @@ use std::iter;
 use app_surface::{AppSurface, SurfaceFrame};
 use cgmath::prelude::*;
 use wgpu::util::DeviceExt;
-use winit::{
-    event::*,
-    event_loop::{ControlFlow, EventLoop},
-    window::{Window, WindowBuilder},
-};
+use winit::event::*;
+use winit::window::WindowId;
+
+#[path = "../../../framework.rs"]
+mod framework;
+use framework::{run, Action};
 
 mod texture;
 
@@ -283,10 +284,8 @@ struct State {
     instance_buffer: wgpu::Buffer,
 }
 
-impl State {
-    async fn new(window: Window) -> Self {
-        let app = AppSurface::new(window);
-
+impl Action for State {
+    fn new(app: AppSurface) -> Self {
         let diffuse_bytes = include_bytes!("happy-tree.png");
         let diffuse_texture =
             texture::Texture::from_bytes(&app.device, &app.queue, diffuse_bytes, "happy-tree.png")
@@ -507,11 +506,20 @@ impl State {
         }
     }
 
-    fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
-        if new_size.width > 0 && new_size.height > 0 {
-            self.app.resize_surface();
-            self.camera.aspect = self.app.config.width as f32 / self.app.config.height as f32;
-        }
+    fn get_adapter_info(&self) -> wgpu::AdapterInfo {
+        self.app.adapter.get_info()
+    }
+    fn current_window_id(&self) -> WindowId {
+        self.app.view.id()
+    }
+
+    fn resize(&mut self) {
+        self.app.resize_surface();
+        self.camera.aspect = self.app.config.width as f32 / self.app.config.height as f32;
+    }
+
+    fn request_redraw(&mut self) {
+        self.app.view.request_redraw();
     }
 
     fn input(&mut self, event: &WindowEvent) -> bool {
@@ -588,63 +596,6 @@ impl State {
     }
 }
 
-fn main() {
-    pollster::block_on(run());
-}
-
-async fn run() {
-    env_logger::init();
-    let event_loop = EventLoop::new();
-    let window = WindowBuilder::new().build(&event_loop).unwrap();
-
-    // State::new uses async code, so we're going to wait for it to finish
-    let mut state = State::new(window).await;
-
-    event_loop.run(move |event, _, control_flow| {
-        match event {
-            Event::WindowEvent {
-                ref event,
-                window_id,
-            } if window_id == state.app.view.id() => {
-                if !state.input(event) {
-                    match event {
-                        WindowEvent::CloseRequested
-                        | WindowEvent::KeyboardInput {
-                            input:
-                                KeyboardInput {
-                                    state: ElementState::Pressed,
-                                    virtual_keycode: Some(VirtualKeyCode::Escape),
-                                    ..
-                                },
-                            ..
-                        } => *control_flow = ControlFlow::Exit,
-                        WindowEvent::Resized(physical_size) => {
-                            state.resize(*physical_size);
-                        }
-                        WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
-                            // new_inner_size is &mut so w have to dereference it twice
-                            state.resize(**new_inner_size);
-                        }
-                        _ => {}
-                    }
-                }
-            }
-            Event::RedrawRequested(window_id) if window_id == state.app.view.id() => {
-                state.update();
-                match state.render() {
-                    Ok(_) => {}
-                    Err(wgpu::SurfaceError::Lost | wgpu::SurfaceError::Outdated) => {
-                        state.resize((state.app.config.width, state.app.config.height).into())
-                    }
-                    Err(wgpu::SurfaceError::OutOfMemory) => *control_flow = ControlFlow::Exit,
-                    Err(wgpu::SurfaceError::Timeout) => log::warn!("Surface timeout"),
-                }
-            }
-            Event::MainEventsCleared => {
-                // 除非我们手动请求，RedrawRequested 将只会触发一次。
-                state.app.view.request_redraw();
-            }
-            _ => {}
-        }
-    });
+pub fn main() {
+    run::<State>();
 }

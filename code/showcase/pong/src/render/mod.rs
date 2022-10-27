@@ -199,7 +199,6 @@ impl Render {
                 self.staging_belt.finish();
                 self.queue.submit(iter::once(encoder.finish()));
                 frame.present();
-
             }
             Err(wgpu::SurfaceError::Outdated) => {
                 log::info!("Outdated surface texture");

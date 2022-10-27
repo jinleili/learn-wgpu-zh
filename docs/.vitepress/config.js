@@ -27,14 +27,14 @@ export default defineConfig({
     themeConfig: {
         logo: '/res/wgpu-logo.png',
         lastUpdated: true,
+
+        // 这些 xxText 的配置目前为何只能在线上环境才生效？
         lastUpdatedText: '上次更新',
         docFooter: {
             prev: "上一章",
             next: "下一章",
         },
-        // outline: true,
-        // 这个配置目前不生效
-        outlineTitle: '本页大纲',
+        outlineTitle: '本章大纲',
         localeLinks: {
             text: '简体中文',
             items: [

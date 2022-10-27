@@ -337,7 +337,7 @@ fn create_render_pipeline(
 
 impl State {
     async fn new(window: Window) -> Self {
-        let app = AppSurface::new(window);
+        let app = AppSurface::new(window).await;
 
         let texture_bind_group_layout =
             app.device

@@ -2,11 +2,12 @@ use std::iter;
 
 use app_surface::{AppSurface, SurfaceFrame};
 use wgpu::util::DeviceExt;
-use winit::{
-    event::*,
-    event_loop::{ControlFlow, EventLoop},
-    window::{Window, WindowBuilder},
-};
+use winit::event::*;
+use winit::window::WindowId;
+
+#[path = "../../../framework.rs"]
+mod framework;
+use framework::{run, Action};
 
 #[repr(C)]
 #[derive(Copy, Clone, Debug, bytemuck::Pod, bytemuck::Zeroable)]
@@ -76,10 +77,8 @@ struct State {
     use_complex: bool,
 }
 
-impl State {
-    async fn new(window: Window) -> Self {
-        let app = AppSurface::new(window);
-
+impl Action for State {
+    fn new(app: AppSurface) -> Self {
         let shader = app
             .device
             .create_shader_module(wgpu::ShaderModuleDescriptor {
@@ -206,6 +205,19 @@ impl State {
         }
     }
 
+    fn get_adapter_info(&self) -> wgpu::AdapterInfo {
+        self.app.adapter.get_info()
+    }
+    fn current_window_id(&self) -> WindowId {
+        self.app.view.id()
+    }
+    fn resize(&mut self) {
+        self.app.resize_surface();
+    }
+    fn request_redraw(&mut self) {
+        self.app.view.request_redraw();
+    }
+
     fn input(&mut self, event: &WindowEvent) -> bool {
         match event {
             WindowEvent::KeyboardInput {
@@ -223,8 +235,6 @@ impl State {
             _ => false,
         }
     }
-
-    fn update(&mut self) {}
 
     fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
         let (output, view) = self.app.get_current_frame_view();
@@ -280,63 +290,5 @@ impl State {
 }
 
 fn main() {
-    pollster::block_on(run());
-}
-
-async fn run() {
-    env_logger::init();
-    let event_loop = EventLoop::new();
-    let window = WindowBuilder::new().build(&event_loop).unwrap();
-
-    // State::new uses async code, so we're going to wait for it to finish
-    let mut state = State::new(window).await;
-
-    event_loop.run(move |event, _, control_flow| {
-        match event {
-            Event::WindowEvent {
-                ref event,
-                window_id,
-            } if window_id == state.app.view.id() => {
-                if !state.input(event) {
-                    match event {
-                        WindowEvent::CloseRequested
-                        | WindowEvent::KeyboardInput {
-                            input:
-                                KeyboardInput {
-                                    state: ElementState::Pressed,
-                                    virtual_keycode: Some(VirtualKeyCode::Escape),
-                                    ..
-                                },
-                            ..
-                        } => *control_flow = ControlFlow::Exit,
-                        WindowEvent::Resized(_physical_size) => {
-                            state.app.resize_surface();
-                        }
-                        WindowEvent::ScaleFactorChanged { .. } => {
-                            // new_inner_size is &mut so w have to dereference it twice
-                            state.app.resize_surface();
-                        }
-                        _ => {}
-                    }
-                }
-            }
-            Event::RedrawRequested(window_id) if window_id == state.app.view.id() => {
-                state.update();
-                match state.render() {
-                    Ok(_) => {}
-                    // 当展示平面的上下文丢失，就需重新配置
-                    Err(wgpu::SurfaceError::Lost) => state.app.resize_surface(),
-                    // 系统内存不足时，程序应该退出。
-                    Err(wgpu::SurfaceError::OutOfMemory) => *control_flow = ControlFlow::Exit,
-                    // 所有其他错误（过期、超时等）应在下一帧解决
-                    Err(e) => eprintln!("{:?}", e),
-                }
-            }
-            Event::MainEventsCleared => {
-                // 除非我们手动请求，RedrawRequested 将只会触发一次。
-                state.app.view.request_redraw();
-            }
-            _ => {}
-        }
-    });
+    run::<State>();
 }

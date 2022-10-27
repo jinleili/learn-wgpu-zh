@@ -5,9 +5,6 @@ authors = ["Ben Hansen <bhbenjaminhansen@gmail.com>"]
 edition.workspace = true
 rust-version.workspace = true
 
-[lib]
-crate-type = ["cdylib", "rlib"]
-
 [dependencies]
 anyhow.workspace = true
 app-surface.workspace = true

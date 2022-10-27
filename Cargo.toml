@@ -3,13 +3,10 @@ resolver = "2"
 members = [
     # beginner tutorials
     "code/beginner/*",
-
     # intermediate tutorials
     "code/intermediate/*",
-
     # showcase
     "code/showcase/*",
-
     "run-wasm"
 ]
 exclude = [
@@ -27,10 +24,12 @@ default-features = false
 
 [workspace.dependencies.wgc]
 package = "wgpu-core"
+features = ["raw-window-handle"]
 version = "0.14"
 
 [workspace.dependencies]
-app-surface = { git = "https://github.com/jinleili/wgpu-on-app", tag = "0.1.2" }
+app-surface = { git = "https://github.com/jinleili/wgpu-on-app", rev="210542f"}
+# app-surface = { path = "../idroid/wgpu-on-app/app-surface" }
 bytemuck = "1.4"
 cfg-if = "1"
 cgmath = "0.18"
@@ -43,14 +42,15 @@ pollster = "0.2"
 rayon = "1.4"
 tobj = "3.2"
 winit = "0.27.1"
-wgpu = "0.14"
+wgpu = {version = "0.14", default-features = false}
 
 # wasm32 dependencies
-console_error_panic_hook = "0.1.6"
+console_error_panic_hook = "0.1.7"
 console_log = "0.2.0"
+js-sys = "0.3.60"
 reqwest = { version = "0.11" }
 wasm-bindgen = "0.2.83"
-wasm-bindgen-futures = "0.4.30"
+wasm-bindgen-futures = "0.4.33"
 web-sys = "0.3.60"
 
 # build-dependencies
