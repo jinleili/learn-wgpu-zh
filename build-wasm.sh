@@ -1,6 +1,6 @@
 export RES_PATH=learn-wgpu-zh
 
-RUSTFLAGS=--cfg=web_sys_unstable_apis cargo build --no-default-features --release --target wasm32-unknown-unknown \
+RUSTFLAGS=--cfg=web_sys_unstable_apis cargo build --no-default-features --release --target wasm32-unknown-unknown --features webgl \
 --example tutorial1-window \
 --example tutorial2-surface \
 --example tutorial3-pipeline \
