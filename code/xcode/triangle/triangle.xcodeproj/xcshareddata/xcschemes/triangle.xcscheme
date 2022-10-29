@@ -43,7 +43,7 @@
       allowLocationSimulation = "YES">
       <PathRunnable
          runnableDebuggingMode = "0"
-         FilePath = "/Users/lijinlei/Rust/learn-wgpu-zh/target/debug/tutorial6-uniforms">
+         FilePath = "/Users/lijinlei/Rust/learn-wgpu-zh/target/debug/examples/tutorial3-pipeline">
       </PathRunnable>
    </LaunchAction>
    <ProfileAction
