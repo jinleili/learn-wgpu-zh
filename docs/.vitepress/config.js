@@ -92,6 +92,7 @@ function sidebarConfig() {
                     text: '深度缓冲区', link: '/beginner/tutorial8-depth/'
                 },
                 { text: '模型加载', link: '/beginner/tutorial9-models/' },
+                { text: '🆕 WGSL 着色器语言', link: '/beginner/wgsl' },
             ]
         },
         {

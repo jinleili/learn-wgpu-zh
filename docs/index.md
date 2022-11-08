@@ -16,7 +16,7 @@
 ## 为什么使用 Rust？
 wgpu 实际上提供了 C 语言绑定 ([wgpu-native](https://github.com/gfx-rs/wgpu-native))，你可以写 C/C++ 或其他能与 C 互通的语言来使用它。尽管如此，wgpu 本身是用 Rust 实现的，它便利的 Rust 绑定能减少你使用中的阻碍。更重要的是，Rust 是一门高性能，内存和线程安全且极具生产力的现代底层语言。
 
-在学习本教程之前你需要先熟悉 Rust，因为这里不会详细介绍 Rust 的语法知识。如果对 Rust 还不太熟悉，可以回顾一下 [Rust 教程](https://www.rust-lang.org/zh-CN/learn)或 [Rust 语言圣经](https://course.rs/about-book.html)。另外还需要熟悉 Rust 包管理工具 [Cargo](https://doc.rust-lang.org/cargo)。
+在学习本教程之前你需要先熟悉 Rust，因为这里不会详细介绍 Rust 的语法知识。如果对 Rust 还不太熟悉，可以回顾一下 [Rust 教程](https://www.rust-lang.org/zh-CN/learn)或 [Rust 语言圣经](https://course.rs/about-book.html)。另外还需要熟悉 Rust 包管理工具 [Cargo]https://rustwiki.org/zh-CN/cargo/getting-started/index.html)。
 
 <div class="note">
 

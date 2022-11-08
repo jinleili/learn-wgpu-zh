@@ -28,7 +28,7 @@ features = ["raw-window-handle"]
 version = "0.14"
 
 [workspace.dependencies]
-app-surface = { git = "https://github.com/jinleili/wgpu-on-app", rev="210542f"}
+app-surface = { git = "https://github.com/jinleili/wgpu-on-app", rev = "210542f" }
 # app-surface = { path = "../idroid/wgpu-on-app/app-surface" }
 bytemuck = "1.4"
 cfg-if = "1"
@@ -42,7 +42,7 @@ pollster = "0.2"
 rayon = "1.4"
 tobj = "3.2"
 winit = "0.27.1"
-wgpu = {version = "0.14", default-features = false}
+wgpu = { version = "0.14", default-features = false }
 
 # wasm32 dependencies
 console_error_panic_hook = "0.1.7"
@@ -57,3 +57,13 @@ web-sys = "0.3.60"
 anyhow = "1.0"
 fs_extra = "1.2"
 glob = "0.3"
+
+
+[profile.release]
+# lto = true # VERY slightly smaller wasm
+# opt-level = 's' # 10-30% smaller wasm compared to `opt-level = 3`
+# opt-level = 1 # very slow and big wasm. Don't do this.
+opt-level = 2 # fast and small wasm, basically same as `opt-level = 's'`
+# opt-level = 3 # unecessarily large wasm for no performance gain
+
+# debug = true # include debug symbols, useful when profiling wasm
