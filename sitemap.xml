@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url><loc>https://jinleili.github.io/learn-wgpu-zh/</loc></url>
+    <url><loc>https://jinleili.github.io/learn-wgpu-zh/beginner/wgsl</loc></url>
     <url><loc>https://jinleili.github.io/learn-wgpu-zh/integration-and-debugging/</loc></url>
     <url><loc>https://jinleili.github.io/learn-wgpu-zh/integration-and-debugging/ios/</loc></url>
     <url><loc>https://jinleili.github.io/learn-wgpu-zh/integration-and-debugging/android/</loc></url>
