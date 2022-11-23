@@ -20,7 +20,7 @@ WebGPU 的目标是要在各个现代底层图形 API 之上抽象出一套统�
 
 WebGPU 成员花了 2 年半的时间来争论 WebGPU 是否应该有自己的着色语言。kvark 将这场争论中的核心论点组成了[一张流图](https://kvark.github.io/webgpu-debate/SPIR-V.component.html)，它是 SVG 格式的，支持在网页中无损放大查看。
 
-**WGSL** 的目标不是要与 **GLSL** 兼容，它是对现代着色器语言的全新重新设计。
+**WGSL** 的目标不是要与 **GLSL** 兼容，它是对现代着色器语言的重新设计。
 
 2020 年 4 月 27 日，WGSL 标准有了第一次提交。自此开始，wgpu 和 dawn 都摆脱了对 shaderc 之类复杂繁重的着色器转译工具的依赖。wgpu 里使用的 WGSL 转译工具叫 [naga](https://github.com/gfx-rs/naga), kvark 有一篇博客（[Shader translation benchmark](http://kvark.github.io/naga/shader/2022/02/17/shader-translation-benchmark.html)）对比了 naga 相比于其它转译工具的性能优化，总体来说，有 10 倍以上的性能优势。
 
@@ -93,7 +93,7 @@ fn fs_main(input: VertexOutput) -> @location(0) vec4<f32> {
 }
 ```
 
-## 一个简单的计算着色器：继续对比 GLSL
+## 计算着色器：继续对比 GLSL
 GLSL 的计算着色器, 实现在 x 轴上的高斯模糊：
 ```rust
 layout(local_size_x = 16, local_size_y = 16) in;
@@ -139,11 +139,8 @@ struct InfoParams {
 let WEIGHT: array<f32, 5> = array<f32, 5>(0.2, 0.1, 0.10, 0.1, 0.1);
 
 @compute @workgroup_size(16, 16)
-fn cs_main(
-    @builtin(global_invocation_id) global_invocation_id: vec3<u32>,
-    @builtin(local_invocation_id) local_invocation_id: vec3<u32>,
-) {
-  let uv = vec2<i32>(global_invocation_id.xy);
+fn cs_main(@builtin(global_invocation_id) global_id: vec3<u32>) {
+  let uv = vec2<i32>(global_id.xy);
   if (uv.x >= params.img_size.x || uv.y >= params.img_size.y) {
     return;
   }
@@ -162,11 +159,11 @@ fn cs_main(
 你应该注意到了很多差异，比如：
 - 顶点、片元、计算着色器的**入口函数**（WebGPU 中叫**入口点** `Entry Point`）声明方式差异;
 - 计算着色器**工作组**（Workgroup）大小的声明方式差异;
-- 有很多语法差异;
 - 许多细节必须硬编码，例如输入和输出的特定位置;
 - 结构体的使用差异;
+- ...
 
-总体上 WGSL 代码要比 GLSL 明晰得多。这是 WGSL 的一大优点，几乎所有内容都明确说明。
+总体上 WGSL 代码要比 GLSL 明晰得多。这是 WGSL 的一大优点，几乎所有内容都具有明确的**自说明**特性。
 下边我们来深入了解一些关键区别。
 
 ## 入口点
@@ -188,7 +185,7 @@ fn cs_main() {}
 ## 工作组
 计算着色器中，一个**工作组**（Workgroup）就是一组调用，它们同时执行一个计算着色器阶段**入口点**，并共享对工作组地址空间中着色器变量的访问。可以将**工作组**理解为一个三维网格，我们通过（x, y, z）三个维度来声明当前计算着色器的工作组大小，每个维度上的默认值都是 1。
 
-WGSL 声明工作组大小的语法相比 GLSL 简洁又明晰：
+WGSL 声明工作组大小的语法相比 GLSL 简洁明了：
 
 ```rust
 // GLSL
@@ -232,7 +229,7 @@ WGSL 中的 `var` `let` 关键字与 Swift 语言一样：
 ## 结构体
 在 WGSL 中，**结构体**（struct）用于表示 Unoform 及 Storage **缓冲区**以及着色器的输入和输出。Unoform 缓冲区与 GLSL 类似，Storage 缓冲区虽然也在 GLSL 中存在等价物，但是 WebGL 2.0 并不支持。
 
-WGSL 结构体字段对齐规则也与 GLSL 几乎一致，想要了解更多细节，可查看 [WGSL 规范中的结构对齐规则](https://www.w3.org/TR/WGSL/#alignment-and-size)：
+WGSL 结构体字段对齐规则也与 GLSL 几乎一致，想要了解更多细节，可查看 [WGSL 规范中的字节对齐规则示例](https://www.w3.org/TR/WGSL/#example-fc0bb4df)：
 ```rust
 // GLSL
 layout(set = 0, binding = 0) uniform UniformParams {
