@@ -106,6 +106,7 @@ function sidebarConfig() {
                     text: '法线映射', link: '/intermediate/tutorial11-normals/'
                 },
                 { text: '更好的摄像机', link: '/intermediate/tutorial12-camera/' },
+                { text: '🆕 计算管线', link: '/intermediate/compute-pipeline/' },
                 // '/intermediate/tutorial13-terrain/',
             ],
         },

@@ -13,7 +13,8 @@ fn format_url(file_name: &str) -> reqwest::Url {
         "{}/{}/",
         location.origin().unwrap(),
         option_env!("RES_PATH").unwrap_or("res"),
-    )).unwrap();
+    ))
+    .unwrap();
     base.join(file_name).unwrap()
 }
 
@@ -256,7 +257,7 @@ pub async fn load_model(
 
 //             println!("data.len(): {}", data.len());
 //             let data_t: &[T] = bytemuck::cast_slice(&data[..]);
-            
+
 //             output.extend(data_t.iter().map(f));
 //         });
 //         device.poll(wgpu::Maintain::Wait);

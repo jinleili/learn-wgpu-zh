@@ -14,6 +14,10 @@ RUSTFLAGS=--cfg=web_sys_unstable_apis cargo build --no-default-features --releas
 --example tutorial11-normals \
 --example tutorial12-camera
 
+# 只能使用 WebGPU 的示例程序
+RUSTFLAGS=--cfg=web_sys_unstable_apis cargo build --no-default-features --release --target wasm32-unknown-unknown \
+--example compute-pipeline
+
 # Generate bindings
 for i in target/wasm32-unknown-unknown/release/examples/*.wasm;
 do

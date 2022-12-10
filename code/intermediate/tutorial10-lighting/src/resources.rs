@@ -13,7 +13,8 @@ fn format_url(file_name: &str) -> reqwest::Url {
         "{}/{}/",
         location.origin().unwrap(),
         option_env!("RES_PATH").unwrap_or("res"),
-    )).unwrap();
+    ))
+    .unwrap();
     base.join(file_name).unwrap()
 }
 

@@ -4,7 +4,7 @@ use wgpu::{util::DeviceExt, ShaderModule, TextureView};
 pub struct BlurNode {
     pipeline: wgpu::ComputePipeline,
     bind_group: wgpu::BindGroup,
-    workgroups: (u32, u32),
+    workgroup_count: (u32, u32),
 }
 
 impl BlurNode {
@@ -14,7 +14,7 @@ impl BlurNode {
         tv_from: &TextureView,
         tv_to: &TextureView,
         shader: &ShaderModule,
-        workgroups: (u32, u32),
+        workgroup_count: (u32, u32),
     ) -> Self {
         let pipeline = app
             .device
@@ -55,13 +55,13 @@ impl BlurNode {
         Self {
             pipeline,
             bind_group,
-            workgroups,
+            workgroup_count,
         }
     }
 
     pub fn dispatch<'a, 'b: 'a>(&'b self, cpass: &mut wgpu::ComputePass<'a>) {
         cpass.set_pipeline(&self.pipeline);
         cpass.set_bind_group(0, &self.bind_group, &[]);
-        cpass.dispatch_workgroups(self.workgroups.0, self.workgroups.1, 1);
+        cpass.dispatch_workgroups(self.workgroup_count.0, self.workgroup_count.1, 1);
     }
 }

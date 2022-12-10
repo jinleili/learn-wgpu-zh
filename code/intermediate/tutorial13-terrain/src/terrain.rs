@@ -567,7 +567,9 @@ impl GenerateChunk for TerrainHackPipeline {
                 buffer: &chunk.mesh.vertex_buffer,
                 layout: wgpu::ImageDataLayout {
                     offset: 0,
-                    bytes_per_row: std::num::NonZeroU32::new(std::mem::size_of::<u32>() as u32 * self.texture_size),
+                    bytes_per_row: std::num::NonZeroU32::new(
+                        std::mem::size_of::<u32>() as u32 * self.texture_size,
+                    ),
                     rows_per_image: std::num::NonZeroU32::new(self.texture_size),
                 },
             },
@@ -588,7 +590,9 @@ impl GenerateChunk for TerrainHackPipeline {
                 buffer: &chunk.mesh.index_buffer,
                 layout: wgpu::ImageDataLayout {
                     offset: 0,
-                    bytes_per_row: std::num::NonZeroU32::new(std::mem::size_of::<u32>() as u32 * self.texture_size),
+                    bytes_per_row: std::num::NonZeroU32::new(
+                        std::mem::size_of::<u32>() as u32 * self.texture_size,
+                    ),
                     rows_per_image: std::num::NonZeroU32::new(self.texture_size),
                 },
             },
@@ -612,15 +616,28 @@ impl GenerateChunk for TerrainHackPipeline {
             let data = bs.get_mapped_range();
 
             let indices: &[u32] = bytemuck::cast_slice(&data);
-            let mut f = std::fs::File::create(format!("Chunk ({}, {}) Indices.txt", chunk.corner.x, chunk.corner.y)).unwrap();
+            let mut f = std::fs::File::create(format!(
+                "Chunk ({}, {}) Indices.txt",
+                chunk.corner.x, chunk.corner.y
+            ))
+            .unwrap();
             use std::io::Write;
             for quad in indices.chunks(6) {
                 writeln!(f, "{:?}", quad);
             }
             drop(f);
 
-            let img = image::ImageBuffer::<image::Rgba<u8>, _>::from_raw(self.texture_size, self.texture_size, data).unwrap();
-            img.save(format!("Chunk ({}, {}) Vertex Data.png", chunk.corner.x, chunk.corner.y)).unwrap();
+            let img = image::ImageBuffer::<image::Rgba<u8>, _>::from_raw(
+                self.texture_size,
+                self.texture_size,
+                data,
+            )
+            .unwrap();
+            img.save(format!(
+                "Chunk ({}, {}) Vertex Data.png",
+                chunk.corner.x, chunk.corner.y
+            ))
+            .unwrap();
         }
         chunk.mesh.index_buffer.unmap();
 

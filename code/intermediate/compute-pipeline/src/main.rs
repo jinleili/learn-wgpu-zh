@@ -1,5 +1,6 @@
 use app_surface::{AppSurface, SurfaceFrame};
 use std::iter;
+use wgpu::{TextureUsages, TextureView};
 use winit::window::WindowId;
 
 #[path = "../../../framework.rs"]
@@ -16,17 +17,23 @@ struct State {
     app: AppSurface,
     blur_x: BlurNode,
     blur_y: BlurNode,
+    blur_xy_tv: TextureView,
     reset_node: ImageNode,
     display_node: ImageNode,
-    swap_view: Vec<wgpu::TextureView>,
     frame_count: u64,
 }
 
 impl Action for State {
     fn new(app: AppSurface) -> Self {
+        let mut app = app;
+        // 使用线性纹理格式，避免手动做 gamma 运算
+        // Bgra8Unorm 的兼容性最好，是全平台支持的格式
+        app.sdq
+            .update_config_format(wgpu::TextureFormat::Bgra8Unorm);
+
         let _format = wgpu::TextureFormat::Rgba8UnormSrgb;
         let (tex, size) = resource::load_a_texture(&app);
-        let tv = tex.create_view(&wgpu::TextureViewDescriptor::default());
+        let original_tv = tex.create_view(&wgpu::TextureViewDescriptor::default());
 
         // 使用缩小的纹理来实现模糊，不但能降低 GPU 负载，还能让模糊的效果更好。
         let swap_size = wgpu::Extent3d {
@@ -35,10 +42,9 @@ impl Action for State {
             depth_or_array_layers: 1,
         };
         let swap_format = wgpu::TextureFormat::Rgba8Unorm;
+        let usage = TextureUsages::STORAGE_BINDING | TextureUsages::TEXTURE_BINDING;
 
-        let mut swap_view = vec![];
-        let usage = wgpu::TextureUsages::STORAGE_BINDING | wgpu::TextureUsages::TEXTURE_BINDING;
-        for i in 0..2 {
+        let get_a_tv = |usage: wgpu::TextureUsages| {
             let tex = app.device.create_texture(&wgpu::TextureDescriptor {
                 label: None,
                 size: swap_size,
@@ -46,14 +52,12 @@ impl Action for State {
                 sample_count: 1,
                 dimension: wgpu::TextureDimension::D2,
                 format: swap_format,
-                usage: if i == 0 {
-                    usage | wgpu::TextureUsages::RENDER_ATTACHMENT
-                } else {
-                    usage
-                },
+                usage,
             });
-            swap_view.push(tex.create_view(&wgpu::TextureViewDescriptor::default()));
-        }
+            tex.create_view(&wgpu::TextureViewDescriptor::default())
+        };
+        let blur_xy_tv = get_a_tv(usage | TextureUsages::RENDER_ATTACHMENT);
+        let swap_x_tv = get_a_tv(usage);
 
         // 双线性采样
         let sampler = app.device.create_sampler(&wgpu::SamplerDescriptor {
@@ -79,30 +83,41 @@ impl Action for State {
 
         let img_size = [swap_size.width as i32, swap_size.height as i32];
         // 计算工作组大小
-        let workgroups = ((swap_size.width + 15) / 16, (swap_size.height + 15) / 16);
+        let workgroup_count = ((swap_size.width + 15) / 16, (swap_size.height + 15) / 16);
 
         let blur_x = BlurNode::new(
             &app,
             [img_size, [1, 0]],
-            &swap_view[0],
-            &swap_view[1],
+            &blur_xy_tv,
+            &swap_x_tv,
             &blur_shader,
-            workgroups,
+            workgroup_count,
         );
         let blur_y = BlurNode::new(
             &app,
             [img_size, [0, 1]],
-            &swap_view[1],
-            &swap_view[0],
+            &swap_x_tv,
+            &blur_xy_tv,
             &blur_shader,
-            workgroups,
+            workgroup_count,
         );
-        let reset_node = ImageNode::new(&app, &tv, &sampler, &render_shader, swap_format);
-        let display_node = ImageNode::new(
+        // 在 WebGPU 标准中，我们可以利用 viewFormats 来直接将 sRGB 格式重新解释为线性格式
+        // 我已经给 wgpu 提交了相关 PR: https://github.com/gfx-rs/wgpu/pull/3237
+        // 如果被接受的话，就可以移除 fs_srgb_to_linear 直接重用 fs_main 了
+        let reset_node = ImageNode::new(
             &app,
-            &swap_view[0],
+            &original_tv,
             &sampler,
             &render_shader,
+            "fs_srgb_to_linear",
+            swap_format,
+        );
+        let display_node = ImageNode::new(
+            &app,
+            &blur_xy_tv,
+            &sampler,
+            &render_shader,
+            "fs_main",
             app.config.format,
         );
 
@@ -110,9 +125,9 @@ impl Action for State {
             app,
             blur_x,
             blur_y,
+            blur_xy_tv,
             reset_node,
             display_node,
-            swap_view,
             frame_count: 0,
         }
     }
@@ -141,15 +156,14 @@ impl Action for State {
 
         // 每 600 帧重置为初始状态
         if self.frame_count % 600 == 0 {
-            self.reset_node.draw(&mut encoder, &self.swap_view[0]);
+            self.reset_node.draw(&mut encoder, &self.blur_xy_tv);
             log::warn!("self.frame_count: {}", self.frame_count);
         }
 
         // 减慢模糊的迭代速度
-        if self.frame_count % 15 == 0 {
+        if self.frame_count % 20 == 0 {
             // 执行模糊运算
-            let mut cpass =
-                encoder.begin_compute_pass(&wgpu::ComputePassDescriptor { label: None });
+            let mut cpass = encoder.begin_compute_pass(&wgpu::ComputePassDescriptor::default());
             self.blur_x.dispatch(&mut cpass);
             self.blur_y.dispatch(&mut cpass);
         }
@@ -161,11 +175,10 @@ impl Action for State {
         output.present();
 
         self.frame_count += 1;
-
         Ok(())
     }
 }
 
 pub fn main() {
-    run::<State>();
+    run::<State>(Some(1.6));
 }

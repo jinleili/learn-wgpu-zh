@@ -25,3 +25,5 @@ output/
 secrets.txt
 tree.txt
 Chunk*
+
+debug.xcodeproj/

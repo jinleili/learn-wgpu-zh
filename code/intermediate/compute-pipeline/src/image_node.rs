@@ -12,6 +12,7 @@ impl ImageNode {
         tv: &TextureView,
         sampler: &Sampler,
         shader: &ShaderModule,
+        fs_entry_point: &str,
         target: wgpu::TextureFormat,
     ) -> Self {
         let pipeline = app
@@ -26,7 +27,7 @@ impl ImageNode {
                 },
                 fragment: Some(wgpu::FragmentState {
                     module: &shader,
-                    entry_point: "fs_main",
+                    entry_point: fs_entry_point,
                     targets: &[Some(target.into())],
                 }),
                 primitive: wgpu::PrimitiveState::default(),

@@ -19,6 +19,12 @@ fn vs_main(@builtin(vertex_index) vertex_index: u32) -> VertexOutput {
 @group(0) @binding(1) var tex_sampler: sampler;
 
 @fragment 
+fn fs_srgb_to_linear(in : VertexOutput) -> @location(0) vec4<f32> {
+    let texel = textureSample(tex, tex_sampler, in.uv);
+    return vec4<f32>(pow(texel.rgb, vec3<f32>(1.0/2.2)), texel.a);
+}
+
+@fragment 
 fn fs_main(in : VertexOutput) -> @location(0) vec4<f32> {
   return textureSample(tex, tex_sampler, in.uv);
 }

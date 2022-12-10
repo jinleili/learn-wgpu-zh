@@ -18,23 +18,24 @@ pub trait Action {
 }
 
 #[cfg(not(target_arch = "wasm32"))]
-pub fn run<A: Action + 'static>() {
+pub fn run<A: Action + 'static>(wh_ratio: Option<f32>) {
     env_logger::init();
 
-    let (event_loop, instance) = pollster::block_on(create_action_instance::<A>());
+    let (event_loop, instance) = pollster::block_on(create_action_instance::<A>(wh_ratio));
     start_event_loop::<A>(event_loop, instance);
 }
 
 #[cfg(target_arch = "wasm32")]
-pub fn run<A: Action + 'static>() {
+pub fn run<A: Action + 'static>(wh_ratio: Option<f32>) {
     use wasm_bindgen::{prelude::*, JsCast};
 
     std::panic::set_hook(Box::new(console_error_panic_hook::hook));
     console_log::init_with_level(log::Level::Warn).expect("无法初始化日志库");
 
     wasm_bindgen_futures::spawn_local(async move {
-        let (event_loop, instance) = create_action_instance::<A>().await;
-        let run_closure = Closure::once_into_js(move || start_event_loop::<A>(event_loop, instance));
+        let (event_loop, instance) = create_action_instance::<A>(wh_ratio).await;
+        let run_closure =
+            Closure::once_into_js(move || start_event_loop::<A>(event_loop, instance));
 
         // 处理运行过程中抛出的 JS 异常。
         // 否则 wasm_bindgen_futures 队列将中断，且不再处理任何任务。
@@ -56,29 +57,54 @@ pub fn run<A: Action + 'static>() {
     });
 }
 
-async fn create_action_instance<A: Action + 'static>() -> (EventLoop<()>, A) {
+async fn create_action_instance<A: Action + 'static>(wh_ratio: Option<f32>) -> (EventLoop<()>, A) {
+    use winit::dpi::PhysicalSize;
+
     let event_loop = EventLoop::new();
     let window = WindowBuilder::new().build(&event_loop).unwrap();
 
+    // 计算一个默认显示高度
+    let height = (if cfg!(target_arch = "wasm32") {
+        550.0
+    } else {
+        600.0
+    } * window.scale_factor()) as u32;
+
+    let width = if let Some(ratio) = wh_ratio {
+        (height as f32 * ratio) as u32
+    } else {
+        height
+    };
+    if cfg!(not(target_arch = "wasm32")) {
+        window.set_inner_size(PhysicalSize::new(width, height));
+    }
+    
     #[cfg(target_arch = "wasm32")]
     {
         // Winit prevents sizing with CSS, so we have to set
         // the size manually when on web.
-        use winit::dpi::PhysicalSize;
         use winit::platform::web::WindowExtWebSys;
         web_sys::window()
             .and_then(|win| win.document())
             .and_then(|doc| {
                 match doc.get_element_by_id("wasm-example") {
                     Some(dst) => {
-                        window.set_inner_size(PhysicalSize::new(450, 400));
+                        let height = 500;
+                        let width = (height as f32
+                            * if let Some(ratio) = wh_ratio {
+                                ratio
+                            } else {
+                                1.1
+                            }) as u32;
+                        window.set_inner_size(PhysicalSize::new(width, height));
                         let _ = dst.append_child(&web_sys::Element::from(window.canvas()));
                     }
                     None => {
-                        window.set_inner_size(PhysicalSize::new(800, 800));
+                        window.set_inner_size(PhysicalSize::new(width, height));
                         let canvas = window.canvas();
                         canvas.style().set_css_text(
-                            "background-color: black; display: block; margin: 20px auto;",
+                            &(canvas.style().css_text()
+                                + "background-color: black; display: block; margin: 20px auto;"),
                         );
                         doc.body().and_then(|body| {
                             Some(body.append_child(&web_sys::Element::from(canvas)))
