@@ -157,7 +157,6 @@ impl Action for State {
         // 每 600 帧重置为初始状态
         if self.frame_count % 600 == 0 {
             self.reset_node.draw(&mut encoder, &self.blur_xy_tv);
-            log::warn!("self.frame_count: {}", self.frame_count);
         }
 
         // 减慢模糊的迭代速度
