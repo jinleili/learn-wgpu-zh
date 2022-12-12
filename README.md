@@ -38,6 +38,16 @@ cargo run-wasm --example tutorial1-window --features webgl
 ```
 **调试与集成** 部分的代码是一个独立的项目：[wgpu-on-app](https://github.com/jinleili/wgpu-on-app)
 
+## 如何开启浏览器 WebGPU 试验功能
+
+### FireFox  
+安装 Nightly 版本，在地址栏中输入 `about:config` , 将 `dom.webgpu.enabled` 设置为 `true`:
+<img src="docs/public/res/firefox.png" alt="FireFox Nightly">
+
+### Chrome  
+安装 Canary 版本，在地址栏中输入 `chrome://flags` , 将 `Unsafe WebGPU` 设置为 `Enabled`:
+<img src="docs/public/res/chrome.png" alt="Chrome Canary">
+
 
 ## 关于译者
 我是一名移动端（iOS，Android）工程师, 有多年使用 OpenGL ES / WebGL, Metal 的实践经验。2018 年开始接触 WebGPU，目前正积极地参与到 [wgpu 开源项目的开发与完善](https://github.com/gfx-rs/wgpu/commits?author=jinleili)之中，并且已于两年前在 AppStore 上架了基于 wgpu 实现的毛笔书法模拟 App [字习 Pro](https://apps.apple.com/cn/app/字习-pro/id1507339788)。

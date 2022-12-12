@@ -207,7 +207,7 @@ workgroup_count = ((1000 + (32 -1)) / 32, (768 + (16 -1)) / 16, 1);
 点击下方的**查看源码**就能看到所有实现代码。如对图片模糊算法的细节感兴趣，可以查看[这里](https://www.intel.com/content/www/us/en/developer/articles/technical/an-investigation-of-fast-real-time-gpu-based-image-blur-algorithms.html)
 
 ## 运行示例代码
-*此示例目前只能在桌面端及 Chrome Canary 浏览器中运行！使用隐式绑定组布局目前在 Firefox Nightly 上有 bug: <span style="color: gray;">Uncaught (in promise) TypeError: GPUDevice.createComputePipeline: 'layout' member of GPUPipelineDescriptorBase is not an object.</span>*
+*此示例目前只能在桌面端及 Chrome Canary 浏览器中运行（[如何开启浏览器 webgpu 试验功能](../../#如何开启浏览器-webgpu-试验功能)）！使用隐式绑定组布局目前在 Firefox Nightly 上有 bug: <span style="color: gray;">Uncaught (in promise) TypeError: GPUDevice.createComputePipeline: 'layout' member of GPUPipelineDescriptorBase is not an object.</span>*
 
 <WasmExample example="compute_pipeline"></WasmExample>
 

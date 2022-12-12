@@ -52,6 +52,16 @@ cargo run-wasm --example tutorial1-window --features webgl
 ```
 **调试与集成** 部分的代码是一个独立的项目：[wgpu-on-app](https://github.com/jinleili/wgpu-on-app)
 
+## 如何开启浏览器 WebGPU 试验功能
+
+### FireFox  
+安装 Nightly 版本，在地址栏中输入 `about:config` , 将 `dom.webgpu.enabled` 设置为 `true`:
+<img src="/res/firefox.png" alt="FireFox Nightly">
+
+### Chrome  
+安装 Canary 版本，在地址栏中输入 `chrome://flags` , 将 `Unsafe WebGPU` 设置为 `Enabled`:
+<img src="/res/chrome.png" alt="Chrome Canary">
+
 ## 贡献与支持
 
 * 原作者接受 PR（[GitHub repo](https://github.com/sotrh/learn-wgpu)）以修复本教程的问题，如错别字、错误信息和其他不一致之处。
