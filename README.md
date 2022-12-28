@@ -13,6 +13,19 @@
 ## WebGPU 又是啥？
 **WebGPU** 是由 W3C [GPU for the Web](https://www.w3.org/community/gpu/) 社区组所发布的规范，目标是允许网页代码以高性能且安全可靠的方式访问 GPU 功能。它通过借鉴 Vulkan API，并将其转换为宿主硬件上使用的各式 API（如 DirectX、Metal、Vulkan）来实现这一目标。
 
+## 为什么使用 Rust？
+
+wgpu 实际上提供了 C 语言绑定 ([wgpu-native](https://github.com/gfx-rs/wgpu-native))，你可以写 C/C++ 或其他能与 C 互通的语言来使用它。尽管如此，wgpu 本身是用 Rust 实现的，它便利的 Rust 绑定能减少你使用中的阻碍。更重要的是，Rust 是一门高性能，内存和线程安全且极具生产力的现代底层语言。
+
+在学习本教程之前你需要先熟悉 Rust，因为这里不会详细介绍 Rust 的语法知识。如果对 Rust 还不太熟悉，可以回顾一下 [Rust 教程](https://www.rust-lang.org/zh-CN/learn)或 [Rust 语言圣经](https://course.rs/about-book.html)。另外还需要熟悉 Rust 包管理工具 [Cargo]https://rustwiki.org/zh-CN/cargo/getting-started/index.html)。
+
+## WebGPU 的学习资料是不是很少？
+
+其实不用纠结于 WebGPU 方面的直接学习资料的多少。
+
+WebGPU 就是一套图形接口，绝大部分概念都是各图形接口里通用的，任何一本经典图形学书籍都是我们的学习资料。
+要利用好这些经典资料，前提仅仅就是要先学习一套图形接口。因为图形学的书不是使用统一的特定图形接口所写，先学会一个图形接口及常见的概念，然后再去深入学习某个方面的资料就会事半功倍。
+
 ## 现在学习 wgpu 是不是为时尚早？
 虽然 WebGPU 1.0 可能要到 2023 年才能正式发布，但 API 目前已经趋于稳定了，后面的修订更多是内部实现层的完善。
 
@@ -48,9 +61,8 @@ cargo run-wasm --example tutorial1-window --features webgl
 安装 Canary 版本，在地址栏中输入 `chrome://flags` , 将 `Unsafe WebGPU` 设置为 `Enabled`:
 <img src="docs/public/res/chrome.png" alt="Chrome Canary">
 
-
 ## 关于译者
-我是一名移动端（iOS，Android）工程师, 有多年使用 OpenGL ES / WebGL, Metal 的实践经验。2018 年开始接触 WebGPU，目前正积极地参与到 [wgpu 开源项目的开发与完善](https://github.com/gfx-rs/wgpu/commits?author=jinleili)之中，并且已于两年前在 AppStore 上架了基于 wgpu 实现的毛笔书法模拟 App [字习 Pro](https://apps.apple.com/cn/app/字习-pro/id1507339788)。
+我是一名移动端架构师, 有多年使用 OpenGL ES / WebGL, Metal 的实践经验。2018 年开始接触 WebGPU，目前正积极地参与到 [wgpu 开源项目的开发与完善](https://github.com/gfx-rs/wgpu/commits?author=jinleili)之中，并且已于两年前在 AppStore 上架了基于 wgpu 实现的毛笔书法模拟 App [字习 Pro](https://apps.apple.com/cn/app/字习-pro/id1507339788)。
 
 ## 加入 wgpu 微信学习群交流群
 
