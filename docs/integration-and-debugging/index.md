@@ -1,5 +1,7 @@
 # 楔子
 
+<img src="/res/tools.png" alt="调试工具集">
+
 教程的开篇我们就已提到：wgpu 是基于 WebGPU 规范的**跨平台**图形 API。也就是说，wgpu 不光能运行在 Web 及桌面环境里，更是能运行在 iOS、Android 两大移动操作系统上。
 
 wgpu 的运行并不依赖于任何窗口程序，所以也不提供窗口的创建及管理功能，只有在创建基于窗口的**绘制表面**（Surface）时，才可能需要一个实现了 [raw-window-handle](https://github.com/rust-windowing/raw-window-handle) 抽象接口的实参（之所以说是*可能需要*，是因为在 iOS/macOS 上，使用 `CAMetalLayer` 也能创建绘制表面的实例）。
