@@ -117,7 +117,7 @@ Unsafe Rust 是 Safe Rust 的⼀个超集。也就是说，在 `unsafe {}` 块�
 - 实现 unsafe trait;
 - 读写 Union 联合体中的字段;
 
-`&mut *(obj as *mut WgpuCanvas)` 之所以要放在 `unsafe {}` 块中，仅仅是因为 `obj` 参数是**裸指针**，是因为 Rust 在编译阶段的静态安全检查此时完全没有⽤武之地，所以也就没必要提供安全检查了。
+`&mut *(obj as *mut WgpuCanvas)` 之所以要放在 `unsafe {}` 块中，不仅仅是由于 `obj` 参数是**裸指针**，还因为 Rust 在编译阶段的静态安全检查此时完全没有⽤武之地，所以也就没必要提供安全检查了。
 
 </div>
 
