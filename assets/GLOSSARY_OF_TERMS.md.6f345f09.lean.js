@@ -1,0 +1,1 @@
+import{_ as t,c as d,o as r,a as e}from"./app.6df40c95.js";const p=JSON.parse('{"title":"术语中英对照表","description":"","frontmatter":{},"headers":[],"relativePath":"GLOSSARY_OF_TERMS.md","lastUpdated":1674740579000}'),a={name:"GLOSSARY_OF_TERMS.md"},n=e("",8),h=[n];function c(i,o,s,_,l,u){return r(),d("div",null,h)}const b=t(a,[["render",c]]);export{p as __pageData,b as default};
