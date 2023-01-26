@@ -116,7 +116,7 @@ Self {
 ```
 
 ## 接下来怎么做？
-我们需要告诉 `render_pipeline` 在绘制时使用这个缓冲区，但首先需要告诉它如何读取此缓冲区。**顶点缓冲区布局**（VertexBufferLayout）对象和 `vertex_buffers` 字段可以用来完成这件事，我保证在创建 `render_pipeline` 时会详细讨论这个问题。
+我们需要告诉 `render_pipeline` 在绘制时使用这个缓冲区，但首先需要告诉它如何读取此缓冲区。**顶点缓冲区布局**（VertexBufferLayout）对象和 `vertex_buffers` 字段可以用来完成这件事，我在创建 `render_pipeline` 时保证了会详细讨论这个问题。
 
 **顶点缓冲区布局**对象定义了缓冲区在内存中的表示方式，render_pipeline 需要它来在着色器中映射缓冲区。下面是填充了顶点的一个缓冲区的布局：
 ```rust
