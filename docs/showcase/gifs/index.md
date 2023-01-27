@@ -48,6 +48,7 @@ let rt_desc = wgpu::TextureDescriptor {
     usage: wgpu::TextureUsages::COPY_SRC
         | wgpu::TextureUsages::RENDER_ATTACHMENT,
     label: None,
+    view_formats: &[],
 };
 let render_target = framework::Texture::from_descriptor(&device, rt_desc);
 

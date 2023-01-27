@@ -91,6 +91,7 @@ impl Texture {
                 wgpu::TextureFormat::Rgba8UnormSrgb
             },
             usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
+            view_formats: &[],
         });
 
         queue.write_texture(
