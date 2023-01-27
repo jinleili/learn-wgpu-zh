@@ -94,7 +94,7 @@ GPU 应用必须在项目的 AndroidManifest.xml 文件中包含 `INTERNET` 权�
 
 上图渲染阶段的**设置**对话框显示，这些**片上内存装载**消耗了总渲染时间的 23% 左右。
 
-我们来看看源码帧渲染中的[这条 begin_render_pass() 命令](https://github.com/jinleili/wgpu-on-app/blob/88e53957f7c80dbd8e75273c9ff48ecab958984f/src/examples/cube.rs#L356-L363)，颜色附件的片上操作使用了 Load：
+我们来看看源码帧渲染中的[这条 begin_render_pass() 命令](https://github.com/jinleili/wgpu-in-app/blob/88e53957f7c80dbd8e75273c9ff48ecab958984f/src/examples/cube.rs#L356-L363)，颜色附件的片上操作使用了 Load：
 ```rust
 ops: wgpu::Operations {
     // load: wgpu::LoadOp::Clear(wgpu::Color::BLACK),

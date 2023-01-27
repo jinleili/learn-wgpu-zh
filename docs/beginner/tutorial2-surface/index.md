@@ -43,7 +43,7 @@ impl State {
 
 <div class="note">
 
-`surface`、`device`、`queue`、`config` 等对象是每个 wgpu 程序都需要的，且它们的创建过程涉及到很多模板代码，所以，从第 3 章开始，我将它们统一封装到了 [AppSurface](https://github.com/jinleili/wgpu-on-app/tree/master/app-surface) 对象中。
+`surface`、`device`、`queue`、`config` 等对象是每个 wgpu 程序都需要的，且它们的创建过程涉及到很多模板代码，所以，从第 3 章开始，我将它们统一封装到了 [AppSurface](https://github.com/jinleili/wgpu-in-app/tree/master/app-surface) 对象中。
 
 `State` 中的这些函数在所有章节示例中都有用到，所以，在第 3～8 章，我将其抽象为了 `Action` trait:
 ```rust

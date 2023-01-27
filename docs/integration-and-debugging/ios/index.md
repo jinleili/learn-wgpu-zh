@@ -271,12 +271,12 @@ cargo build --target x86_64-apple-ios
 
 </div>
 
-以上就是所有的关键代码和步骤了，我写了一个叫 wgpu-on-app 的示例程序，效果如下：
+以上就是所有的关键代码和步骤了，我写了一个叫 wgpu-in-app 的示例程序，效果如下：
 
 <img src="./on_ios.png" />
 
 <div class="github-link">
-    <a href="https://github.com/jinleili/wgpu-on-app" target="_blank" rel="noopener noreferrer">
-        查看 wgpu-on-app 完整项目源码！
+    <a href="https://github.com/jinleili/wgpu-in-app" target="_blank" rel="noopener noreferrer">
+        查看 wgpu-in-app 完整项目源码！
     </a>
 </div>

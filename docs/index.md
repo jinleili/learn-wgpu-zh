@@ -59,7 +59,7 @@ cargo run-wasm --example tutorial1-window
 # 使用 WebGL 2.0
 cargo run-wasm --example tutorial1-window --features webgl
 ```
-**调试与集成** 部分的代码是一个独立的项目：[wgpu-on-app](https://github.com/jinleili/wgpu-on-app)
+**调试与集成** 部分的代码是一个独立的项目：[wgpu-in-app](https://github.com/jinleili/wgpu-in-app)
 
 ## 如何开启浏览器 WebGPU 试验功能
 

@@ -79,7 +79,7 @@ unsafe impl HasRawDisplayHandle for NativeWindow {
 ```
 
 <div class="auto-github-link">
-    <a href="https://github.com/jinleili/wgpu-on-app/blob/d28fb4790c12282b135c9776c30bf07c8da40be9/app-surface/src/android.rs#L58-L101" target="_blank" rel="noopener noreferrer">
+    <a href="https://github.com/jinleili/wgpu-in-app/blob/d28fb4790c12282b135c9776c30bf07c8da40be9/app-surface/src/android.rs#L58-L101" target="_blank" rel="noopener noreferrer">
         查看自定义窗口对象的完整源码！
     </a>
 </div>
@@ -200,7 +200,7 @@ match Subcommand::new(args, "so", |_, _| Ok(false)) {
 ``` 
 
 <div class="auto-github-link">
-    <a href="https://github.com/jinleili/wgpu-on-app/tree/master/cargo-so" target="_blank" rel="noopener noreferrer">
+    <a href="https://github.com/jinleili/wgpu-in-app/tree/master/cargo-so" target="_blank" rel="noopener noreferrer">
         查看 cargo-so 源码！
     </a>
 </div>
@@ -364,12 +364,12 @@ fun SurfaceCard() {
 }
 ```
 
-基于以上代码，我写了一个叫 wgpu-on-app 的示例程序，效果如下：
+基于以上代码，我写了一个叫 wgpu-in-app 的示例程序，效果如下：
 
 <img src="./on_android.png" />
 
 <div class="github-link">
-    <a href="https://github.com/jinleili/wgpu-on-app" target="_blank" rel="noopener noreferrer">
-        查看 wgpu-on-app 完整项目源码！
+    <a href="https://github.com/jinleili/wgpu-in-app" target="_blank" rel="noopener noreferrer">
+        查看 wgpu-in-app 完整项目源码！
     </a>
 </div>
