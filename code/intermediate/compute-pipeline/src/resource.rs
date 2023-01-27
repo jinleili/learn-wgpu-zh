@@ -1,5 +1,5 @@
 pub fn load_a_texture(app_surface: &app_surface::AppSurface) -> (wgpu::Texture, wgpu::Extent3d) {
-    let img_data = include_bytes!("../assets/768*480.png");
+    let img_data = include_bytes!("../assets/768x480.png");
     let decoder = png::Decoder::new(std::io::Cursor::new(img_data));
 
     let mut reader = decoder.read_info().unwrap();
