@@ -90,6 +90,7 @@ impl<'a> Texture<'a> {
             },
             usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
             label: None,
+            view_formats: &[],
         };
         let texture = device.create_texture(&desc);
 
@@ -147,6 +148,7 @@ impl<'a> Texture<'a> {
             dimension: wgpu::TextureDimension::D2,
             format: Self::DEPTH_FORMAT,
             usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
+            view_formats: &[],
         };
         Self::from_descriptor(device, desc)
     }

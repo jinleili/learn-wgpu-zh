@@ -127,6 +127,7 @@ function sidebarConfig() {
                     text: '🆕 使用 Xcode 调试 wgpu 程序', link: '/integration-and-debugging/xcode/'
                 },
                 { text: '🆕 使用 Snapdragon Profiler 调试', link: '/integration-and-debugging/snapdragon-profiler/' },
+                { text: '🆕 在 iOS Adroid App 中集成 Bevy 游戏引擎', link: '/integration-and-debugging/bevy/' }
             ],
         },
         {

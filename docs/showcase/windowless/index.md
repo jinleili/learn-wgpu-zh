@@ -43,6 +43,7 @@ let texture_desc = wgpu::TextureDescriptor {
         | wgpu::TextureUsages::RENDER_ATTACHMENT
         ,
     label: None,
+    view_formats: &[],
 };
 let texture = device.create_texture(&texture_desc);
 let texture_view = texture.create_view(&Default::default());

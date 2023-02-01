@@ -33,7 +33,10 @@ impl Action for State {
 
         let _format = wgpu::TextureFormat::Rgba8UnormSrgb;
         let (tex, size) = resource::load_a_texture(&app);
-        let original_tv = tex.create_view(&wgpu::TextureViewDescriptor::default());
+        let original_tv = tex.create_view(&wgpu::TextureViewDescriptor {
+            format: Some(tex.format().remove_srgb_suffix()),
+            ..Default::default()
+        });
 
         // 使用缩小的纹理来实现模糊，不但能降低 GPU 负载，还能让模糊的效果更好。
         let swap_size = wgpu::Extent3d {
@@ -53,6 +56,7 @@ impl Action for State {
                 dimension: wgpu::TextureDimension::D2,
                 format: swap_format,
                 usage,
+                view_formats: &[],
             });
             tex.create_view(&wgpu::TextureViewDescriptor::default())
         };
@@ -109,7 +113,8 @@ impl Action for State {
             &original_tv,
             &sampler,
             &render_shader,
-            "fs_srgb_to_linear",
+            // "fs_srgb_to_linear",
+            "fs_main",
             swap_format,
         );
         let display_node = ImageNode::new(

@@ -446,6 +446,7 @@ impl TerrainHackPipeline {
             dimension: wgpu::TextureDimension::D2,
             format: wgpu::TextureFormat::R32Uint,
             usage: wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::COPY_SRC,
+            view_formats: &[],
         })
     }
 }

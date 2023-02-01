@@ -64,6 +64,7 @@ let diffuse_texture = device.create_texture(
         // COPY_DST 表示我们能将数据复制到这个纹理上。
         usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
         label: Some("diffuse_texture"),
+        view_formats: &[],
     }
 );
 ```
@@ -485,6 +486,7 @@ impl Texture {
                 dimension: wgpu::TextureDimension::D2,
                 format: wgpu::TextureFormat::Rgba8UnormSrgb,
                 usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
+                view_formats: &[],
             }
         );
 

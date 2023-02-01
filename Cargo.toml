@@ -25,11 +25,11 @@ default-features = false
 [workspace.dependencies.wgc]
 package = "wgpu-core"
 features = ["raw-window-handle"]
-version = "0.14"
+version = "0.15"
 
 [workspace.dependencies]
-app-surface = { git = "https://github.com/jinleili/wgpu-on-app", rev = "210542f" }
-# app-surface = { path = "../idroid/wgpu-on-app/app-surface" }
+# app-surface = { git = "https://github.com/jinleili/wgpu-on-app", rev = "c5257b1" }
+app-surface = { path = "../idroid/wgpu-in-app/app-surface" }
 bytemuck = "1.4"
 cfg-if = "1"
 cgmath = "0.18"
@@ -42,7 +42,7 @@ pollster = "0.2"
 rayon = "1.4"
 tobj = "3.2"
 winit = "0.27.1"
-wgpu = { version = "0.14", default-features = false }
+wgpu = { version = "0.15", default-features = false }
 
 # wasm32 dependencies
 console_error_panic_hook = "0.1.7"

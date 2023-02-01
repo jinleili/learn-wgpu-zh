@@ -74,8 +74,11 @@ impl State {
 
         // instance 变量是 GPU 实例
         // Backends::all 对应 Vulkan、Metal、DX12、WebGL 等所有后端图形驱动
-        let instance = wgpu::Instance::new(wgpu::Backends::all());
-        let surface = unsafe { instance.create_surface(window) };
+        let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
+            backends: wgpu::Backends::all(),
+            ..Default::default()
+        });
+        let surface = unsafe { instance.create_surface(window).unwrap() };
         let adapter = instance.request_adapter(
             &wgpu::RequestAdapterOptions {
                 power_preference: wgpu::PowerPreference::default(),
@@ -156,13 +159,15 @@ let (device, queue) = adapter.request_device(
 `limits` 字段描述了创建某些类型的资源的限制。我们在本教程中使用默认值，所以可以支持大多数设备。你可以[在这里](https://docs.rs/wgpu/0.13.1/wgpu/struct.Limits.html)查看限制列表。
 
 ```rust
+let caps = surface.get_capabilities(&adapter);
 let config = wgpu::SurfaceConfiguration {
     usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
-    format: surface.get_supported_formats(&adapter)[0],
+    format: caps.formats[0],
     width: size.width,
     height: size.height,
     present_mode: wgpu::PresentMode::Fifo,
-    alpha_mode: wgpu::CompositeAlphaMode::Auto,
+    alpha_mode: caps.alpha_modes[0],
+    view_formats: vec![],
 };
 surface.configure(&device, &config);
 ```

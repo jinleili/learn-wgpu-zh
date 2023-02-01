@@ -466,6 +466,7 @@ pub fn from_image(
             wgpu::TextureFormat::Rgba8UnormSrgb
         },
         usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
+        view_formats: &[],
     });
 
     // ...
