@@ -115,6 +115,31 @@ checksum = "216261ddc8289130e551ddcd5ce8a064710c0d064a4d2895c67151c92b5443f6"
 [[package]]
 name = "app-surface"
 version = "0.1.3"
+source = "git+https://github.com/jinleili/wgpu-on-app?rev=210542f#210542fca3d7bac6357a088a797c50a1908206a7"
+dependencies = [
+ "android_logger",
+ "async-executor",
+ "core-graphics 0.19.2",
+ "env_logger 0.9.1",
+ "jni",
+ "lazy_static",
+ "libc",
+ "log",
+ "ndk-sys 0.2.2",
+ "objc",
+ "objc-foundation",
+ "pollster",
+ "raw-window-handle 0.5.0",
+ "wasm-bindgen",
+ "web-sys",
+ "wgpu 0.14.0",
+ "winit 0.27.5",
+]
+
+[[package]]
+name = "app-surface"
+version = "0.1.3"
+source = "git+https://github.com/jinleili/wgpu-on-app?rev=5c01ecc#5c01eccae4b50ee044bd7ed132822753e2067f21"
 dependencies = [
  "android_logger",
  "ash",
@@ -615,7 +640,7 @@ name = "compute"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "app-surface",
+ "app-surface 0.1.3 (git+https://github.com/jinleili/wgpu-on-app?rev=5c01ecc)",
  "bytemuck",
  "cfg-if 1.0.0",
  "cgmath",
@@ -636,7 +661,7 @@ dependencies = [
 name = "compute-pipeline"
 version = "0.1.0"
 dependencies = [
- "app-surface",
+ "app-surface 0.1.3 (git+https://github.com/jinleili/wgpu-on-app?rev=210542f)",
  "bytemuck",
  "cfg-if 1.0.0",
  "console_error_panic_hook",
@@ -649,7 +674,7 @@ dependencies = [
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
- "wgpu 0.15.0",
+ "wgpu 0.14.0",
  "winit 0.27.5",
 ]
 
@@ -1157,7 +1182,7 @@ name = "framework"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "app-surface",
+ "app-surface 0.1.3 (git+https://github.com/jinleili/wgpu-on-app?rev=5c01ecc)",
  "bytemuck",
  "cfg-if 1.0.0",
  "cgmath",
@@ -1312,7 +1337,7 @@ name = "gifs"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "app-surface",
+ "app-surface 0.1.3 (git+https://github.com/jinleili/wgpu-on-app?rev=5c01ecc)",
  "bytemuck",
  "cfg-if 1.0.0",
  "cgmath",
@@ -3301,7 +3326,7 @@ name = "tutorial10-lighting"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "app-surface",
+ "app-surface 0.1.3 (git+https://github.com/jinleili/wgpu-on-app?rev=5c01ecc)",
  "bytemuck",
  "cfg-if 1.0.0",
  "cgmath",
@@ -3327,7 +3352,7 @@ name = "tutorial11-normals"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "app-surface",
+ "app-surface 0.1.3 (git+https://github.com/jinleili/wgpu-on-app?rev=5c01ecc)",
  "bytemuck",
  "cfg-if 1.0.0",
  "cgmath",
@@ -3353,7 +3378,7 @@ name = "tutorial12-camera"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "app-surface",
+ "app-surface 0.1.3 (git+https://github.com/jinleili/wgpu-on-app?rev=5c01ecc)",
  "bytemuck",
  "cfg-if 1.0.0",
  "cgmath",
@@ -3380,7 +3405,7 @@ name = "tutorial13-terrain"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "app-surface",
+ "app-surface 0.1.3 (git+https://github.com/jinleili/wgpu-on-app?rev=5c01ecc)",
  "bytemuck",
  "cfg-if 1.0.0",
  "cgmath",
@@ -3424,7 +3449,7 @@ dependencies = [
 name = "tutorial3-pipeline"
 version = "0.1.0"
 dependencies = [
- "app-surface",
+ "app-surface 0.1.3 (git+https://github.com/jinleili/wgpu-on-app?rev=5c01ecc)",
  "cfg-if 1.0.0",
  "console_error_panic_hook",
  "console_log",
@@ -3445,7 +3470,7 @@ name = "tutorial4-buffer"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "app-surface",
+ "app-surface 0.1.3 (git+https://github.com/jinleili/wgpu-on-app?rev=5c01ecc)",
  "bytemuck",
  "cfg-if 1.0.0",
  "console_error_panic_hook",
@@ -3469,7 +3494,7 @@ name = "tutorial5-textures"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "app-surface",
+ "app-surface 0.1.3 (git+https://github.com/jinleili/wgpu-on-app?rev=5c01ecc)",
  "bytemuck",
  "cfg-if 1.0.0",
  "console_error_panic_hook",
@@ -3493,7 +3518,7 @@ name = "tutorial6-uniforms"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "app-surface",
+ "app-surface 0.1.3 (git+https://github.com/jinleili/wgpu-on-app?rev=5c01ecc)",
  "bytemuck",
  "cfg-if 1.0.0",
  "cgmath",
@@ -3518,7 +3543,7 @@ name = "tutorial7-instancing"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "app-surface",
+ "app-surface 0.1.3 (git+https://github.com/jinleili/wgpu-on-app?rev=5c01ecc)",
  "bytemuck",
  "cfg-if 1.0.0",
  "cgmath",
@@ -3543,7 +3568,7 @@ name = "tutorial8-depth"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "app-surface",
+ "app-surface 0.1.3 (git+https://github.com/jinleili/wgpu-on-app?rev=5c01ecc)",
  "bytemuck",
  "cfg-if 1.0.0",
  "cgmath",
@@ -3568,7 +3593,7 @@ name = "tutorial9-models"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "app-surface",
+ "app-surface 0.1.3 (git+https://github.com/jinleili/wgpu-on-app?rev=5c01ecc)",
  "bytemuck",
  "cfg-if 1.0.0",
  "cgmath",

@@ -1371,7 +1371,7 @@ __metadata:
   resolution: "learn-wgpu-zh@workspace:."
   dependencies:
     sass: ^1.55.0
-    vitepress: ^1.0.0-alpha.30
+    vitepress: ^1.0.0-alpha.45
     vue: ^3.2.41
   languageName: unknown
   linkType: soft
@@ -2002,7 +2002,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vitepress@npm:^1.0.0-alpha.30":
+"vitepress@npm:^1.0.0-alpha.45":
   version: 1.0.0-draft.8
   resolution: "vitepress@npm:1.0.0-draft.8"
   dependencies:

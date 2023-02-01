@@ -28,8 +28,8 @@ features = ["raw-window-handle"]
 version = "0.15"
 
 [workspace.dependencies]
-# app-surface = { git = "https://github.com/jinleili/wgpu-on-app", rev = "c5257b1" }
-app-surface = { path = "../idroid/wgpu-in-app/app-surface" }
+app-surface = { git = "https://github.com/jinleili/wgpu-on-app", rev = "5c01ecc" }
+# app-surface = { path = "../idroid/wgpu-in-app/app-surface" }
 bytemuck = "1.4"
 cfg-if = "1"
 cgmath = "0.18"
@@ -57,7 +57,6 @@ web-sys = "0.3.60"
 anyhow = "1.0"
 fs_extra = "1.2"
 glob = "0.3"
-
 
 [profile.release]
 # lto = true # VERY slightly smaller wasm

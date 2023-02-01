@@ -19,7 +19,7 @@ cfg-if.workspace = true
 winit.workspace = true
 env_logger.workspace = true
 log.workspace = true
-wgpu = {workspace = true}
+wgpu = { workspace = true }
 pollster.workspace = true
 app-surface.workspace = true
 

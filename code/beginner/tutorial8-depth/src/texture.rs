@@ -42,8 +42,8 @@ impl Texture {
             min_filter: wgpu::FilterMode::Linear,
             mipmap_filter: wgpu::FilterMode::Nearest,
             compare: Some(wgpu::CompareFunction::LessEqual),
-            lod_min_clamp: -100.0,
-            lod_max_clamp: 100.0,
+            lod_min_clamp: 0.0,
+            lod_max_clamp: 200.0,
             ..Default::default()
         });
 

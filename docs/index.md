@@ -1,12 +1,12 @@
 # 介绍
 *为了便于读者的理解，译者选择性的添加了一些内容，并对原文中有歧义或错误的地方进行重新表述。所有的添加与修改均不会做单独标记。*
 
-*翻译时采用了第一人称视角，故，除了带 🆕 标记的章节，教程中的 **我** 主要指的是原作者 [@sorth](https://github.com/sotrh)。*
+*翻译时采用了第一人称视角，故，除了带 🆕 标记的章节，教程中的**我**主要指的是原作者 [@sorth](https://github.com/sotrh)。*
 
 *另外，专有名词在一个段落中第一次出现时做了**加粗**处理，同一段落里反复出现时就不再加粗。*
 
 ## wgpu 是什么？
-[wgpu](https://github.com/gfx-rs/wgpu) 是基于 [WebGPU API 规范](https://gpuweb.github.io/gpuweb/) 的、跨平台的、安全的、纯 Rust 图形 API。它是 Firefox、Servo 和 Deno 中 WebGPU 整合的核心。
+[wgpu](https://github.com/gfx-rs/wgpu) 是基于 [WebGPU API 规范](https://gpuweb.github.io/gpuweb/)的、跨平台的、安全的、纯 Rust 图形 API。它是 Firefox、Servo 和 Deno 中 WebGPU 整合的核心。
 
 **wgpu** 不仅可以在 Web 环境运行，还可以在 macOS / iOS、Android、Window 和 Linux 等系统上原生运行。
 
@@ -17,7 +17,7 @@
 
 wgpu 实际上提供了 C 语言绑定 ([wgpu-native](https://github.com/gfx-rs/wgpu-native))，你可以写 C/C++ 或其他能与 C 互通的语言来使用它。尽管如此，wgpu 本身是用 Rust 实现的，它便利的 Rust 绑定能减少你使用中的阻碍。更重要的是，Rust 是一门高性能，内存和线程安全且极具生产力的现代底层语言。
 
-在学习本教程之前你需要先熟悉 Rust，因为这里不会详细介绍 Rust 的语法知识。如果对 Rust 还不太熟悉，可以回顾一下 [Rust 教程](https://www.rust-lang.org/zh-CN/learn)或 [Rust 语言圣经](https://course.rs/about-book.html)。另外还需要熟悉 Rust 包管理工具 [Cargo]https://rustwiki.org/zh-CN/cargo/getting-started/index.html)。
+在学习本教程之前你需要先熟悉 Rust，因为这里不会详细介绍 Rust 的语法知识。如果对 Rust 还不太熟悉，可以回顾一下 [Rust 教程](https://www.rust-lang.org/zh-CN/learn)或 [Rust 语言圣经](https://course.rs/about-book.html)。另外还需要熟悉 Rust 包管理工具 [Cargo](https://rustwiki.org/zh-CN/cargo/getting-started/index.html)。
 
 <div class="note">
 
@@ -38,7 +38,7 @@ WebGPU 就是一套图形接口，绝大部分概念都是各图形接口里通�
 
 ## 现在学习 wgpu 是不是为时尚早？
 
-虽然 WebGPU 1.0 要到 2023 年年中才能正式发布，但 API 目前已经趋于稳定了，后面的修订更多是内部实现层的完善。
+虽然 WebGPU 1.0 要到 2023 年年中才会正式发布，但 API 目前已经趋于稳定了，后面的修订更多是内部实现层的完善。
 
 从 wgpu 及 dawn 这两个主要的 WebGPU 标准的实现库的开发动向可以看出，大量的扩展特性目前只有 PC、Mac、iOS、Android 等系统上本地运行才能支持。wgpu 更是将本地运行做为首要目标，WebGPU 是做为最低支持的特性集而存在。
 

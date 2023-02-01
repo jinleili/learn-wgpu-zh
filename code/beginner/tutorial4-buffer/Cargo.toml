@@ -5,13 +5,21 @@ authors = ["Ben Hansen <bhbenjaminhansen@gmail.com>"]
 edition.workspace = true
 rust-version.workspace = true
 
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies.wgc]
+workspace = true
+features = ["raw-window-handle"]
+
+[target.'cfg(target_arch = "wasm32")'.dependencies.wgc]
+workspace = true
+features = ["raw-window-handle"]
+optional = true
+
 [dependencies]
 cfg-if.workspace = true
 winit.workspace = true
 env_logger.workspace = true
 log.workspace = true
 wgpu.workspace = true
-wgc.workspace = true
 pollster.workspace = true
 app-surface.workspace = true
 # NEW!
