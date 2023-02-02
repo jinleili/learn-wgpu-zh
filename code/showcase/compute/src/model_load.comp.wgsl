@@ -91,10 +91,10 @@ fn getNormal(v_4: ModelVertex) -> vec3<f32> {
 fn calcTangentBitangent(vertexIndex: u32) -> ModelVertex {
     var vertexIndex_1: u32;
     var v_6: ModelVertex;
-    var tangent: vec3<f32>;
-    var bitangent: vec3<f32>;
-    var trianglesIncluded: u32;
-    var i: u32;
+    var tangent: vec3<f32> = vec3<f32>(0.0, 0.0, 0.0);
+    var bitangent: vec3<f32> = vec3<f32>(0.0, 0.0, 0.0);
+    var trianglesIncluded: u32 = 0u;
+    var i: u32 = 0u;
     var index0_: u32;
     var index1_: u32;
     var index2_: u32;
@@ -119,10 +119,10 @@ fn calcTangentBitangent(vertexIndex: u32) -> ModelVertex {
     let _e12 = vertexIndex_1;
     let _e14 = global.srcVertices[_e12];
     v_6 = _e14;
-    tangent = vec3<f32>(f32(0));
-    bitangent = vec3<f32>(f32(0));
-    trianglesIncluded = u32(0);
-    i = u32(0);
+    _ = vec3<f32>(f32(0));
+    _ = vec3<f32>(f32(0));
+    _ = u32(0);
+    _ = u32(0);
     loop {
         let _e30 = i;
         let _e31 = global_3.numIndices;

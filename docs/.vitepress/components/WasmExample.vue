@@ -7,7 +7,7 @@
       正在加载 WASM 模块 ...
     </div>
     <button v-if="!exampleStarted" @click="loadExample()" :disabled="loading">点击运行
-      {{exampleName}}</button>
+      {{ exampleName }}</button>
   </div>
 </template>
 
@@ -88,11 +88,11 @@ export default {
   height: 33px;
   font-size: 14px;
   padding: 0px 8px;
-  border: 1px solid var(--vp-c-divider-light);
+  border: 1px solid rgba(60, 60, 60, 0.15);
   border-radius: 8px;
 }
 
 #wasm-example button:hover {
-  border-color: var(--vp-c-brand-dark);
+  border-color: #059669;
 }
 </style>

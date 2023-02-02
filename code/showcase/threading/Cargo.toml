@@ -2,8 +2,7 @@
 name = "threading"
 version = "0.1.0"
 authors = ["Ben Hansen <bhbenjaminhansen@gmail.com>"]
-edition.workspace = true
-rust-version.workspace = true
+edition = "2018"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
@@ -11,15 +10,15 @@ crate-type = ["cdylib", "rlib"]
 [dependencies]
 cfg-if = "1"
 anyhow = "1.0"
-bytemuck = { version = "1.4", features = ["derive"] }
+bytemuck = { version = "1.12", features = ["derive"] }
 cgmath = "0.18"
-env_logger = "0.9"
+env_logger = "0.10"
 pollster = "0.2"
 log = "0.4"
-rayon = "1.4"                                         # NEW!
+rayon = "1.4"                                          # NEW!
 tobj = { version = "3.2", features = ["async"] }
 wgpu = { version = "0.14" }
-winit = "0.27.1"
+winit = "0.27"
 instant = "0.1"
 async-std = "1"
 
@@ -32,6 +31,7 @@ features = ["png", "jpeg"]
 reqwest = { version = "0.11" }
 console_error_panic_hook = "0.1"
 console_log = "0.2"
+wgpu = { version = "0.14", features = ["webgl"] }
 wasm-bindgen = "0.2"
 wasm-bindgen-futures = "0.4"
 web-sys = { version = "0.3", features = [
@@ -45,3 +45,8 @@ web-sys = { version = "0.3", features = [
 anyhow = "1.0"
 fs_extra = "1.2"
 glob = "0.3"
+
+
+[[example]]
+name = "threading"
+path = "src/main.rs"

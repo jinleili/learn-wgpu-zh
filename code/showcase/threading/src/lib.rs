@@ -131,6 +131,7 @@ struct LightUniform {
 }
 
 struct State {
+    window: Window,
     surface: wgpu::Surface,
     device: wgpu::Device,
     queue: wgpu::Queue,
@@ -218,16 +219,19 @@ fn create_render_pipeline(
 }
 
 impl State {
-    async fn new(window: &Window) -> Self {
+    async fn new(window: Window) -> Self {
         let size = window.inner_size();
 
         // The instance is a handle to our GPU
         // BackendBit::PRIMARY => Vulkan + Metal + DX12 + Browser WebGPU
-        let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
-            backends: wgpu::Backends::all(),
-            ..Default::default()
-        });
-        let surface = unsafe { instance.create_surface(window).unwrap() };
+        let instance = wgpu::Instance::new(wgpu::Backends::all());
+        
+        // # Safety
+        //
+        // The surface needs to live as long as the window that created it.
+        // State owns the window so this should be safe.
+        let surface = unsafe { instance.create_surface(&window) };
+
         let adapter = instance
             .request_adapter(&wgpu::RequestAdapterOptions {
                 power_preference: wgpu::PowerPreference::default(),
@@ -254,15 +258,13 @@ impl State {
             .await
             .unwrap();
 
-        let caps = surface.get_capabilities(&adapter);
         let config = wgpu::SurfaceConfiguration {
             usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
-            format: caps.formats[0],
+            format: surface.get_supported_formats(&adapter)[0],
             width: size.width,
             height: size.height,
             present_mode: wgpu::PresentMode::Fifo,
             alpha_mode: wgpu::CompositeAlphaMode::Auto,
-            view_formats: vec![],
         };
 
         surface.configure(&device, &config);
@@ -511,6 +513,7 @@ impl State {
         };
 
         Self {
+            window,
             surface,
             device,
             queue,
@@ -535,6 +538,10 @@ impl State {
             debug_material,
             mouse_pressed: false,
         }
+    }
+
+    pub fn window(&self) -> &Window {
+        &self.window
     }
 
     fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
@@ -683,37 +690,26 @@ pub async fn run() {
         // Winit prevents sizing with CSS, so we have to set
         // the size manually when on web.
         use winit::dpi::PhysicalSize;
+        window.set_inner_size(PhysicalSize::new(450, 400));
+
         use winit::platform::web::WindowExtWebSys;
         web_sys::window()
             .and_then(|win| win.document())
             .and_then(|doc| {
-                match doc.get_element_by_id("wasm-example") {
-                    Some(dst) => {
-                        window.set_inner_size(PhysicalSize::new(450, 400));
-                        let _ = dst.append_child(&web_sys::Element::from(window.canvas()));
-                    }
-                    None => {
-                        window.set_inner_size(PhysicalSize::new(800, 800));
-                        let canvas = window.canvas();
-                        canvas.style().set_css_text(
-                            "background-color: black; display: block; margin: 20px auto;",
-                        );
-                        doc.body().and_then(|body| {
-                            Some(body.append_child(&web_sys::Element::from(canvas)))
-                        });
-                    }
-                };
+                let dst = doc.get_element_by_id("wasm-example")?;
+                let canvas = web_sys::Element::from(window.canvas());
+                dst.append_child(&canvas).ok()?;
                 Some(())
             })
             .expect("Couldn't append canvas to document body.");
     }
 
-    let mut state = State::new(&window).await; // NEW!
+    let mut state = State::new(window).await; // NEW!
     let mut last_render_time = instant::Instant::now();
     event_loop.run(move |event, _, control_flow| {
         *control_flow = ControlFlow::Poll;
         match event {
-            Event::MainEventsCleared => window.request_redraw(),
+            Event::MainEventsCleared => state.window().request_redraw(),
             // NEW!
             Event::DeviceEvent {
                 event: DeviceEvent::MouseMotion{ delta, },
@@ -725,7 +721,7 @@ pub async fn run() {
             Event::WindowEvent {
                 ref event,
                 window_id,
-            } if window_id == window.id() && !state.input(event) => {
+            } if window_id == state.window().id() && !state.input(event) => {
                 match event {
                     #[cfg(not(target_arch="wasm32"))]
                     WindowEvent::CloseRequested
@@ -747,7 +743,7 @@ pub async fn run() {
                     _ => {}
                 }
             }
-            Event::RedrawRequested(window_id) if window_id == window.id() => {
+            Event::RedrawRequested(window_id) if window_id == state.window().id() => {
                 let now = instant::Instant::now();
                 let dt = now - last_render_time;
                 last_render_time = now;

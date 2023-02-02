@@ -8,7 +8,7 @@ mod util;
 use input::Input;
 use system::System;
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(target_arch="wasm32")]
 use wasm_bindgen::prelude::*;
 
 use winit::dpi::PhysicalSize;
@@ -16,7 +16,7 @@ use winit::event::*;
 use winit::event_loop::{ControlFlow, EventLoop};
 use winit::window::{Fullscreen, WindowBuilder};
 
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen(start))]
+#[cfg_attr(target_arch="wasm32", wasm_bindgen(start))]
 pub fn start() {
     cfg_if::cfg_if! {
         if #[cfg(target_arch = "wasm32")] {
@@ -30,9 +30,7 @@ pub fn start() {
     let event_loop = EventLoop::new();
     let monitor = event_loop.primary_monitor().unwrap();
     let video_mode = monitor.video_modes().next();
-    let size = video_mode
-        .clone()
-        .map_or(PhysicalSize::new(800, 600), |vm| vm.size());
+    let size = video_mode.clone().map_or(PhysicalSize::new(800, 600), |vm| vm.size());
     let window = WindowBuilder::new()
         .with_visible(false)
         .with_title("Pong")
@@ -58,8 +56,8 @@ pub fn start() {
 
                 // Request fullscreen, if denied, continue as normal
                 match canvas.request_fullscreen() {
-                    Ok(_) => {}
-                    Err(_) => (),
+                    Ok(_) => {},
+                    Err(_) => ()
                 }
 
                 Some(())
@@ -195,8 +193,7 @@ pub fn start() {
                 }
             }
             Event::WindowEvent {
-                event: WindowEvent::Resized(size),
-                ..
+                event: WindowEvent::Resized(size), ..
             } => {
                 render.resize(size);
                 events.push(state::Event::Resize(size.width as f32, size.height as f32));

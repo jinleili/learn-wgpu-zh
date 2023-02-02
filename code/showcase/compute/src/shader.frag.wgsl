@@ -26,7 +26,7 @@ var<uniform> global: Light;
 fn main_1() {
     var object_color: vec4<f32>;
     var object_normal: vec4<f32>;
-    var ambient_strength: f32;
+    var ambient_strength: f32 = 0.10000000149011612;
     var ambient_color: vec3<f32>;
     var normal: vec3<f32>;
     var light_dir: vec3<f32>;
@@ -47,7 +47,6 @@ fn main_1() {
     let _e18 = v_tex_coords_1;
     let _e19 = textureSample(t_normal, s_normal, _e18);
     object_normal = _e19;
-    ambient_strength = 0.10000000149011612;
     let _e23 = global.light_color;
     let _e24 = ambient_strength;
     ambient_color = (_e23 * _e24);

@@ -39,7 +39,7 @@ impl<'a> Texture<'a> {
             min_filter: wgpu::FilterMode::Nearest,
             mipmap_filter: wgpu::FilterMode::Nearest,
             lod_min_clamp: 0.0,
-            lod_max_clamp: 200.0,
+            lod_max_clamp: 100.0,
             compare: Some(wgpu::CompareFunction::LessEqual),
             ..Default::default()
         });
@@ -90,7 +90,6 @@ impl<'a> Texture<'a> {
             },
             usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
             label: None,
-            view_formats: &[],
         };
         let texture = device.create_texture(&desc);
 
@@ -119,7 +118,7 @@ impl<'a> Texture<'a> {
             min_filter: wgpu::FilterMode::Nearest,
             mipmap_filter: wgpu::FilterMode::Nearest,
             lod_min_clamp: 0.0,
-            lod_max_clamp: 200.0,
+            lod_max_clamp: 100.0,
             compare: Some(wgpu::CompareFunction::Always),
             ..Default::default()
         });
@@ -148,7 +147,6 @@ impl<'a> Texture<'a> {
             dimension: wgpu::TextureDimension::D2,
             format: Self::DEPTH_FORMAT,
             usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
-            view_formats: &[],
         };
         Self::from_descriptor(device, desc)
     }

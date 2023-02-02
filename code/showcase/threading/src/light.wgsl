@@ -1,4 +1,4 @@
-// 顶点着色器
+// Vertex shader
 
 struct Camera {
     view_pos: vec4<f32>,
@@ -34,7 +34,7 @@ fn vs_main(
     return out;
 }
 
-// 片元着色器
+// Fragment shader
 
 @fragment
 fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {

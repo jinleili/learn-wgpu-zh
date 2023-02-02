@@ -1,4 +1,4 @@
-// 顶点着色器
+// Vertex shader
 
 struct Camera {
     view_pos: vec4<f32>,
@@ -77,7 +77,7 @@ fn vs_main(
     return out;
 }
 
-// 片元着色器
+// Fragment shader
 
 @group(0) @binding(0)
 var t_diffuse: texture_2d<f32>;

@@ -34,11 +34,8 @@ pub struct Display {
 impl Display {
     pub async fn new(window: Window) -> Result<Self, Error> {
         let size = window.inner_size();
-        let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
-            backends: wgpu::Backends::all(),
-            ..Default::default()
-        });
-        let surface = unsafe { instance.create_surface(&window).unwrap() };
+        let instance = wgpu::Instance::new(wgpu::Backends::all());
+        let surface = unsafe { instance.create_surface(&window) };
         let adapter = instance
             .request_adapter(&wgpu::RequestAdapterOptions {
                 power_preference: wgpu::PowerPreference::default(),
@@ -64,15 +61,13 @@ impl Display {
             )
             .await
             .unwrap();
-        let caps = surface.get_capabilities(&adapter);
         let config = wgpu::SurfaceConfiguration {
             usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
-            format: caps.formats[0],
+            format: surface.get_supported_formats(&adapter)[0],
             width: size.width,
             height: size.height,
             present_mode: wgpu::PresentMode::Fifo,
             alpha_mode: wgpu::CompositeAlphaMode::Auto,
-            view_formats: vec![],
         };
         surface.configure(&device, &config);
 
@@ -83,6 +78,10 @@ impl Display {
             device,
             queue,
         })
+    }
+
+    pub fn window(&self) -> &Window {
+        &self.window
     }
 
     pub fn resize(&mut self, width: u32, height: u32) {
@@ -203,6 +202,8 @@ pub trait Demo: 'static + Sized {
 }
 
 pub async fn run<D: Demo>() -> Result<(), Error> {
+    wgpu_subscriber::initialize_default_subscriber(None);
+
     let event_loop = EventLoop::new();
     let window = WindowBuilder::new()
         .with_title(env!("CARGO_PKG_NAME"))
@@ -225,7 +226,7 @@ pub async fn run<D: Demo>() -> Result<(), Error> {
             Event::Resumed => is_resumed = true,
             Event::Suspended => is_resumed = false,
             Event::RedrawRequested(wid) => {
-                if wid == display.window.id() {
+                if wid == display.window().id() {
                     let now = Instant::now();
                     let dt = now - last_update;
                     last_update = now;
@@ -237,7 +238,7 @@ pub async fn run<D: Demo>() -> Result<(), Error> {
             }
             Event::MainEventsCleared => {
                 if is_focused && is_resumed && !is_redraw_requested {
-                    display.window.request_redraw();
+                    display.window().request_redraw();
                     is_redraw_requested = true;
                 } else {
                     // Freeze time while the demo is not in the foreground
@@ -247,7 +248,7 @@ pub async fn run<D: Demo>() -> Result<(), Error> {
             Event::WindowEvent {
                 event, window_id, ..
             } => {
-                if window_id == display.window.id() {
+                if window_id == display.window().id() {
                     match event {
                         WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
                         WindowEvent::Focused(f) => is_focused = f,
