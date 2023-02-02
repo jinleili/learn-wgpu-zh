@@ -35,14 +35,10 @@ web-sys = { workspace = true, features = [
     "Document",
     "Window",
     "Element",
-    "Location"
+    "Location",
 ] }
 
 [build-dependencies]
 anyhow.workspace = true
 fs_extra.workspace = true
 glob.workspace = true
-
-[[example]]
-name = "tutorial11-normals"
-path = "src/main.rs"

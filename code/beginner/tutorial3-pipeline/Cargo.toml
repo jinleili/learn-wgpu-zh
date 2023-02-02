@@ -35,10 +35,6 @@ web-sys = { workspace = true, features = [
     "Element"
 ] }
 
-[[example]]
-name = "tutorial3-pipeline"
-path = "src/main.rs"
-
-[[example]]
+[[bin]]
 name = "tutorial3-challenge"
 path = "src/challenge.rs"

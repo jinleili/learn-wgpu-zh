@@ -27,22 +27,13 @@ console_log.workspace = true
 js-sys.workspace = true
 wasm-bindgen.workspace = true
 wasm-bindgen-futures.workspace = true
-web-sys = { workspace = true, features = [
-    "Document",
-    "Window",
-    "Element"
-] }
+web-sys = { workspace = true, features = ["Document", "Window", "Element"] }
 
 [build-dependencies]
 anyhow.workspace = true
 fs_extra.workspace = true
 glob.workspace = true
 
-[[example]]
-name = "tutorial7-instancing"
-path = "src/main.rs"
-
-
-[[example]]
+[[bin]]
 name = "tutorial7-challenge"
 path = "src/challenge.rs"

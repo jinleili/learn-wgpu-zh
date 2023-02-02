@@ -8,10 +8,6 @@ rust-version.workspace = true
 [lib]
 crate-type = ["cdylib", "rlib"]
 
-[[example]]
-name = "tutorial12-camera"
-path = "src/main.rs"
-
 [dependencies]
 anyhow.workspace = true
 app-surface.workspace = true
@@ -40,7 +36,7 @@ web-sys = { workspace = true, features = [
     "Document",
     "Window",
     "Element",
-    "Location"
+    "Location",
 ] }
 
 [build-dependencies]

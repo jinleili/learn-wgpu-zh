@@ -44,8 +44,3 @@ fs_extra = "1.2"
 glob = "0.3"
 rayon = "1.4"
 naga = { version = "0.9", features = ["glsl-in", "spv-out", "wgsl-out"] }
-
-
-[[example]]
-name = "pong"
-path = "src/main.rs"

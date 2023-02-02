@@ -28,17 +28,9 @@ console_log.workspace = true
 reqwest.workspace = true
 wasm-bindgen.workspace = true
 wasm-bindgen-futures.workspace = true
-web-sys = { workspace = true, features = [
-    "Document",
-    "Window",
-    "Element"
-] }
+web-sys = { workspace = true, features = ["Document", "Window", "Element"] }
 
 [build-dependencies]
 anyhow.workspace = true
 fs_extra.workspace = true
 glob.workspace = true
-
-[[example]]
-name = "tutorial10-lighting"
-path = "src/main.rs"

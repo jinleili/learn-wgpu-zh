@@ -171,7 +171,7 @@ cfg_if::cfg_if! {
 在第 3~8 章，`run()` 函数及遍历 event_loop 的代码被统一封装到了 `framework.rs` 中, 还定义了 `Action` trait 来抽象每一章中不同的 `State` 。
 然后通过调用 wasm_bindgen_futures 包的 `spawn_local` 函数来创建 `State` 实例并处理 JS 异常。
 
-第 1～2 章的代码通过 `cargo run-wasm --example xxx` 运行时，在浏览器的控制台中会看到的 `...Using exceptions for control flow, don't mind me. This isn't actually an error!` 错误现在被消除了：
+第 1～2 章的代码通过 `cargo run-wasm --bin xxx` 运行时，在浏览器的控制台中会看到的 `...Using exceptions for control flow, don't mind me. This isn't actually an error!` 错误现在被消除了：
 
 ```rust
 #[cfg(target_arch = "wasm32")]

@@ -12,7 +12,3 @@ image.workspace = true
 wgpu.workspace = true
 pollster.workspace = true
 futures-intrusive.workspace = true
-
-[[example]]
-name = "windowless"
-path = "src/main.rs"

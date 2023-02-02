@@ -29,7 +29,3 @@ web-sys = { workspace = true, features = [
     "Window",
     "Element"
 ] }
-
-[[example]]
-name = "compute-pipeline"
-path = "src/main.rs"

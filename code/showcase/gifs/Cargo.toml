@@ -20,7 +20,3 @@ gif = "0.11.4"
 futures-intrusive = "0.4"
 
 framework = { version = "0.1.0", path = "../framework" }
-
-[[example]]
-name = "gifs"
-path = "src/main.rs"
