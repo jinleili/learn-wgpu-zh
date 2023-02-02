@@ -849,7 +849,7 @@ impl CameraUniform {
     fn update_view_proj(&mut self, camera: &Camera) {
         // 使用 vec4 纯粹是因为 Uniform 的 16 字节对齐要求
         self.view_position = camera.eye.to_homogeneous().into();
-        self.view_proj = (OPENGL_TO_WGPU_MATRIX * camera.build_view_projection_matrix()).into();
+        self.view_proj = (camera.build_view_projection_matrix()).into();
     }
 }
 ```

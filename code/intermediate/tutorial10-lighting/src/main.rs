@@ -18,14 +18,6 @@ mod texture;
 
 use model::{DrawLight, DrawModel, Vertex};
 
-#[rustfmt::skip]
-pub const OPENGL_TO_WGPU_MATRIX: glam::Mat4 = cgmath::Matrix4::new(
-    1.0, 0.0, 0.0, 0.0,
-    0.0, 1.0, 0.0, 0.0,
-    0.0, 0.0, 0.5, 0.0,
-    0.0, 0.0, 0.5, 1.0,
-);
-
 const NUM_INSTANCES_PER_ROW: u32 = 10;
 
 struct Camera {

@@ -2,7 +2,7 @@
 
 这个问题已经被推迟了一段时间。实现一个**虚拟摄像机**与正确使用 wgpu 关系不大，但它一直困扰着我，所以现在来实现它吧。
 
-`lib.rs` 已经堆砌很多代码了，所以我们创建一个 `camera.rs` 文件来放置摄像机代码。先导入一些要用到的文件并移置 `OPENGL_TO_WGPU_MATRIX`：
+`lib.rs` 已经堆砌很多代码了，所以我们创建一个 `camera.rs` 文件来放置摄像机代码。先导入一些要用到的文件：
 
 ```rust
 use cgmath::*;
@@ -10,14 +10,6 @@ use winit::event::*;
 use winit::dpi::PhysicalPosition;
 use instant::Duration;
 use std::f32::consts::FRAC_PI_2;
-
-#[rustfmt::skip]
-pub const OPENGL_TO_WGPU_MATRIX: glam::Mat4 = cgmath::Matrix4::new(
-    1.0, 0.0, 0.0, 0.0,
-    0.0, 1.0, 0.0, 0.0,
-    0.0, 0.0, 0.5, 0.0,
-    0.0, 0.0, 0.5, 1.0,
-);
 
 const SAFE_FRAC_PI_2: f32 = FRAC_PI_2 - 0.0001;
 ```
@@ -108,12 +100,12 @@ impl Projection {
     }
 
     pub fn calc_matrix(&self) -> Matrix4<f32> {
-        OPENGL_TO_WGPU_MATRIX * perspective(self.fovy, self.aspect, self.znear, self.zfar)
+        perspective(self.fovy, self.aspect, self.znear, self.zfar)
     }
 }
 ```
 
-有一点需要注意：`cgmath` 从 `perspective` 函数返回的是**右手坐标系**（right-handed coordinate system）的投影矩阵。也就是说，Z 轴是指向屏幕外的，想让 Z 轴指向*屏幕内*（也就是**左手坐标系**的投影矩阵）就得自己编码。
+有一点需要注意：如果使用不是 `glam` 而是其它线性代数库（比如 `cgmath`），从 `perspective` 函数返回的可能是**右手坐标系**（right-handed coordinate system）的投影矩阵。也就是说，Z 轴是指向屏幕外的，想让 Z 轴指向*屏幕内*（也就是**左手坐标系**的投影矩阵）就得自己编码。
 
 可以这样分辨右手坐标系和左手坐标系的区别：在身体的正前方把你的拇指指向右边代表 X 轴，食指指向上方代表 Y 轴，伸出中指代表 Z 轴。此时在你的右手上，中指应该指是向你自己。而在左手上，应该是指向远方。
 
@@ -244,7 +236,7 @@ impl CameraController {
 
 ## 清理 `lib.rs`
 
-首先，我们从 `lib.rs` 中删除 `Camera` 、 `CameraController` 以及额外的 `OPENGL_TO_WGPU_MATRIX`，然后导入 `camera.rs`：
+首先，我们从 `lib.rs` 中删除 `Camera` 、 `CameraController`，然后导入 `camera.rs`：
 
 ```rust
 mod model;

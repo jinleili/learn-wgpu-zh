@@ -18,14 +18,6 @@ mod texture;
 
 use model::{DrawLight, DrawModel, Vertex};
 
-#[rustfmt::skip]
-pub const OPENGL_TO_WGPU_MATRIX: glam::Mat4 = cgmath::Matrix4::new(
-    1.0, 0.0, 0.0, 0.0,
-    0.0, 1.0, 0.0, 0.0,
-    0.0, 0.0, 0.5, 0.0,
-    0.0, 0.0, 0.5, 1.0,
-);
-
 const NUM_INSTANCES_PER_ROW: u32 = 10;
 
 struct Camera {
@@ -63,7 +55,7 @@ impl CameraUniform {
 
     fn update_view_proj(&mut self, camera: &Camera) {
         self.view_position = camera.eye.to_homogeneous().into();
-        self.view_proj = (OPENGL_TO_WGPU_MATRIX * camera.build_view_projection_matrix()).into();
+        self.view_proj = (camera.build_view_projection_matrix()).into();
     }
 }
 
