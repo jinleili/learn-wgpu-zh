@@ -98,7 +98,7 @@ impl Display {
 #[derive(Copy, Clone)]
 pub struct UniformData {
     view_position: cgmath::Vector4<f32>,
-    view_proj: cgmath::Matrix4<f32>,
+    view_proj: glam::Mat4,
 }
 
 unsafe impl bytemuck::Zeroable for UniformData {}

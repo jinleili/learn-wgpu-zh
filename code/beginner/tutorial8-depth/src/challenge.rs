@@ -88,7 +88,7 @@ const DEPTH_VERTICES: &[Vertex] = &[
 const DEPTH_INDICES: &[u16] = &[0, 1, 2, 0, 2, 3];
 
 #[rustfmt::skip]
-pub const OPENGL_TO_WGPU_MATRIX: cgmath::Matrix4<f32> = cgmath::Matrix4::new(
+pub const OPENGL_TO_WGPU_MATRIX: glam::Mat4 = cgmath::Matrix4::new(
     1.0, 0.0, 0.0, 0.0,
     0.0, 1.0, 0.0, 0.0,
     0.0, 0.0, 0.5, 0.0,
@@ -96,16 +96,16 @@ pub const OPENGL_TO_WGPU_MATRIX: cgmath::Matrix4<f32> = cgmath::Matrix4::new(
 );
 
 const NUM_INSTANCES_PER_ROW: u32 = 10;
-const INSTANCE_DISPLACEMENT: cgmath::Vector3<f32> = cgmath::Vector3::new(
+const INSTANCE_DISPLACEMENT: glam::Vec3 = cgmath::Vector3::new(
     NUM_INSTANCES_PER_ROW as f32 * 0.5,
     0.0,
     NUM_INSTANCES_PER_ROW as f32 * 0.5,
 );
 
 struct Camera {
-    eye: cgmath::Point3<f32>,
-    target: cgmath::Point3<f32>,
-    up: cgmath::Vector3<f32>,
+    eye: glam::Vec3,
+    target: glam::Vec3,
+    up: glam::Vec3,
     aspect: f32,
     fovy: f32,
     znear: f32,
@@ -113,8 +113,8 @@ struct Camera {
 }
 
 impl Camera {
-    fn build_view_projection_matrix(&self) -> cgmath::Matrix4<f32> {
-        let view = cgmath::Matrix4::look_at_rh(self.eye, self.target, self.up);
+    fn build_view_projection_matrix(&self) -> glam::Mat4 {
+        let view = glam::Mat4::look_at_rh(self.eye, self.target, self.up);
         let proj = cgmath::perspective(cgmath::Deg(self.fovy), self.aspect, self.znear, self.zfar);
         proj * view
     }
@@ -196,7 +196,7 @@ impl CameraController {
     fn update_camera(&self, camera: &mut Camera) {
         let forward = camera.target - camera.eye;
         let forward_norm = forward.normalize();
-        let forward_mag = forward.magnitude();
+        let forward_mag = forward.length();
 
         // Prevents glitching when camera gets too close to the
         // center of the scene.
@@ -211,7 +211,7 @@ impl CameraController {
 
         // Redo radius calc in case the up/ down is pressed.
         let forward = camera.target - camera.eye;
-        let forward_mag = forward.magnitude();
+        let forward_mag = forward.length();
 
         if self.is_right_pressed {
             // Rescale the distance between the target and eye so
@@ -226,7 +226,7 @@ impl CameraController {
 }
 
 struct Instance {
-    position: cgmath::Vector3<f32>,
+    position: glam::Vec3,
     rotation: cgmath::Quaternion<f32>,
 }
 
@@ -521,7 +521,7 @@ impl Action for State {
         let camera = Camera {
             eye: (0.0, 5.0, -10.0).into(),
             target: (0.0, 0.0, 0.0).into(),
-            up: cgmath::Vector3::unit_y(),
+            up: glam::Vec3::Y,
             aspect: app.config.width as f32 / app.config.height as f32,
             fovy: 45.0,
             znear: 0.1,

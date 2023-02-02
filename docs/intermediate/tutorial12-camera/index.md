@@ -12,7 +12,7 @@ use instant::Duration;
 use std::f32::consts::FRAC_PI_2;
 
 #[rustfmt::skip]
-pub const OPENGL_TO_WGPU_MATRIX: cgmath::Matrix4<f32> = cgmath::Matrix4::new(
+pub const OPENGL_TO_WGPU_MATRIX: glam::Mat4 = cgmath::Matrix4::new(
     1.0, 0.0, 0.0, 0.0,
     0.0, 1.0, 0.0, 0.0,
     0.0, 0.0, 0.5, 0.0,
@@ -24,7 +24,7 @@ const SAFE_FRAC_PI_2: f32 = FRAC_PI_2 - 0.0001;
 
 <div class="note">
 
-在 WASM 中使用 `std::time::instant` 会导致程序**恐慌**，所以我们使用 [instant](https://docs.rs/instant) 包来替代，在  `Cargo.toml` 引入此依赖：
+在 WASM 中使用 `std::time::instant` 会导致程序**恐慌**，所以我们使用 [instant](https://docs.rs/instant) 包来替代，在 `Cargo.toml` 引入此依赖：
 
 ```toml
 instant = "0.1"
@@ -371,7 +371,7 @@ fn main() {
             // 新增!
             Event::DeviceEvent {
                 event: DeviceEvent::MouseMotion{ delta, },
-                .. // 我们现在没有用到 device_id 
+                .. // 我们现在没有用到 device_id
             } => if state.mouse_pressed {
                 state.camera_controller.process_mouse(delta.0, delta.1)
             }

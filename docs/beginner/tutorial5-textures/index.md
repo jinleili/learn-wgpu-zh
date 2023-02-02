@@ -430,7 +430,7 @@ const VERTICES: &[Vertex] = &[
 ```toml
 [dependencies]
 image = "0.23"
-cgmath = "0.18"
+glam = "0.22"
 winit = "0.27.1"
 env_logger = "0.9"
 log = "0.4"

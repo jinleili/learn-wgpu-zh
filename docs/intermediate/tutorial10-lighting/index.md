@@ -38,7 +38,6 @@ struct LightUniform {
 
 `LightUniform` 代表空间中的一个彩色点光源。虽然通常是使用纯白色的光，但使用其它颜色的光也是可以的。
 
-
 <div class="note">
 
 使 WGSL **结构体**内存字节对齐的经验法则是：字段保持按 2 的 N 次幂来对齐。
@@ -102,7 +101,7 @@ let light_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
 ```rust
 let render_pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
     bind_group_layouts: &[
-        &texture_bind_group_layout, 
+        &texture_bind_group_layout,
         &camera_bind_group_layout,
         &light_bind_group_layout,
     ],
@@ -488,7 +487,7 @@ impl State {
 现实世界中，光线在进入我们的眼睛之前往往在物体表面之间经历了多次**反射**。这就是为什么你能看见阴影区域的东西。在计算机上实现这种互动模型很昂贵，所以需要“作弊”（模拟）。
 
 **环境光反射**（Ambient Reflection）定义了对象表面所有点的环境光**强度**相同，代表从场景的其他部分反射过来的光照亮我们的**对象**。
-环境光反射值 = 光源颜色 * 环境光强度 * 片元的颜色。
+环境光反射值 = 光源颜色 _ 环境光强度 _ 片元的颜色。
 
 请在 `shader.wgsl` 中的**纹理** Uniform 之下添加以下代码：
 
@@ -507,7 +506,7 @@ var<uniform> light: Light;
 @fragment
 fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
     let object_color: vec4<f32> = textureSample(t_diffuse, s_diffuse, in.tex_coords);
-    
+
     // 我们不需要太强的环境光，强度设置为 0.1 就够了
     let ambient_strength = 0.1;
     let ambient_color = light.color * ambient_strength;
@@ -702,7 +701,7 @@ impl model::Vertex for InstanceRaw {
 
 ```rust
 struct Instance {
-    position: cgmath::Vector3<f32>,
+    position: glam::Vec3,
     rotation: cgmath::Quaternion<f32>,
 }
 
@@ -903,6 +902,7 @@ let result = (ambient_color + diffuse_color + specular_color) * object_color.xyz
 ![./specular_lighting.png](./specular_lighting.png)
 
 ## 半程向量
+
 所谓的**半程向量**（Halfway Vector）也是一个单位向量，它正好在视图方向和光源方向的中间。
 
 到目前为止，我们实际上只实现了 Blinn-Phong 的 Phong 部分。Phong 反射模型很好用，但在[某些情况下](https://learnopengl.com/Advanced-Lighting/Advanced-Lighting)会产生 bug。

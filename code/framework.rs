@@ -78,7 +78,7 @@ async fn create_action_instance<A: Action + 'static>(wh_ratio: Option<f32>) -> (
     if cfg!(not(target_arch = "wasm32")) {
         window.set_inner_size(PhysicalSize::new(width, height));
     }
-    
+
     #[cfg(target_arch = "wasm32")]
     {
         // Winit prevents sizing with CSS, so we have to set

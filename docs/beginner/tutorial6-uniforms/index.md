@@ -4,21 +4,21 @@
 
 ## 透视摄像机
 
-本教程聚焦于 wgpu 的教学，而不是**线性代数**，所以会略过很多涉及的数学知识。如果你对线性代数感兴趣，网上有大量的阅读材料。我们将使用 [cgmath](https://docs.rs/cgmath) 来处理所有数学问题，在 `Cargo.toml` 中添加以下依赖：
+本教程聚焦于 wgpu 的教学，而不是**线性代数**，所以会略过很多涉及的数学知识。如果你对线性代数感兴趣，网上有大量的阅读材料。我们将使用 [glam](https://github.com/bitshifter/glam-rs) 来处理所有数学问题，在 `Cargo.toml` 中添加以下依赖：
 
 ```toml
 [dependencies]
 # other deps...
-cgmath = "0.18"
+glam = "0.18"
 ```
 
 现在让我们开始使用此数学**包**！在 `State` 结构体上方创建**摄像机**结构体：
 
 ```rust
 struct Camera {
-    eye: cgmath::Point3<f32>,
-    target: cgmath::Point3<f32>,
-    up: cgmath::Vector3<f32>,
+    eye: glam::Vec3,
+    target: glam::Vec3,
+    up: glam::Vec3,
     aspect: f32,
     fovy: f32,
     znear: f32,
@@ -26,34 +26,23 @@ struct Camera {
 }
 
 impl Camera {
-    fn build_view_projection_matrix(&self) -> cgmath::Matrix4<f32> {
+    fn build_view_projection_matrix(&self) -> glam::Mat4 {
         // 1.
-        let view = cgmath::Matrix4::look_at_rh(self.eye, self.target, self.up);
+        let view = glam::Mat4::look_at_rh(self.eye, self.target, self.up);
         // 2.
         let proj = cgmath::perspective(cgmath::Deg(self.fovy), self.aspect, self.znear, self.zfar);
 
         // 3.
-        return OPENGL_TO_WGPU_MATRIX * proj * view;
+        return proj * view;
     }
 }
 ```
 
 `build_view_projection_matrix` 函数实现了视图投影矩阵。
+
 1. **视图**矩阵移动并旋转世界坐标到**摄像机**所观察的位置。它本质上是**摄像机**变换的逆矩阵。
 2. **投影**矩阵变换场景空间，以产生景深的效果。如果没有它，近处的物**对象**将与远处的大小相同。
-3. wgpu 的坐标系统是基于 DirectX 和 Metal 的坐标系。在[归一化设备坐标](https://github.com/gfx-rs/gfx/tree/master/src/backend/dx12#normalized-coordinates)中，x 轴和 y 轴的范围是 [-1.0, 1.0]，而 z 轴是 [0.0, 1.0], 而 `cgmath`（以及大多数游戏数学库）是为 OpenGL 的坐标系建立的。`OPENGL_TO_WGPU_MATRIX` 矩阵将把我们的场景从 OpenGL 的坐标系变换为 wgpu 的坐标系, 下边就是它的定义：
-
-```rust
-#[rustfmt::skip]
-pub const OPENGL_TO_WGPU_MATRIX: cgmath::Matrix4<f32> = cgmath::Matrix4::new(
-    1.0, 0.0, 0.0, 0.0,
-    0.0, 1.0, 0.0, 0.0,
-    0.0, 0.0, 0.5, 0.0,
-    0.0, 0.0, 0.5, 1.0,
-);
-```
-
-* 注意：我们并非一定需要 `OPENGL_TO_WGPU_MATRIX`，但是以坐标 (0, 0, 0) 为中心的模型将只有一半处于剪裁区域内。
+3. wgpu 的坐标系统是基于 DirectX 和 Metal 的右手坐标系，在[归一化设备坐标](https://github.com/gfx-rs/gfx/tree/master/src/backend/dx12#normalized-coordinates)中，x 轴和 y 轴的范围是 [-1.0, 1.0]，而 z 轴是 [0.0, 1.0]。 移植 OpenGL 程序时需要注意：在 OpenGL 的归一化设备坐标中 z 轴的范围是 [-1.0, 1.0]。
 
 现在我们来给 `State` 添加上 `camera` 字段：
 
@@ -74,7 +63,7 @@ async fn new(window: &Window) -> Self {
         // 摄像机看向原点
         target: (0.0, 0.0, 0.0).into(),
         // 定义哪个方向朝上
-        up: cgmath::Vector3::unit_y(),
+        up: glam::Vec3::Y,
         aspect: config.width as f32 / config.height as f32,
         fovy: 45.0,
         znear: 0.1,
@@ -101,16 +90,15 @@ async fn new(window: &Window) -> Self {
 // derive 属性自动导入的这些 trait，令其可被存入缓冲区
 #[derive(Debug, Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
 struct CameraUniform {
-    // cgmath 的数据类型不能直接用于 bytemuck
+    // glam 的数据类型不能直接用于 bytemuck
     // 需要先将 Matrix4 矩阵转为一个 4x4 的浮点数数组
     view_proj: [[f32; 4]; 4],
 }
 
 impl CameraUniform {
     fn new() -> Self {
-        use cgmath::SquareMatrix;
         Self {
-            view_proj: cgmath::Matrix4::identity().into(),
+            view_proj: glam::Mat4::IDENTITY.to_cols_array_2d(),
         }
     }
 
@@ -270,7 +258,7 @@ fn vs_main(
 
 ![./static-tree.png](./static-tree.png)
 
-形状的拉伸度降低了，但它仍然是静态的。你可以尝试移动**摄像机**的位置使画面动起来，就像游戏中的摄像机通常所做的那样。由于本教程聚焦于 wgpu 的使用，而非用户输入事件的处理，所以仅在此贴出**摄像机控制器**（CameraController）的代码： 
+形状的拉伸度降低了，但它仍然是静态的。你可以尝试移动**摄像机**的位置使画面动起来，就像游戏中的摄像机通常所做的那样。由于本教程聚焦于 wgpu 的使用，而非用户输入事件的处理，所以仅在此贴出**摄像机控制器**（CameraController）的代码：
 
 ```rust
 struct CameraController {
@@ -331,7 +319,7 @@ impl CameraController {
         use cgmath::InnerSpace;
         let forward = camera.target - camera.eye;
         let forward_norm = forward.normalize();
-        let forward_mag = forward.magnitude();
+        let forward_mag = forward.length();
 
         // 防止摄像机离场景中心太近时出现问题
         if self.is_forward_pressed && forward_mag > self.speed {
@@ -345,7 +333,7 @@ impl CameraController {
 
         // 在按下前进或后退键时重做半径计算
         let forward = camera.target - camera.eye;
-        let forward_mag = forward.magnitude();
+        let forward_mag = forward.length();
 
         if self.is_right_pressed {
             // 重新调整目标和眼睛之间的距离，以便其不发生变化。
@@ -396,6 +384,7 @@ fn input(&mut self, event: &WindowEvent) -> bool {
 ```
 
 到目前为止，摄像机**控制器**还没有真正工作起来。uniform **缓冲区**中的值需要被更新。有几种方式可以做到这一点：
+
 1. 可以创建一个单独的缓冲区，并将其数据复制到 `camera_buffer`。这个新的缓冲区被称为**中继缓冲区**（Staging Buffer）。这种方法允许主缓冲区（在这里是指 `camera_buffer`）的数据只被 GPU 访问，从而令 GPU 能做一些速度上的优化。如果缓冲区能被 CPU 访问，就无法实现此类优化。
 2. 可以在**缓冲区**本身调用内存映射函数 `map_read_async` 和 `map_write_async`。此方式允许我们直接访问缓冲区的数据，但是需要处理**异步**代码，也需要缓冲区使用 `BufferUsages::MAP_READ` 和/或 `BufferUsages::MAP_WRITE`。在此不再详述，如果你想了解更多，可以查看 [wgpu without a window](../../showcase/windowless/) 教程。
 3. 可以在 `queue` 上使用 `write_buffer` 函数。
@@ -414,7 +403,7 @@ fn update(&mut self) {
 
 ## 挑战
 
-让上面的五边形独立于**摄像机**进行旋转。*提示：你需要另一个**矩阵**来实现这一点*。
+让上面的五边形独立于**摄像机**进行旋转。_提示：你需要另一个**矩阵**来实现这一点_。
 
 <WasmExample example="tutorial6_uniforms"></WasmExample>
 

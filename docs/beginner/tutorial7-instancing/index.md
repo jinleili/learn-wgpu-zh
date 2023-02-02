@@ -24,7 +24,7 @@ pub fn draw_indexed(
 
 好了，现在我们知道了如何绘制 1 个对象的多个实例，那么如何告诉 wgpu 要绘制哪些指定的实例呢？我们将要用到**实例缓冲区**（Instance Buffer）的概念。
 
-## 实例缓冲区 
+## 实例缓冲区
 
 我们将以类似于创建 Uniform 缓冲区的方式创建一个**实例缓冲区**。首先，声明一个名为 `Instance` 的结构体：
 
@@ -34,7 +34,7 @@ pub fn draw_indexed(
 
 // 新增!
 struct Instance {
-    position: cgmath::Vector3<f32>,
+    position: glam::Vec3,
     rotation: cgmath::Quaternion<f32>,
 }
 ```
@@ -92,7 +92,7 @@ use cgmath::prelude::*;
 
 ```rust
 const NUM_INSTANCES_PER_ROW: u32 = 10;
-const INSTANCE_DISPLACEMENT: cgmath::Vector3<f32> = cgmath::Vector3::new(NUM_INSTANCES_PER_ROW as f32 * 0.5, 0.0, NUM_INSTANCES_PER_ROW as f32 * 0.5);
+const INSTANCE_DISPLACEMENT: glam::Vec3 = cgmath::Vector3::new(NUM_INSTANCES_PER_ROW as f32 * 0.5, 0.0, NUM_INSTANCES_PER_ROW as f32 * 0.5);
 ```
 
 我们将创建一组 10 行 10 列空间排列均匀的实例数据，下边是具体代码：

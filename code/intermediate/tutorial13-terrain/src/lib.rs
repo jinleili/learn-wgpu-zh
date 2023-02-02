@@ -44,7 +44,7 @@ impl CameraUniform {
 }
 
 struct Instance {
-    position: cgmath::Vector3<f32>,
+    position: glam::Vec3,
     rotation: cgmath::Quaternion<f32>,
 }
 

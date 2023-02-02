@@ -7,10 +7,10 @@ members = [
     "code/intermediate/*",
     # showcase
     "code/showcase/*",
-    "run-wasm"
+    "run-wasm",
 ]
 exclude = [
-    "code/showcase/imgui-demo"
+    "code/showcase/imgui-demo",
     # "code/showcase/pong",
 ]
 
@@ -33,6 +33,7 @@ app-surface = { git = "https://github.com/jinleili/wgpu-on-app", rev = "5c01ecc"
 bytemuck = "1.4"
 cfg-if = "1"
 cgmath = "0.18"
+glam = "0.22"
 env_logger = "0.9"
 futures-intrusive = "0.4"
 instant = "0.1"

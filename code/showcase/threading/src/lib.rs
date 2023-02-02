@@ -43,7 +43,7 @@ impl CameraUniform {
 }
 
 struct Instance {
-    position: cgmath::Vector3<f32>,
+    position: glam::Vec3,
     rotation: cgmath::Quaternion<f32>,
 }
 
@@ -225,7 +225,7 @@ impl State {
         // The instance is a handle to our GPU
         // BackendBit::PRIMARY => Vulkan + Metal + DX12 + Browser WebGPU
         let instance = wgpu::Instance::new(wgpu::Backends::all());
-        
+
         // # Safety
         //
         // The surface needs to live as long as the window that created it.

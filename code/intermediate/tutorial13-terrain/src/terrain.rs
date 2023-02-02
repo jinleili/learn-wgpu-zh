@@ -30,7 +30,7 @@ impl Terrain {
         device: &wgpu::Device,
         queue: &wgpu::Queue,
         pipeline: &impl GenerateChunk,
-        position: cgmath::Vector3<f32>,
+        position: glam::Vec3,
     ) {
         let corner = position.xz().cast().unwrap();
         let mut index = None;
