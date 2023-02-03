@@ -1,5 +1,7 @@
 use std::mem::size_of_val;
 
+use glam::Vec3Swizzles;
+
 use crate::{create_render_pipeline, model};
 
 #[repr(C)]
@@ -12,12 +14,12 @@ struct ChunkData {
 
 pub struct Terrain {
     chunks: Vec<Chunk>,
-    chunk_size: cgmath::Vector2<u32>,
-    min_max_height: cgmath::Vector2<f32>,
+    chunk_size: glam::UVec2,
+    min_max_height: glam::Vec2,
 }
 
 impl Terrain {
-    pub fn new(chunk_size: cgmath::Vector2<u32>, min_max_height: cgmath::Vector2<f32>) -> Self {
+    pub fn new(chunk_size: glam::UVec2, min_max_height: glam::Vec2) -> Self {
         Self {
             chunks: Vec::new(),
             chunk_size,
@@ -32,7 +34,7 @@ impl Terrain {
         pipeline: &impl GenerateChunk,
         position: glam::Vec3,
     ) {
-        let corner = position.xz().cast().unwrap();
+        let corner = position.xz().as_ivec2();
         let mut index = None;
         for (i, chunk) in self.chunks.iter().enumerate() {
             if chunk.corner == corner {
@@ -46,7 +48,7 @@ impl Terrain {
 }
 
 pub struct Chunk {
-    corner: cgmath::Vector2<i32>,
+    corner: glam::IVec2,
     mesh: model::Mesh,
 }
 
@@ -55,14 +57,14 @@ pub trait GenerateChunk {
         &self,
         device: &wgpu::Device,
         queue: &wgpu::Queue,
-        corner: cgmath::Vector2<i32>,
+        corner: glam::IVec2,
         existing_chunk: Option<Chunk>,
     ) -> Chunk;
 }
 
 pub struct TerrainPipeline {
-    chunk_size: cgmath::Vector2<u32>,
-    min_max_height: cgmath::Vector2<f32>,
+    chunk_size: glam::UVec2,
+    min_max_height: glam::Vec2,
     gen_layout: wgpu::BindGroupLayout,
     gen_pipeline: wgpu::ComputePipeline,
     render_pipeline: wgpu::RenderPipeline,
@@ -71,8 +73,8 @@ pub struct TerrainPipeline {
 impl TerrainPipeline {
     pub fn new(
         device: &wgpu::Device,
-        chunk_size: cgmath::Vector2<u32>,
-        min_max_height: cgmath::Vector2<f32>,
+        chunk_size: glam::UVec2,
+        min_max_height: glam::Vec2,
         camera_layout: &wgpu::BindGroupLayout,
         light_layout: &wgpu::BindGroupLayout,
         color_format: wgpu::TextureFormat,
@@ -191,7 +193,7 @@ impl GenerateChunk for TerrainPipeline {
         &self,
         device: &wgpu::Device,
         queue: &wgpu::Queue,
-        corner: cgmath::Vector2<i32>,
+        corner: glam::IVec2,
         existing_chunk: Option<Chunk>,
     ) -> Chunk {
         let chunk = if let Some(mut chunk) = existing_chunk {
@@ -295,15 +297,15 @@ pub struct TerrainHackPipeline {
     gen_layout: wgpu::BindGroupLayout,
     gen_pipeline: wgpu::RenderPipeline,
     render_pipeline: wgpu::RenderPipeline,
-    chunk_size: cgmath::Vector2<u32>,
-    min_max_height: cgmath::Vector2<f32>,
+    chunk_size: glam::UVec2,
+    min_max_height: glam::Vec2,
 }
 
 impl TerrainHackPipeline {
     pub fn new(
         device: &wgpu::Device,
-        chunk_size: cgmath::Vector2<u32>,
-        min_max_height: cgmath::Vector2<f32>,
+        chunk_size: glam::UVec2,
+        min_max_height: glam::Vec2,
         camera_layout: &wgpu::BindGroupLayout,
         light_layout: &wgpu::BindGroupLayout,
         color_format: wgpu::TextureFormat,
@@ -456,7 +458,7 @@ impl GenerateChunk for TerrainHackPipeline {
         &self,
         device: &wgpu::Device,
         queue: &wgpu::Queue,
-        corner: cgmath::Vector2<i32>,
+        corner: glam::IVec2,
         existing_chunk: Option<Chunk>,
     ) -> Chunk {
         let chunk = if let Some(mut chunk) = existing_chunk {
@@ -662,9 +664,9 @@ impl GenData {
     pub fn new(
         texture_size: u32,
         start_index: u32,
-        chunk_size: cgmath::Vector2<u32>,
-        chunk_corner: cgmath::Vector2<i32>,
-        min_max_height: cgmath::Vector2<f32>,
+        chunk_size: glam::UVec2,
+        chunk_corner: glam::IVec2,
+        min_max_height: glam::Vec2,
     ) -> Self {
         Self {
             texture_size,

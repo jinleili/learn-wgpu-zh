@@ -1,4 +1,3 @@
-use cgmath::*;
 use std::f32::consts::FRAC_PI_2;
 use std::time::Duration;
 use winit::dpi::PhysicalPosition;
@@ -42,10 +41,10 @@ pub struct Projection {
 }
 
 impl Projection {
-    pub fn new<F: Into<Rad<f32>>>(width: u32, height: u32, fovy: F, znear: f32, zfar: f32) -> Self {
+    pub fn new(width: u32, height: u32, fovy: f32, znear: f32, zfar: f32) -> Self {
         Self {
             aspect: width as f32 / height as f32,
-            fovy: fovy.into(),
+            fovy: fovy.to_radians(),
             znear,
             zfar,
         }
@@ -56,7 +55,7 @@ impl Projection {
     }
 
     pub fn calc_matrix(&self) -> glam::Mat4 {
-        glam::Mat4::perspective_rh(self.fovy.to_radians(), self.aspect, self.znear, self.zfar)
+        glam::Mat4::perspective_rh(self.fovy, self.aspect, self.znear, self.zfar)
     }
 }
 
@@ -165,8 +164,8 @@ impl CameraController {
         camera.position.y += (self.amount_up - self.amount_down) * self.speed * dt;
 
         // Rotate
-        camera.yaw += Rad(self.rotate_horizontal) * self.sensitivity * dt;
-        camera.pitch += Rad(-self.rotate_vertical) * self.sensitivity * dt;
+        camera.yaw += (self.rotate_horizontal) * self.sensitivity * dt;
+        camera.pitch += (-self.rotate_vertical) * self.sensitivity * dt;
 
         // If process_mouse isn't called every frame, these values
         // will not get set to zero, and the camera will rotate

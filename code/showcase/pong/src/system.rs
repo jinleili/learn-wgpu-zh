@@ -191,7 +191,7 @@ impl System for ServingSystem {
         self.last_time = instant::Instant::now();
         let direction = state.ball.position.x.signum();
         state.ball.position = (0.0, 0.0).into();
-        state.ball.velocity = cgmath::Vector2::unit_x() * direction * -util::BALL_SPEED;
+        state.ball.velocity = glam::Vec2::X * direction * -util::BALL_SPEED;
         state.player1_score.text = format!("{}", state.player1.score);
         state.player2_score.text = format!("{}", state.player2.score);
     }

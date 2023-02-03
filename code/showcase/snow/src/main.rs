@@ -3,19 +3,20 @@ use anyhow::{Error, Result};
 struct Snow {}
 
 impl framework::Demo for Snow {
-    fn init(display: &framework::Display) -> Result<Self, Error> {
+    fn init(_display: &framework::Display) -> Result<Self, Error> {
         Ok(Self {})
     }
 
-    fn process_mouse(&mut self, dx: f64, dy: f64) {}
+    fn process_mouse(&mut self, _dx: f64, _dy: f64) {}
 
-    fn resize(&mut self, display: &framework::Display) {}
+    fn resize(&mut self, _display: &framework::Display) {}
 
-    fn update(&mut self, display: &framework::Display, dt: std::time::Duration) {}
+    fn update(&mut self, _display: &framework::Display, _dt: std::time::Duration) {}
 
-    fn render(&mut self, display: &mut framework::Display) {}
+    fn render(&mut self, _display: &mut framework::Display) {}
 }
 
-fn main() {
-    framework::run::<Snow>();
+fn main() -> Result<()> {
+    pollster::block_on(framework::run::<Snow>())?;
+    Ok(())
 }

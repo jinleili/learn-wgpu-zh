@@ -55,7 +55,7 @@ impl CameraUniform {
 
     fn update_view_proj(&mut self, camera: &Camera) {
         // We're using Vector4 because ofthe camera_uniform 16 byte spacing requirement
-        self.view_position = camera.eye.extend(1.0).to_array();
+        self.view_position = camera.eye.extend(1.0).into();
         self.view_proj = camera.build_view_projection_matrix().to_cols_array_2d();
     }
 }
@@ -580,8 +580,7 @@ impl State {
         // Update the light
         let old_position = glam::Vec3::from_array(self.light_uniform.position);
         self.light_uniform.position =
-            (glam::Quat::from_axis_angle(glam::Vec3::Y, consts::PI / 180.) * old_position)
-                .to_array();
+            (glam::Quat::from_axis_angle(glam::Vec3::Y, consts::PI / 180.) * old_position).into();
         self.app.queue.write_buffer(
             &self.light_buffer,
             0,

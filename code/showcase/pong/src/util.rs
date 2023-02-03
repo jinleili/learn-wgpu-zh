@@ -7,10 +7,10 @@ pub const BALL_SPEED: f32 = 0.025;
 
 const BOUNCE_ANGLE: f32 = std::f32::consts::FRAC_PI_2;
 
-pub fn calc_ball_velocity(ball: &state::Ball, player: &state::Player) -> cgmath::Vector2<f32> {
+pub fn calc_ball_velocity(ball: &state::Ball, player: &state::Player) -> glam::Vec2 {
     let diff_y = ball.position.y - player.position.y;
     let ratio = diff_y / player.size.y * 0.5;
-    cgmath::Vector2 {
+    glam::Vec2 {
         x: (BOUNCE_ANGLE * ratio).cos() * -player.position.x.signum(),
         y: (BOUNCE_ANGLE * ratio).sin(),
     } * BALL_SPEED

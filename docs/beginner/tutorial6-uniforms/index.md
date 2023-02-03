@@ -42,7 +42,7 @@ impl Camera {
 
 1. **视图**矩阵移动并旋转世界坐标到**摄像机**所观察的位置。它本质上是**摄像机**变换的逆矩阵。
 2. **投影**矩阵变换场景空间，以产生景深的效果。如果没有它，近处的物**对象**将与远处的大小相同。
-3. wgpu 的坐标系统是基于 DirectX 和 Metal 的左手坐标系，在[归一化设备坐标](https://github.com/gfx-rs/gfx/tree/master/src/backend/dx12#normalized-coordinates)中，x 轴和 y 轴的范围是 [-1.0, 1.0]，而 z 轴是 [0.0, 1.0]。 移植 OpenGL 程序时需要注意：在 OpenGL 的归一化设备坐标中 z 轴的范围是 [-1.0, 1.0]。
+3. wgpu 的坐标系统是基于 DirectX 和 Metal 的坐标系，在[归一化设备坐标](https://github.com/gfx-rs/gfx/tree/master/src/backend/dx12#normalized-coordinates)中，x 轴和 y 轴的范围是 [-1.0, 1.0]，而 z 轴是 [0.0, 1.0]。 移植 OpenGL 程序时需要注意：在 OpenGL 的归一化设备坐标中 z 轴的范围是 [-1.0, 1.0]。
 
 现在我们来给 `State` 添加上 `camera` 字段：
 
@@ -316,7 +316,6 @@ impl CameraController {
     }
 
     fn update_camera(&self, camera: &mut Camera) {
-        use cgmath::InnerSpace;
         let forward = camera.target - camera.eye;
         let forward_norm = forward.normalize();
         let forward_mag = forward.length();

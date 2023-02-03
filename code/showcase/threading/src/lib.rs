@@ -1,5 +1,5 @@
 use rayon::prelude::*;
-use std::iter;
+use std::{f32::consts, iter};
 use wgpu::util::DeviceExt;
 use winit::{
     event::*,
@@ -30,14 +30,14 @@ impl CameraUniform {
     fn new() -> Self {
         Self {
             view_position: [0.0; 4],
-            view_proj: glam::Mat4::IDENTITY.into(),
+            view_proj: glam::Mat4::IDENTITY.to_cols_array_2d(),
         }
     }
 
     // UPDATED!
     fn update_view_proj(&mut self, camera: &camera::Camera, projection: &camera::Projection) {
-        self.view_position = camera.position.extend(1.0).to_array();
-        self.view_proj = (projection.calc_matrix() * camera.calc_matrix()).into()
+        self.view_position = camera.position.extend(1.0).into();
+        self.view_proj = (projection.calc_matrix() * camera.calc_matrix()).to_cols_array_2d()
     }
 }
 
@@ -51,7 +51,7 @@ impl Instance {
         InstanceRaw {
             model: (glam::Mat4::from_translation(self.position)
                 * glam::Mat4::from_quat(self.rotation))
-            .into(),
+            .to_cols_array_2d(),
             normal: glam::Mat3::from_mat4(glam::Mat4::from_quat(self.rotation)).to_cols_array_2d(),
         }
     }
@@ -310,8 +310,7 @@ impl State {
 
         // UPDATED!
         let camera = camera::Camera::new((0.0, 5.0, 10.0), -90.0, -20.0);
-        let projection =
-            camera::Projection::new(config.width, config.height, 45.0, 0.1, 100.0);
+        let projection = camera::Projection::new(config.width, config.height, 45.0, 0.1, 100.0);
         let camera_controller = camera::CameraController::new(4.0, 0.4);
 
         let mut camera_uniform = CameraUniform::new();
@@ -592,8 +591,7 @@ impl State {
         // Update the light
         let old_position = glam::Vec3::from_array(self.light_uniform.position);
         self.light_uniform.position =
-            (glam::Quat::from_axis_angle(glam::Vec3::Y, consts::PI / 180.) * old_position)
-                .to_array();
+            (glam::Quat::from_axis_angle(glam::Vec3::Y, consts::PI / 180.) * old_position).into();
         self.queue.write_buffer(
             &self.light_buffer,
             0,

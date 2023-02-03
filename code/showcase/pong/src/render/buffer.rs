@@ -7,7 +7,7 @@ pub const U32_SIZE: wgpu::BufferAddress = std::mem::size_of::<u32>() as wgpu::Bu
 #[derive(Copy, Clone)]
 pub struct Vertex {
     #[allow(dead_code)]
-    position: cgmath::Vector2<f32>,
+    position: glam::Vec2,
 }
 
 unsafe impl bytemuck::Pod for Vertex {}

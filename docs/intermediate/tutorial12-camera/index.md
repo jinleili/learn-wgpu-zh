@@ -5,7 +5,6 @@
 `lib.rs` 已经堆砌很多代码了，所以我们创建一个 `camera.rs` 文件来放置摄像机代码。先导入一些要用到的文件：
 
 ```rust
-use cgmath::*;
 use winit::event::*;
 use winit::dpi::PhysicalPosition;
 use instant::Duration;
@@ -87,7 +86,7 @@ impl Projection {
 }
 ```
 
-有一点需要注意：如果使用不是 `glam` 而是其它线性代数库（比如 `cgmath`），从 `perspective` 函数返回的可能是**右手坐标系**（right-handed coordinate system）的投影矩阵。也就是说，Z 轴是指向屏幕外的，想让 Z 轴指向*屏幕内*（也就是**左手坐标系**的投影矩阵）就得自己编码。
+有一点需要注意：从 `perspective_rh` 函数返回的是**右手坐标系**（right-handed coordinate system）的投影矩阵。也就是说，Z 轴是指向屏幕外的，想让 Z 轴指向*屏幕内*（也就是**左手坐标系**的投影矩阵）需要使用 `perspective_lh`。
 
 可以这样分辨右手坐标系和左手坐标系的区别：在身体的正前方把你的拇指指向右边代表 X 轴，食指指向上方代表 Y 轴，伸出中指代表 Z 轴。此时在你的右手上，中指应该指是向你自己。而在左手上，应该是指向远方。
 
@@ -235,7 +234,7 @@ impl CameraUniform {
 
     // 更新!
     fn update_view_proj(&mut self, camera: &camera::Camera, projection: &camera::Projection) {
-        self.view_position = camera.position.extend(1.0).to_array();
+        self.view_position = camera.position.extend(1.0).into();
         self.view_proj = (projection.calc_matrix() * camera.calc_matrix()).into();
     }
 }
@@ -397,7 +396,7 @@ fn update(&mut self, dt: instant::Duration) {
 
 ```rust
 self.light_uniform.position =
-    (glam::Quat::from_axis_angle(glam::Vec3::Y, cgmath::Deg(60.0 * dt.as_secs_f32()))
+    (glam::Quat::from_axis_angle(glam::Vec3::Y, (60.0 * dt.as_secs_f32()).to_radians())
     * old_position).into(); // 更新!
 ```
 

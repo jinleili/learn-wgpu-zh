@@ -115,7 +115,7 @@ let render_pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayout
 let old_position = glam::Vec3::from_array(self.light_uniform.position);
 self.light_uniform.position =
     (glam::Quat::from_axis_angle(glam::Vec3::Y, consts::PI / 180.)
-        * old_position).to_array();
+        * old_position).into();
 self.queue.write_buffer(&self.light_buffer, 0, bytemuck::cast_slice(&[self.light_uniform]));
 ```
 
@@ -847,7 +847,7 @@ impl CameraUniform {
 
     fn update_view_proj(&mut self, camera: &Camera) {
         // 使用 vec4 纯粹是因为 Uniform 的 16 字节对齐要求
-        self.view_position = camera.eye.extend(1.0).to_array();
+        self.view_position = camera.eye.extend(1.0).into();
         self.view_proj = (camera.build_view_projection_matrix()).into();
     }
 }

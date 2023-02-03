@@ -8,3 +8,4 @@ edition = "2021"
 [dependencies]
 anyhow = "1.0"
 framework = { version = "0.1", path = "../framework" }
+pollster = "0.2"

@@ -30,9 +30,9 @@ pub trait System {
     #[allow(unused_variables)]
     fn start(&mut self, state: &mut state::State) {}
     fn update_state(
-        &self, 
-        input: &input::Input, 
-        state: &mut state::State, 
+        &self,
+        input: &input::Input,
+        state: &mut state::State,
         events: &mut Vec<state::Event>,
     );
 }
@@ -95,7 +95,7 @@ I found the system approach quite nice to work with. My implementation wasn't th
 
 ## Input
 
-The `System` trait, originally had a `process_input` method. This became a problem when I was implementing allowing players to move between serves. The players would get stuck when the `game_state` switched from `Serving` to `Playing` as the inputs were getting stuck. I only called `process_input` on systems that were currently in use.  Changing that would be finicky, so I decided to move all the input code into its own struct.
+The `System` trait, originally had a `process_input` method. This became a problem when I was implementing allowing players to move between serves. The players would get stuck when the `game_state` switched from `Serving` to `Playing` as the inputs were getting stuck. I only called `process_input` on systems that were currently in use. Changing that would be finicky, so I decided to move all the input code into its own struct.
 
 ```rust
 use winit::event::{VirtualKeyCode, ElementState};
@@ -181,7 +181,7 @@ impl QuadBufferBuilder {
             let min_y = ball.position.y - ball.radius;
             let max_x = ball.position.x + ball.radius;
             let max_y = ball.position.y + ball.radius;
-    
+
             self.push_quad(min_x, min_y, max_x, max_y)
         } else {
             self
@@ -191,10 +191,10 @@ impl QuadBufferBuilder {
     pub fn push_player(self, player: &state::Player) -> Self {
         if player.visible {
             self.push_quad(
-                player.position.x - player.size.x * 0.5, 
-                player.position.y - player.size.y * 0.5, 
+                player.position.x - player.size.x * 0.5,
+                player.position.y - player.size.y * 0.5,
                 player.position.x + player.size.x * 0.5,
-                player.position.y + player.size.y * 0.5, 
+                player.position.y + player.size.y * 0.5,
             )
         } else {
             self
@@ -247,7 +247,7 @@ I used [rodio](https://docs.rs/rodio) for sound. I created a `SoundPack` class t
 pub enum Event {
     ButtonPressed,
     FocusChanged,
-    BallBounce(cgmath::Vector2<f32>),
+    BallBounce(glam::Vec2),
     Score(u32),
 }
 ```
@@ -267,7 +267,7 @@ env_logger = "0.9"
 winit = "0.27.1"
 anyhow = "1.0"
 bytemuck = { version = "1.4", features = [ "derive" ] }
-cgmath = "0.18"
+glam = "0.22"
 pollster = "0.2"
 wgpu = { version = "0.14", features = ["spirv"]}
 wgpu_glyph = "0.17"

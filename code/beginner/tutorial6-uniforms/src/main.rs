@@ -1,4 +1,4 @@
-use std::{f32::consts, iter};
+use std::iter;
 
 use app_surface::{AppSurface, SurfaceFrame};
 use wgpu::util::DeviceExt;

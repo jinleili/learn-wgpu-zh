@@ -533,8 +533,7 @@ impl State {
         // Update the light
         let old_position = glam::Vec3::from_array(self.light_uniform.position);
         self.light_uniform.position =
-            (glam::Quat::from_axis_angle(glam::Vec3::Y, consts::PI / 180.) * old_position)
-                .to_array();
+            (glam::Quat::from_axis_angle(glam::Vec3::Y, consts::PI / 180.) * old_position).into();
         self.queue.write_buffer(
             &self.light_buffer,
             0,

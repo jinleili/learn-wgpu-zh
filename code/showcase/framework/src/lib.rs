@@ -16,7 +16,6 @@ pub use shader_canvas::*;
 pub use texture::*;
 
 use anyhow::*;
-use cgmath::*;
 use std::time::{Duration, Instant};
 use wgpu::util::{BufferInitDescriptor, DeviceExt};
 use winit::event::*;
@@ -97,7 +96,7 @@ impl Display {
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct UniformData {
-    view_position: cgmath::Vector4<f32>,
+    view_position: glam::Vec4,
     view_proj: glam::Mat4,
 }
 
@@ -112,7 +111,7 @@ pub struct CameraUniform {
 impl CameraUniform {
     pub fn new(device: &wgpu::Device) -> Self {
         let data = UniformData {
-            view_position: Zero::zero(),
+            view_position: glam::Vec4::ZERO,
             view_proj: glam::Mat4::IDENTITY,
         };
         let buffer = device.create_buffer_init(&BufferInitDescriptor {

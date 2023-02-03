@@ -65,7 +65,7 @@ struct InstanceRaw {
 impl Instance {
     fn to_raw(&self) -> InstanceRaw {
         InstanceRaw {
-            model: (glam::Mat4::from_translation(self.position) * glam::Mat4::from_quat(self.rotation)).into(),
+            model: (glam::Mat4::from_translation(self.position) * glam::Mat4::from_quat(self.rotation)).to_cols_array_2d(),
         }
     }
 }
@@ -78,14 +78,6 @@ struct State {
     instances: Vec<Instance>,
     instance_buffer: wgpu::Buffer,
 }
-```
-
-`cgmath` **包**使用 trait 来为 `Vector3` 等类型提供通用的数学函数，这些 trait 必须在相关函数被调用之前导入。为了方便起见，包内的 `prelude` 模块在导入时就会提供一些常用的扩展 trait。
-
-要导入 prelude 模块，只需把下边这行代码放在 `lib.rs` 的顶部：
-
-```rust
-
 ```
 
 接下来在 `new()` 函数中创建实例数据，先定义几个**常量**用于简化代码：
