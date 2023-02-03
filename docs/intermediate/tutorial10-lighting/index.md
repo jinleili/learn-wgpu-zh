@@ -112,11 +112,10 @@ let render_pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayout
 
 ```rust
 // 更新光源
-let old_position: cgmath::Vector3<_> = self.light_uniform.position.into();
+let old_position = glam::Vec3::from_array(self.light_uniform.position);
 self.light_uniform.position =
-    (cgmath::Quaternion::from_axis_angle((0.0, 1.0, 0.0).into(), cgmath::Deg(1.0))
-        * old_position)
-        .into();
+    (glam::Quat::from_axis_angle(glam::Vec3::Y, consts::PI / 180.)
+        * old_position).to_array();
 self.queue.write_buffer(&self.light_buffer, 0, bytemuck::cast_slice(&[self.light_uniform]));
 ```
 
@@ -604,7 +603,7 @@ let result = (ambient_color + diffuse_color) * object_color.xyz;
 const NUM_INSTANCES_PER_ROW: u32 = 1;
 
 // In the loop we create the instances in
-let rotation = cgmath::Quaternion::from_axis_angle((0.0, 1.0, 0.0).into(), cgmath::Deg(180.0));
+let rotation = glam::Quat::from_axis_angle(glam::Vec3::Y, (180.0).to_radians());
 ```
 
 同时从 `result` 中移除环境光 `ambient_color`：
@@ -702,17 +701,17 @@ impl model::Vertex for InstanceRaw {
 ```rust
 struct Instance {
     position: glam::Vec3,
-    rotation: cgmath::Quaternion<f32>,
+    rotation: glam::Quat,
 }
 
 impl Instance {
     fn to_raw(&self) -> InstanceRaw {
         let model =
-            cgmath::Matrix4::from_translation(self.position) * cgmath::Matrix4::from(self.rotation);
+            glam::Mat4::from_translation(self.position) * glam::Mat4::from_quat(self.rotation);
         InstanceRaw {
-            model: model.into(),
+            model: model.to_cols_array_2d(),
             // 新增!
-            normal: cgmath::Matrix3::from(self.rotation).into(),
+            normal: glam::Mat3::from_mat4(glam::Mat4::from_quat(self.rotation)).to_cols_array_2d(),
         }
     }
 }
@@ -842,13 +841,13 @@ impl CameraUniform {
     fn new() -> Self {
         Self {
             view_position: [0.0; 4],
-            view_proj: cgmath::Matrix4::identity().into(),
+            view_proj: glam::Mat4::IDENTITY.into(),
         }
     }
 
     fn update_view_proj(&mut self, camera: &Camera) {
         // 使用 vec4 纯粹是因为 Uniform 的 16 字节对齐要求
-        self.view_position = camera.eye.to_homogeneous().into();
+        self.view_position = camera.eye.extend(1.0).to_array();
         self.view_proj = (camera.build_view_projection_matrix()).into();
     }
 }

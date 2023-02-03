@@ -172,15 +172,6 @@ dependencies = [
 
 [[package]]
 name = "approx"
-version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3f2a05fd1bd10b2527e20a2cd32d8873d115b8b39fe219ee25f42a8aca6ba278"
-dependencies = [
- "num-traits",
-]
-
-[[package]]
-name = "approx"
 version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cab112f0a86d568ea0e627cc1d6be74a1e9cd55214684db5561995f6dad897c6"
@@ -558,16 +549,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fd16c4719339c4530435d38e511904438d07cce7950afa3718a84ac36c10e89e"
 
 [[package]]
-name = "cgmath"
-version = "0.18.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1a98d30140e3296250832bbaaff83b27dcd6fa3cc70fb6f1f3e5c9c0023b5317"
-dependencies = [
- "approx 0.4.0",
- "num-traits",
-]
-
-[[package]]
 name = "chrono"
 version = "0.4.23"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -668,9 +649,9 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "bytemuck",
- "cgmath",
  "env_logger 0.10.0",
  "fs_extra",
+ "glam",
  "glob",
  "image",
  "log",
@@ -1320,9 +1301,9 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "bytemuck",
- "cgmath",
  "env_logger 0.10.0",
  "fs_extra",
+ "glam",
  "glob",
  "image",
  "log",
@@ -1473,11 +1454,11 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "bytemuck",
- "cgmath",
  "env_logger 0.10.0",
  "framework",
  "futures-intrusive",
  "gif",
+ "glam",
  "image",
  "log",
  "pollster",
@@ -1575,7 +1556,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cc32c2334f00ca5ac3695c5009ae35da21da8c62d255b5b96d56e2597a637a38"
 dependencies = [
  "ab_glyph",
- "approx 0.5.1",
+ "approx",
  "xi-unicode",
 ]
 
@@ -2827,12 +2808,12 @@ dependencies = [
  "anyhow",
  "bytemuck",
  "cfg-if 1.0.0",
- "cgmath",
  "console_error_panic_hook",
  "console_log",
  "env_logger 0.9.1",
  "fs_extra",
  "getrandom",
+ "glam",
  "glob",
  "instant",
  "log",
@@ -3487,11 +3468,11 @@ dependencies = [
  "async-std",
  "bytemuck",
  "cfg-if 1.0.0",
- "cgmath",
  "console_error_panic_hook",
  "console_log",
  "env_logger 0.10.0",
  "fs_extra",
+ "glam",
  "glob",
  "image",
  "instant",
@@ -3818,11 +3799,11 @@ dependencies = [
  "app-surface 0.1.3 (git+https://github.com/jinleili/wgpu-on-app?rev=5c01ecc)",
  "bytemuck",
  "cfg-if 1.0.0",
- "cgmath",
  "console_error_panic_hook",
  "console_log",
  "env_logger 0.9.1",
  "fs_extra",
+ "glam",
  "glob",
  "image",
  "instant",

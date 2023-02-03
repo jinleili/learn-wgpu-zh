@@ -117,7 +117,6 @@ impl Material {
 }
 ```
 
-
 现在我们可以在片元着色器中使用纹理了：
 
 ```rust
@@ -269,19 +268,19 @@ let meshes = models
         let indices = &m.mesh.indices;
         let mut triangles_included = vec![0; vertices.len()];
 
-        // 遍历三角形的三个顶点来计算切向量与副切向量. 
+        // 遍历三角形的三个顶点来计算切向量与副切向量.
         for c in indices.chunks(3) {
             let v0 = vertices[c[0] as usize];
             let v1 = vertices[c[1] as usize];
             let v2 = vertices[c[2] as usize];
+           
+            let pos0: glam::Vec3 = v0.position.into();
+            let pos1: glam::Vec3 = v1.position.into();
+            let pos2: glam::Vec3 = v2.position.into();
 
-            let pos0: cgmath::Vector3<_> = v0.position.into();
-            let pos1: cgmath::Vector3<_> = v1.position.into();
-            let pos2: cgmath::Vector3<_> = v2.position.into();
-
-            let uv0: cgmath::Vector2<_> = v0.tex_coords.into();
-            let uv1: cgmath::Vector2<_> = v1.tex_coords.into();
-            let uv2: cgmath::Vector2<_> = v2.tex_coords.into();
+            let uv0: glam::Vec2 = v0.tex_coords.into();
+            let uv1: glam::Vec2 = v1.tex_coords.into();
+            let uv2: glam::Vec2 = v2.tex_coords.into();
 
             // 计算三角形的边
             let delta_pos1 = pos1 - pos0;
@@ -302,17 +301,17 @@ let meshes = models
 
             // 我们为三角形中的每个顶点使用相同的切向量/副切向量
             vertices[c[0] as usize].tangent =
-                (tangent + cgmath::Vector3::from(vertices[c[0] as usize].tangent)).into();
+                (tangent + glam::Vec3::from_array(vertices[c[0] as usize].tangent)).into();
             vertices[c[1] as usize].tangent =
-                (tangent + cgmath::Vector3::from(vertices[c[1] as usize].tangent)).into();
+                (tangent + glam::Vec3::from_array(vertices[c[1] as usize].tangent)).into();
             vertices[c[2] as usize].tangent =
-                (tangent + cgmath::Vector3::from(vertices[c[2] as usize].tangent)).into();
+                (tangent + glam::Vec3::from_array(vertices[c[2] as usize].tangent)).into();
             vertices[c[0] as usize].bitangent =
-                (bitangent + cgmath::Vector3::from(vertices[c[0] as usize].bitangent)).into();
+                (bitangent + glam::Vec3::from_array(vertices[c[0] as usize].bitangent)).into();
             vertices[c[1] as usize].bitangent =
-                (bitangent + cgmath::Vector3::from(vertices[c[1] as usize].bitangent)).into();
+                (bitangent + glam::Vec3::from_array(vertices[c[1] as usize].bitangent)).into();
             vertices[c[2] as usize].bitangent =
-                (bitangent + cgmath::Vector3::from(vertices[c[2] as usize].bitangent)).into();
+                (bitangent + glam::Vec3::from_array(vertices[c[2] as usize].bitangent)).into();
 
             // 用于计算顶点上切向量/副切向量的平均值
             triangles_included[c[0] as usize] += 1;
@@ -324,8 +323,8 @@ let meshes = models
         for (i, n) in triangles_included.into_iter().enumerate() {
             let denom = 1.0 / n as f32;
             let mut v = &mut vertices[i];
-            v.tangent = (cgmath::Vector3::from(v.tangent) * denom).into();
-            v.bitangent = (cgmath::Vector3::from(v.bitangent) * denom).into();
+            v.tangent = (glam::Vec3::from_array(v.tangent) * denom).into();
+            v.bitangent = (glam::Vec3::from_array(v.bitangent) * denom).into();
         }
 
         let vertex_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
@@ -431,6 +430,7 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
 ![](./normal_mapping_correct.png)
 
 ## sRGB 与法线纹理
+
 光线的**强度**是对其能量的物理度量，而**亮度** (brightness) 度量的是人眼所感知到的光线强度。
 由于人眼中的光感受器对不同波长的光线能量的响应不同，即使红光和绿光的物理强度相同，在我们看来它们也并不具有相同的亮度，事实上，人眼是按对数关系来感知光线强度的。根据人类视觉系统所具有的这种特性，如果希望亮度看起来按等间隔的步长递增，那么赋给像素的光强值应该按指数的形式递增。**显示设备**可以根据所能产生的最小和最大光强值通过计算得到亮度变化的步长。
 
@@ -438,6 +438,7 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
 
 GPU 硬件对 sRGB 色彩空间提供了特殊支持，可以将颜色值从线性值转换到 **𝛄** 编码，并通过 **𝛄 校正**（Gamma Correction）解码回线性值。
 我们一直在使用 `Rgba8UnormSrgb` 格式来制作所有的纹理。`Srgb` 位就是指示 wgpu：
+
 - 当着色器代码对 sRGB 格式的纹理进行采样时，GPU 硬件要将其从 sRGB 采样值解码为线性值再返回给着色器;
 - 当着色器代码写入线性颜色值到 sRGB 格式的纹理时，GPU 硬件要对其进行 **𝛄** 编码后再写入;
 
@@ -470,7 +471,7 @@ pub fn from_image(
     });
 
     // ...
-    
+
     Ok((Self { texture, view, sampler }, cmd_buffer))
 }
 ```
@@ -582,7 +583,7 @@ impl State {
 
             let diffuse_texture = texture::Texture::from_bytes(&device, &queue, diffuse_bytes, "res/alt-diffuse.png", false).unwrap();
             let normal_texture = texture::Texture::from_bytes(&device, &queue, normal_bytes, "res/alt-normal.png", true).unwrap();
-            
+
             model::Material::new(&device, "alt-material", diffuse_texture, normal_texture, &texture_bind_group_layout)
         };
         Self {

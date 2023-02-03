@@ -78,12 +78,8 @@ struct Camera {
 impl Camera {
     fn build_view_projection_matrix(&self) -> glam::Mat4 {
         let view = glam::Mat4::look_at_rh(self.eye, self.target, self.up);
-        let proj = glam::Mat4::perspective_rh(
-            self.fovy * consts::PI / 180.,
-            self.aspect,
-            self.znear,
-            self.zfar,
-        );
+        let proj =
+            glam::Mat4::perspective_rh(self.fovy.to_radians(), self.aspect, self.znear, self.zfar);
         proj * view
     }
 }
@@ -102,7 +98,7 @@ impl CameraStaging {
     }
     fn update_camera(&self, camera_uniform: &mut CameraUniform) {
         camera_uniform.model_view_proj = (self.camera.build_view_projection_matrix()
-            * glam::Mat4::from_rotation_z(self.model_rotation * consts::PI / 180.))
+            * glam::Mat4::from_rotation_z(self.model_rotation.to_radians()))
         .to_cols_array_2d();
     }
 }

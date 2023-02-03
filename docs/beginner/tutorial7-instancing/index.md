@@ -35,7 +35,7 @@ pub fn draw_indexed(
 // 新增!
 struct Instance {
     position: glam::Vec3,
-    rotation: cgmath::Quaternion<f32>,
+    rotation: glam::Quat,
 }
 ```
 
@@ -65,7 +65,7 @@ struct InstanceRaw {
 impl Instance {
     fn to_raw(&self) -> InstanceRaw {
         InstanceRaw {
-            model: (cgmath::Matrix4::from_translation(self.position) * cgmath::Matrix4::from(self.rotation)).into(),
+            model: (glam::Mat4::from_translation(self.position) * glam::Mat4::from_quat(self.rotation)).into(),
         }
     }
 }
@@ -85,14 +85,14 @@ struct State {
 要导入 prelude 模块，只需把下边这行代码放在 `lib.rs` 的顶部：
 
 ```rust
-use cgmath::prelude::*;
+
 ```
 
 接下来在 `new()` 函数中创建实例数据，先定义几个**常量**用于简化代码：
 
 ```rust
 const NUM_INSTANCES_PER_ROW: u32 = 10;
-const INSTANCE_DISPLACEMENT: glam::Vec3 = cgmath::Vector3::new(NUM_INSTANCES_PER_ROW as f32 * 0.5, 0.0, NUM_INSTANCES_PER_ROW as f32 * 0.5);
+const INSTANCE_DISPLACEMENT: glam::Vec3 = glam::Vec3::new(NUM_INSTANCES_PER_ROW as f32 * 0.5, 0.0, NUM_INSTANCES_PER_ROW as f32 * 0.5);
 ```
 
 我们将创建一组 10 行 10 列空间排列均匀的实例数据，下边是具体代码：
@@ -103,14 +103,14 @@ impl State {
         // ...
         let instances = (0..NUM_INSTANCES_PER_ROW).flat_map(|z| {
             (0..NUM_INSTANCES_PER_ROW).map(move |x| {
-                let position = cgmath::Vector3 { x: x as f32, y: 0.0, z: z as f32 } - INSTANCE_DISPLACEMENT;
+                let position = glam::Vec3 { x: x as f32, y: 0.0, z: z as f32 } - INSTANCE_DISPLACEMENT;
 
-                let rotation = if position.is_zero() {
+                let rotation = if position.length().abs() <= std::f32::EPSILON {
                     // 这一行特殊确保在坐标 (0, 0, 0) 处的对象不会被缩放到 0
                     // 因为错误的四元数会影响到缩放
-                    cgmath::Quaternion::from_axis_angle(cgmath::Vector3::unit_z(), cgmath::Deg(0.0))
+                    glam::Quat::from_axis_angle(glam::Vec3::Z, 0.0)
                 } else {
-                    cgmath::Quaternion::from_axis_angle(position.normalize(), cgmath::Deg(45.0))
+                    glam::Quat::from_axis_angle(position.normalize(), consts::FRAC_PI_4)
                 };
 
                 Instance {

@@ -81,7 +81,7 @@ let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescrip
 use model::Vertex;
 ```
 
-现在，我们需要一个用于渲染的模型。你可以使用自己的模型，我这也提供了一个模型及其纹理的 [zip 压缩包](https://github.com/sotrh/learn-wgpu/blob/master/code/beginner/tutorial9-models/res/cube.zip ) 。我们将新建一个与 `src` 目录同级的 `res` 目录来安置这个模型。
+现在，我们需要一个用于渲染的模型。你可以使用自己的模型，我这也提供了一个模型及其纹理的 [zip 压缩包](https://github.com/sotrh/learn-wgpu/blob/master/code/beginner/tutorial9-models/res/cube.zip) 。我们将新建一个与 `src` 目录同级的 `res` 目录来安置这个模型。
 
 ## 访问资源文件
 
@@ -132,7 +132,7 @@ glob = "0.3"
 
 ## 从 WASM 访问文件
 
-遵循 WASM 规范，你不能在 Web Assembly 中访问用户文件系统上的文件。所以，我们利用 web 服务来提供这些文件，然后使用 http 请求将文件加载​​到代码中。让我们创建一个名为 `resources.rs` 的文件来处理这个问题，创建两个函数分别用于加载文本文件和二进制文件：
+遵循 WASM 规范，你不能在 Web Assembly 中访问用户文件系统上的文件。所以，我们利用 web 服务来提供这些文件，然后使用 http 请求将文件加载 ​​ 到代码中。让我们创建一个名为 `resources.rs` 的文件来处理这个问题，创建两个函数分别用于加载文本文件和二进制文件：
 
 ```rust
 use std::io::{BufReader, Cursor};
@@ -224,6 +224,7 @@ web-sys = { version = "0.3.60", features = [
 ```rust
 mod resources;
 ```
+
 ## 使用 TOBJ 加载模型
 
 加载模型是使用的 [tobj](https://docs.rs/tobj/3.0/tobj/) **包**。让我们将其添加到 `Cargo.toml` 中：
@@ -447,12 +448,12 @@ let instances = (0..NUM_INSTANCES_PER_ROW).flat_map(|z| {
         let x = SPACE_BETWEEN * (x as f32 - NUM_INSTANCES_PER_ROW as f32 / 2.0);
         let z = SPACE_BETWEEN * (z as f32 - NUM_INSTANCES_PER_ROW as f32 / 2.0);
 
-        let position = cgmath::Vector3 { x, y: 0.0, z };
+        let position = glam::Vec3 { x, y: 0.0, z };
 
-        let rotation = if position.is_zero() {
-            cgmath::Quaternion::from_axis_angle(cgmath::Vector3::unit_z(), cgmath::Deg(0.0))
+        let rotation = if position.length().abs() <= std::f32::EPSILON {
+             glam::Quat::from_axis_angle(glam::Vec3::Z, 0.0)
         } else {
-            cgmath::Quaternion::from_axis_angle(position.normalize(), cgmath::Deg(45.0))
+            glam::Quat::from_axis_angle(position.normalize(), consts::FRAC_PI_4)
         };
 
         Instance {

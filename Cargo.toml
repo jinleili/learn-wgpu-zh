@@ -32,7 +32,6 @@ app-surface = { git = "https://github.com/jinleili/wgpu-on-app", rev = "5c01ecc"
 # app-surface = { path = "../idroid/wgpu-in-app/app-surface" }
 bytemuck = "1.4"
 cfg-if = "1"
-cgmath = "0.18"
 glam = "0.22"
 env_logger = "0.9"
 futures-intrusive = "0.4"

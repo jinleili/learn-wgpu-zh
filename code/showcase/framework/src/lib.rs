@@ -113,7 +113,7 @@ impl CameraUniform {
     pub fn new(device: &wgpu::Device) -> Self {
         let data = UniformData {
             view_position: Zero::zero(),
-            view_proj: cgmath::Matrix4::identity(),
+            view_proj: glam::Mat4::IDENTITY,
         };
         let buffer = device.create_buffer_init(&BufferInitDescriptor {
             label: Some("Camera Buffer"),
@@ -125,7 +125,7 @@ impl CameraUniform {
     }
 
     pub fn update_view_proj(&mut self, camera: &camera::Camera, projection: &camera::Projection) {
-        self.data.view_position = camera.position.to_homogeneous();
+        self.data.view_position = camera.position.extend(1.0);
         self.data.view_proj = projection.calc_matrix() * camera.calc_matrix()
     }
 

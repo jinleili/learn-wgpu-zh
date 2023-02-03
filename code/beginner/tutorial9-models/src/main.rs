@@ -1,7 +1,6 @@
-use std::iter;
+use std::{f32::consts, iter};
 
 use app_surface::{AppSurface, SurfaceFrame};
-use cgmath::prelude::*;
 use wgpu::util::DeviceExt;
 use winit::{
     event::*,
@@ -33,7 +32,8 @@ struct Camera {
 impl Camera {
     fn build_view_projection_matrix(&self) -> glam::Mat4 {
         let view = glam::Mat4::look_at_rh(self.eye, self.target, self.up);
-        let proj = cgmath::perspective(cgmath::Deg(self.fovy), self.aspect, self.znear, self.zfar);
+        let proj =
+            glam::Mat4::perspective_rh(self.fovy.to_radians(), self.aspect, self.znear, self.zfar);
         proj * view
     }
 }
@@ -47,12 +47,12 @@ struct CameraUniform {
 impl CameraUniform {
     fn new() -> Self {
         Self {
-            view_proj: cgmath::Matrix4::identity().into(),
+            view_proj: glam::Mat4::IDENTITY.to_cols_array_2d(),
         }
     }
 
     fn update_view_proj(&mut self, camera: &Camera) {
-        self.view_proj = (camera.build_view_projection_matrix()).into();
+        self.view_proj = camera.build_view_projection_matrix().to_cols_array_2d();
     }
 }
 
@@ -157,15 +157,15 @@ impl CameraController {
 
 struct Instance {
     position: glam::Vec3,
-    rotation: cgmath::Quaternion<f32>,
+    rotation: glam::Quat,
 }
 
 impl Instance {
     fn to_raw(&self) -> InstanceRaw {
         InstanceRaw {
-            model: (cgmath::Matrix4::from_translation(self.position)
-                * cgmath::Matrix4::from(self.rotation))
-            .into(),
+            model: (glam::Mat4::from_translation(self.position)
+                * glam::Mat4::from_quat(self.rotation))
+            .to_cols_array_2d(),
         }
     }
 }
@@ -288,15 +288,12 @@ impl State {
                     let x = SPACE_BETWEEN * (x as f32 - NUM_INSTANCES_PER_ROW as f32 / 2.0);
                     let z = SPACE_BETWEEN * (z as f32 - NUM_INSTANCES_PER_ROW as f32 / 2.0);
 
-                    let position = cgmath::Vector3 { x, y: 0.0, z };
+                    let position = glam::Vec3 { x, y: 0.0, z };
 
-                    let rotation = if position.is_zero() {
-                        cgmath::Quaternion::from_axis_angle(
-                            cgmath::Vector3::unit_z(),
-                            cgmath::Deg(0.0),
-                        )
+                    let rotation = if position.length().abs() <= std::f32::EPSILON {
+                        glam::Quat::from_axis_angle(glam::Vec3::Z, 0.0)
                     } else {
-                        cgmath::Quaternion::from_axis_angle(position.normalize(), cgmath::Deg(45.0))
+                        glam::Quat::from_axis_angle(position.normalize(), consts::FRAC_PI_4)
                     };
 
                     Instance { position, rotation }

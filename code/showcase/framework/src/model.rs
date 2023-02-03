@@ -182,13 +182,13 @@ impl<'a> Model<'a> {
                 let v1 = vertices[c[1] as usize];
                 let v2 = vertices[c[2] as usize];
 
-                let pos0: cgmath::Vector3<_> = v0.position.into();
-                let pos1: cgmath::Vector3<_> = v1.position.into();
-                let pos2: cgmath::Vector3<_> = v2.position.into();
+                let pos0: glam::Vec3 = v0.position.into();
+                let pos1: glam::Vec3 = v1.position.into();
+                let pos2: glam::Vec3 = v2.position.into();
 
-                let uv0: cgmath::Vector2<_> = v0.tex_coords.into();
-                let uv1: cgmath::Vector2<_> = v1.tex_coords.into();
-                let uv2: cgmath::Vector2<_> = v2.tex_coords.into();
+                let uv0: glam::Vec2 = v0.tex_coords.into();
+                let uv1: glam::Vec2 = v1.tex_coords.into();
+                let uv2: glam::Vec2 = v2.tex_coords.into();
 
                 // Calculate the edges of the triangle
                 let delta_pos1 = pos1 - pos0;

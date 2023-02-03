@@ -4,7 +4,7 @@ export default defineConfig({
     // https://vitepress.vuejs.org/config/app-configs
     lang: 'zh-CN',
     title: '学习 wgpu',
-    description: '学习 wgpu：面向下一个十年的跨平台图形接口 WebGPU 的 Rust 实现',
+    description: 'wgpu：面向下一个十年的跨平台图形接口 WebGPU 的 Rust 实现',
     base: '/learn-wgpu-zh/',
     appearance: true,
     lastUpdated: true,

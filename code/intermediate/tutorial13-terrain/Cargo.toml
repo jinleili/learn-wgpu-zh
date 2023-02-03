@@ -13,7 +13,7 @@ anyhow.workspace = true
 app-surface.workspace = true
 bytemuck = { workspace = true, features = ["derive"] }
 cfg-if.workspace = true
-cgmath = { workspace = true, features = ["swizzle"] }
+glam.workspace = true
 env_logger.workspace = true
 instant.workspace = true
 log.workspace = true

@@ -1,7 +1,6 @@
-use std::iter;
+use std::{f32::consts, iter};
 
 use app_surface::{AppSurface, SurfaceFrame};
-use cgmath::prelude::*;
 use wgpu::util::DeviceExt;
 use winit::{
     event::*,
@@ -32,29 +31,29 @@ impl CameraUniform {
     fn new() -> Self {
         Self {
             view_position: [0.0; 4],
-            view_proj: cgmath::Matrix4::identity().into(),
+            view_proj: glam::Mat4::IDENTITY.to_cols_array_2d(),
         }
     }
 
     // UPDATED!
     fn update_view_proj(&mut self, camera: &camera::Camera, projection: &camera::Projection) {
-        self.view_position = camera.position.to_homogeneous().into();
-        self.view_proj = (projection.calc_matrix() * camera.calc_matrix()).into()
+        self.view_position = camera.position.extend(1.0).to_array();
+        self.view_proj = (projection.calc_matrix() * camera.calc_matrix()).to_cols_array_2d()
     }
 }
 
 struct Instance {
     position: glam::Vec3,
-    rotation: cgmath::Quaternion<f32>,
+    rotation: glam::Quat,
 }
 
 impl Instance {
     fn to_raw(&self) -> InstanceRaw {
         InstanceRaw {
-            model: (cgmath::Matrix4::from_translation(self.position)
-                * cgmath::Matrix4::from(self.rotation))
-            .into(),
-            normal: cgmath::Matrix3::from(self.rotation).into(),
+            model: (glam::Mat4::from_translation(self.position)
+                * glam::Mat4::from_quat(self.rotation))
+            .to_cols_array_2d(),
+            normal: glam::Mat3::from_mat4(glam::Mat4::from_quat(self.rotation)).to_cols_array_2d(),
         }
     }
 }
@@ -261,14 +260,9 @@ impl State {
                 });
 
         // UPDATED!
-        let camera = camera::Camera::new((0.0, 5.0, 10.0), cgmath::Deg(-90.0), cgmath::Deg(-20.0));
-        let projection = camera::Projection::new(
-            app.config.width,
-            app.config.height,
-            cgmath::Deg(45.0),
-            0.1,
-            100.0,
-        );
+        let camera = camera::Camera::new((0.0, 5.0, 10.0), -90.0, -20.0);
+        let projection =
+            camera::Projection::new(app.config.width, app.config.height, 45.0, 0.1, 100.0);
         let camera_controller = camera::CameraController::new(4.0, 0.4);
 
         let mut camera_uniform = CameraUniform::new();
@@ -289,15 +283,12 @@ impl State {
                     let x = SPACE_BETWEEN * (x as f32 - NUM_INSTANCES_PER_ROW as f32 / 2.0);
                     let z = SPACE_BETWEEN * (z as f32 - NUM_INSTANCES_PER_ROW as f32 / 2.0);
 
-                    let position = cgmath::Vector3 { x, y: 0.0, z };
+                    let position = glam::Vec3 { x, y: 0.0, z };
 
-                    let rotation = if position.is_zero() {
-                        cgmath::Quaternion::from_axis_angle(
-                            cgmath::Vector3::unit_z(),
-                            cgmath::Deg(0.0),
-                        )
+                    let rotation = if position.length().abs() <= std::f32::EPSILON {
+                        glam::Quat::from_axis_angle(glam::Vec3::Z, 0.0)
                     } else {
-                        cgmath::Quaternion::from_axis_angle(position.normalize(), cgmath::Deg(45.0))
+                        glam::Quat::from_axis_angle(position.normalize(), consts::FRAC_PI_4)
                     };
 
                     Instance { position, rotation }
@@ -547,11 +538,9 @@ impl State {
         );
 
         // Update the light
-        let old_position: cgmath::Vector3<_> = self.light_uniform.position.into();
+        let old_position = glam::Vec3::from_array(self.light_uniform.position);
         self.light_uniform.position =
-            (cgmath::Quaternion::from_axis_angle((0.0, 1.0, 0.0).into(), cgmath::Deg(1.0))
-                * old_position)
-                .into();
+            (glam::Quat::from_axis_angle(glam::Vec3::Y, consts::PI / 180.) * old_position).into();
         self.app.queue.write_buffer(
             &self.light_buffer,
             0,

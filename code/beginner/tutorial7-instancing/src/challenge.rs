@@ -1,4 +1,4 @@
-use std::iter;
+use std::{f32::consts, iter};
 
 use app_surface::{AppSurface, SurfaceFrame};
 use wgpu::util::DeviceExt;
@@ -66,7 +66,7 @@ const VERTICES: &[Vertex] = &[
 const INDICES: &[u16] = &[0, 1, 4, 1, 2, 4, 2, 3, 4];
 
 const NUM_INSTANCES_PER_ROW: u32 = 10;
-const INSTANCE_DISPLACEMENT: glam::Vec3 = cgmath::Vector3::new(
+const INSTANCE_DISPLACEMENT: glam::Vec3 = glam::Vec3::new(
     NUM_INSTANCES_PER_ROW as f32 * 0.5,
     0.0,
     NUM_INSTANCES_PER_ROW as f32 * 0.5,
@@ -85,7 +85,8 @@ struct Camera {
 impl Camera {
     fn build_view_projection_matrix(&self) -> glam::Mat4 {
         let view = glam::Mat4::look_at_rh(self.eye, self.target, self.up);
-        let proj = cgmath::perspective(cgmath::Deg(self.fovy), self.aspect, self.znear, self.zfar);
+        let proj =
+            glam::Mat4::perspective_rh(self.fovy.to_radians(), self.aspect, self.znear, self.zfar);
         proj * view
     }
 }
@@ -99,12 +100,12 @@ struct CameraUniform {
 impl CameraUniform {
     fn new() -> Self {
         Self {
-            view_proj: cgmath::Matrix4::identity().into(),
+            view_proj: glam::Mat4::IDENTITY.to_cols_array_2d(),
         }
     }
 
     fn update_view_proj(&mut self, camera: &Camera) {
-        self.view_proj = (camera.build_view_projection_matrix()).into();
+        self.view_proj = camera.build_view_projection_matrix().to_cols_array_2d();
     }
 }
 
@@ -199,15 +200,15 @@ const ROTATION_SPEED: f32 = 2.0 * std::f32::consts::PI / 60.0;
 
 struct Instance {
     position: glam::Vec3,
-    rotation: cgmath::Quaternion<f32>,
+    rotation: glam::Quat,
 }
 
 impl Instance {
     fn to_raw(&self) -> InstanceRaw {
         let transform =
-            cgmath::Matrix4::from_translation(self.position) * cgmath::Matrix4::from(self.rotation);
+            glam::Mat4::from_translation(self.position) * glam::Mat4::from_quat(self.rotation);
         InstanceRaw {
-            transform: transform.into(),
+            transform: transform.to_cols_array_2d(),
         }
     }
 }
@@ -346,18 +347,18 @@ impl Action for State {
         let instances = (0..NUM_INSTANCES_PER_ROW)
             .flat_map(|z| {
                 (0..NUM_INSTANCES_PER_ROW).map(move |x| {
-                    let position = cgmath::Vector3 {
+                    let position = glam::Vec3 {
                         x: x as f32,
                         y: 0.0,
                         z: z as f32,
                     } - INSTANCE_DISPLACEMENT;
 
-                    let rotation = if position.is_zero() {
+                    let rotation = if position.length().abs() <= std::f32::EPSILON {
                         // this is needed so an object at (0, 0, 0) won't get scaled to zero
                         // as Quaternions can effect scale if they're not create correctly
-                        cgmath::Quaternion::from_axis_angle(glam::Vec3::Y, cgmath::Deg(0.0))
+                        glam::Quat::from_rotation_z(0.0)
                     } else {
-                        cgmath::Quaternion::from_axis_angle(position.normalize(), cgmath::Deg(45.0))
+                        glam::Quat::from_axis_angle(position.normalize(), consts::FRAC_PI_4)
                     };
 
                     Instance { position, rotation }
@@ -524,7 +525,7 @@ impl Action for State {
         );
 
         for instance in &mut self.instances {
-            let amount = cgmath::Quaternion::from_angle_y(cgmath::Rad(ROTATION_SPEED));
+            let amount = glam::Quat::from_rotation_y(ROTATION_SPEED);
             let current = instance.rotation;
             instance.rotation = amount * current;
         }

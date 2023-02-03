@@ -31,37 +31,25 @@ instant = "0.1"
 ```rust
 #[derive(Debug)]
 pub struct Camera {
-    pub position: Point3<f32>,
-    yaw: Rad<f32>,
-    pitch: Rad<f32>,
+    pub position: glam::Vec3,
+    yaw: f32,
+    pitch: f32,
 }
 
 impl Camera {
-    pub fn new<
-        V: Into<Point3<f32>>,
-        Y: Into<Rad<f32>>,
-        P: Into<Rad<f32>>,
-    >(
-        position: V,
-        yaw: Y,
-        pitch: P,
-    ) -> Self {
+    pub fn new<V: Into<glam::Vec3>>(position: V, yaw: f32, pitch: f32) -> Self {
         Self {
             position: position.into(),
-            yaw: yaw.into(),
-            pitch: pitch.into(),
+            yaw,
+            pitch,
         }
     }
 
-    pub fn calc_matrix(&self) -> Matrix4<f32> {
-        Matrix4::look_to_rh(
+    pub fn calc_matrix(&self) -> glam::Mat4 {
+        glam::Mat4::look_to_rh(
             self.position,
-            Vector3::new(
-                self.yaw.0.cos(),
-                self.pitch.0.sin(),
-                self.yaw.0.sin(),
-            ).normalize(),
-            Vector3::unit_y(),
+            glam::Vec3::new(cos_pitch * cos_yaw, sin_pitch, cos_pitch * sin_yaw).normalize(),
+            glam::Vec3::Y,
         )
     }
 }
@@ -74,22 +62,16 @@ impl Camera {
 ```rust
 pub struct Projection {
     aspect: f32,
-    fovy: Rad<f32>,
+    fovy: f32,
     znear: f32,
     zfar: f32,
 }
 
 impl Projection {
-    pub fn new<F: Into<Rad<f32>>>(
-        width: u32,
-        height: u32,
-        fovy: F,
-        znear: f32,
-        zfar: f32,
-    ) -> Self {
+    pub fn new(width: u32, height: u32, fovy: f32, znear: f32, zfar: f32) -> Self {
         Self {
             aspect: width as f32 / height as f32,
-            fovy: fovy.into(),
+            fovy: fovy.to_radians(),
             znear,
             zfar,
         }
@@ -99,8 +81,8 @@ impl Projection {
         self.aspect = width as f32 / height as f32;
     }
 
-    pub fn calc_matrix(&self) -> Matrix4<f32> {
-        perspective(self.fovy, self.aspect, self.znear, self.zfar)
+    pub fn calc_matrix(&self) -> glam::Mat4 {
+        glam::Mat4::perspective_rh(self.fovy, self.aspect, self.znear, self.zfar)
     }
 }
 ```
@@ -199,17 +181,17 @@ impl CameraController {
         let dt = dt.as_secs_f32();
 
         // 前后左右移动
-        let (yaw_sin, yaw_cos) = camera.yaw.0.sin_cos();
-        let forward = Vector3::new(yaw_cos, 0.0, yaw_sin).normalize();
-        let right = Vector3::new(-yaw_sin, 0.0, yaw_cos).normalize();
+        let (yaw_sin, yaw_cos) = camera.yaw.sin_cos();
+        let forward = glam::Vec3::new(yaw_cos, 0.0, yaw_sin).normalize();
+        let right = glam::Vec3::new(-yaw_sin, 0.0, yaw_cos).normalize();
         camera.position += forward * (self.amount_forward - self.amount_backward) * self.speed * dt;
         camera.position += right * (self.amount_right - self.amount_left) * self.speed * dt;
 
         // 变焦（缩放）
         // 注意：这不是一个真实的变焦。
         // 通过摄像机的位置变化来模拟变焦，使你更容易靠近想聚焦的物体。
-        let (pitch_sin, pitch_cos) = camera.pitch.0.sin_cos();
-        let scrollward = Vector3::new(pitch_cos * yaw_cos, pitch_sin, pitch_cos * yaw_sin).normalize();
+        let (pitch_sin, pitch_cos) = camera.pitch.sin_cos();
+        let scrollward = glam::Vec3::new(pitch_cos * yaw_cos, pitch_sin, pitch_cos * yaw_sin).normalize();
         camera.position += scrollward * self.scroll * self.speed * self.sensitivity * dt;
         self.scroll = 0.0;
 
@@ -225,10 +207,10 @@ impl CameraController {
         self.rotate_vertical = 0.0;
 
         // 保持摄像机的角度不要太高/太低。
-        if camera.pitch < -Rad(SAFE_FRAC_PI_2) {
-            camera.pitch = -Rad(SAFE_FRAC_PI_2);
-        } else if camera.pitch > Rad(SAFE_FRAC_PI_2) {
-            camera.pitch = Rad(SAFE_FRAC_PI_2);
+        if camera.pitch < -SAFE_FRAC_PI_2 {
+            camera.pitch = -SAFE_FRAC_PI_2;
+        } else if camera.pitch > SAFE_FRAC_PI_2 {
+            camera.pitch = SAFE_FRAC_PI_2;
         }
     }
 }
@@ -253,7 +235,7 @@ impl CameraUniform {
 
     // 更新!
     fn update_view_proj(&mut self, camera: &camera::Camera, projection: &camera::Projection) {
-        self.view_position = camera.position.to_homogeneous().into();
+        self.view_position = camera.position.extend(1.0).to_array();
         self.view_proj = (projection.calc_matrix() * camera.calc_matrix()).into();
     }
 }
@@ -283,8 +265,8 @@ impl State {
         // ...
 
         // 更新!
-        let camera = camera::Camera::new((0.0, 5.0, 10.0), cgmath::Deg(-90.0), cgmath::Deg(-20.0));
-        let projection = camera::Projection::new(config.width, config.height, cgmath::Deg(45.0), 0.1, 100.0);
+        let camera = camera::Camera::new((0.0, 5.0, 10.0), -90.0, -20.0);
+        let projection = camera::Projection::new(config.width, config.height, 45.0, 0.1, 100.0);
         let camera_controller = camera::CameraController::new(4.0, 0.4);
 
         // ...
@@ -415,7 +397,7 @@ fn update(&mut self, dt: instant::Duration) {
 
 ```rust
 self.light_uniform.position =
-    (cgmath::Quaternion::from_axis_angle((0.0, 1.0, 0.0).into(), cgmath::Deg(60.0 * dt.as_secs_f32()))
+    (glam::Quat::from_axis_angle(glam::Vec3::Y, cgmath::Deg(60.0 * dt.as_secs_f32()))
     * old_position).into(); // 更新!
 ```
 
