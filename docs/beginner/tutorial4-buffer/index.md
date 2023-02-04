@@ -1,15 +1,17 @@
 # 缓冲区与索引
 
 ## 终于要讨论它们了!
+
 你可能已经厌倦了我老说 "我们会在讨论缓冲区的时候再详细介绍" 之类的话。现在终于到了谈论缓冲区的时候了，但首先...
 
-
 ## 什么是缓冲区?
+
 **缓冲区**（Buffer）一个可用于 GPU 操作的内存块。缓冲区数据是以线性布局存储的，这意味着分配的每个字节都可以通过其从缓冲区开始的偏移量来寻址，但要根据操作的不同而有对齐限制。
 
 缓冲区常用于存储**结构体**或数组等简单的数据，但也可以存储更复杂的数据，如树等图结构（只要所有节点都存储在一起，且不引用缓冲区以外的任何数据）。我们会经常用到缓冲区，所以让我们从最重要的两个开始：**顶点缓冲区**（Vertex Buffer）和**索引缓冲区**（Index Buffer）。
 
 ## 顶点缓冲区
+
 之前我们是直接在顶点着色器中存储的顶点数据。这在学习的起始阶段很有效，但这不是长远之计，因为需要绘制的对象的类型会有不同的大小，且每当需要更新模型时就得重新编译着色器，这会大大减慢我们的程序。我们将改为使用**顶点缓冲区**来存储想要绘制的顶点数据。在此之前，需要创建一个新的**结构体**来描述顶点：
 
 ```rust
@@ -79,7 +81,7 @@ use wgpu::util::DeviceExt;
 bytemuck = { version = "1.4", features = [ "derive" ] }
 ```
 
-我们还需要实现两个 trait 来使 `bytemuck` 工作。它们是 [bytemuck::Pod](https://docs.rs/bytemuck/1.3.0/bytemuck/trait.Pod.html) 和 [bytemuck::Zeroable](https://docs.rs/bytemuck/1.3.0/bytemuck/trait.Zeroable.html)。 `Pod` 表示 `Vertex` 是 ["Plain Old Data"](https://zh.wikipedia.org/wiki/POD_(程序设计)) 数据类型，因此可以被解释为 `&[u8]` 类型。`Zeroable` 表示可以对其使用 `std::mem::zeroed()`。下面修改 `Vertex` 结构体来派生这些 trait：
+我们还需要实现两个 trait 来使 `bytemuck` 工作。它们是 [bytemuck::Pod](https://docs.rs/bytemuck/1.3.0/bytemuck/trait.Pod.html) 和 [bytemuck::Zeroable](https://docs.rs/bytemuck/1.3.0/bytemuck/trait.Zeroable.html)。 `Pod` 表示 `Vertex` 是 ["Plain Old Data"](<https://zh.wikipedia.org/wiki/POD_(程序设计)>) 数据类型，因此可以被解释为 `&[u8]` 类型。`Zeroable` 表示可以对其使用 `std::mem::zeroed()`。下面修改 `Vertex` 结构体来派生这些 trait：
 
 ```rust
 #[repr(C)]
@@ -92,7 +94,7 @@ struct Vertex {
 
 <div class="note">
 
-当**结构体**里包含了没有实现 `Pod` 和 `Zeroable` 的类型时，就需要手动实现这些 trait。这些 trait 不需要我们实现任何函数，只需像下面这样来让代码工作： 
+当**结构体**里包含了没有实现 `Pod` 和 `Zeroable` 的类型时，就需要手动实现这些 trait。这些 trait 不需要我们实现任何函数，只需像下面这样来让代码工作：
 
 ```rust
 unsafe impl bytemuck::Pod for Vertex {}
@@ -116,9 +118,11 @@ Self {
 ```
 
 ## 接下来怎么做？
+
 我们需要告诉 `render_pipeline` 在绘制时使用这个缓冲区，但首先需要告诉它如何读取此缓冲区。**顶点缓冲区布局**（VertexBufferLayout）对象和 `vertex_buffers` 字段可以用来完成这件事，我保证在创建 `render_pipeline` 时会详细讨论这个问题。
 
 **顶点缓冲区布局**对象定义了缓冲区在内存中的表示方式，render_pipeline 需要它来在着色器中映射缓冲区。下面是填充了顶点的一个缓冲区的布局：
+
 ```rust
 wgpu::VertexBufferLayout {
     array_stride: std::mem::size_of::<Vertex>() as wgpu::BufferAddress, // 1.
@@ -144,7 +148,6 @@ wgpu::VertexBufferLayout {
 4. `offset` 定义了属性在一个顶点元素中的字节偏移量。对于第一个属性，偏移量通常为零。其后属性的偏移量应为在其之前各属性的 `size_of` 之和。
 5. `shader_location` 告诉着色器要在什么位置存储这个属性。例如 `@location(0) x: vec3<f32>` 在顶点着色器中对应于 `Vertex` 结构体的 `position` 字段，而 `@location(1) x: vec3<f32>` 对应 `color` 字段。
 6. `format` 告诉着色器该属性的数据格式。`Float32x3`对应于着色器代码中的 `vec3<f32>`。我们可以在一个属性中存储的最大值是`Float32x4`（`Uint32x4` 和 `Sint32x4` 也可以）。当我们需要存储比 `Float32x4` 更大的东西时请记住这一点。
-
 
 对于视觉学习者来说，我们的顶点缓冲区看起来是这样的：
 
@@ -315,10 +318,10 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
 ![A colorful triangle](./triangle.png)
 
 ## 索引缓冲区
+
 从技术的角度来看，目前的示例并不需要索**引缓冲区**，但它们仍然很有用。当开始使用有大量三角形的模型时，索引缓冲区就会发挥作用。考虑一下下边的五边形：
 
 ![A pentagon made of 3 triangles](./pentagon.png)
-
 
 它总共有 5 个顶点和 3 个三角形。现在，如果我们想只用顶点来显示这样的东西，我们就需要以下顶点数据：
 
@@ -338,12 +341,11 @@ const VERTICES: &[Vertex] = &[
 ];
 ```
 
-你会注意到有些**顶点**被使用了不止一次。C 和 B 顶点被使用了两次，而 E 顶点被重复使用了 3 次。假设每个浮点数是 4 个字节，那么这意味着在我们用于 `VERTICES` 的 216 个字节中，有 96 个字节是重复的数据。如果能只把这些顶点列出来一次不是很好吗？我们可以做到这一点! 
+你会注意到有些**顶点**被使用了不止一次。C 和 B 顶点被使用了两次，而 E 顶点被重复使用了 3 次。假设每个浮点数是 4 个字节，那么这意味着在我们用于 `VERTICES` 的 216 个字节中，有 96 个字节是重复的数据。如果能只把这些顶点列出来一次不是很好吗？我们可以做到这一点!
 
 这，就是**索引缓冲区**发挥作用的地方。
 
 大体上来说，我们在 `VERTICES` 中存储所有唯一的顶点，我们创建另一个缓冲区，将索引存储在 `VERTICES` 中的元素以创建三角形。下面还是以五边形为例：
-
 
 ```rust
 // lib.rs
@@ -397,7 +399,7 @@ struct State {
     render_pipeline: wgpu::RenderPipeline,
     vertex_buffer: wgpu::Buffer,
     // 新添加!
-    index_buffer: wgpu::Buffer, 
+    index_buffer: wgpu::Buffer,
     num_indices: u32,
 }
 ```
@@ -430,6 +432,7 @@ render_pass.draw_indexed(0..self.num_indices, 0, 0..1); // 2.
 ```
 
 有几点需要注意：
+
 1. 命令名称是 `set_index_buffer` 而不是 `set_index_buffers`, 一次绘制（draw_XXX()）只能设置一个索引缓冲区。但是，你可以在一个**渲染通道**内调用多次绘制，每次都设置不同的索引缓冲区。
 2. 当使用索引缓冲区时，需使用 `draw_indexed` 来绘制，`draw` 命令会忽略索引缓冲区。还需确保你使用的是索引数（`num_indices`）而非顶点数，否则你的模型要么画错，要么因为没有足够的索引数而导致程序**恐慌**（panic）。
 
@@ -441,11 +444,20 @@ render_pass.draw_indexed(0..self.num_indices, 0, 0..1); // 2.
 
 如果在洋红色五角星上使用取色器，你会得到一个 #BC00BC 的十六进制值。如果把它转换成 RGB 值会得到（188, 0, 188），将这些值除以 255 使其映射进 [0，1] 范围，大致会得到（0.737254902，0，0.737254902）。这与我们赋给顶点颜色的值不同，后者是（0.5, 0.0, 0.5）。其原因与**色彩空间**（Color Space）有关。
 
-大多数显示器使用的**色彩空间**被称为 sRGB（严格来说，目前市面上的中高端显示器已经支持 **DisplayP3** 甚至是 **BT.2100**，macOS 与 iOS 设备默认使用的就是 DisplayP3 色彩空间）。我们的**展示平面**（完全取决于从 `surface.get_capabilities(&adapter).formats` 返回的格式）默认支持 sRGB **纹理**格式。sRGB 格式是根据颜色的相对亮度而不是实际亮度来存储的。其原因是人眼对光线的感知不是线性的。我们注意到较深的颜色比较浅的颜色有更多差异。
+大多数显示器使用的**色彩空间**被称为 sRGB（事实上，目前市面上的中高端显示器已经支持 **DisplayP3** 甚至是 **BT.2100** 等广色域色彩空间，macOS 与 iOS 设备默认使用的就是 DisplayP3 色彩空间）。我们的**展示平面**（完全取决于从 `surface.get_capabilities(&adapter).formats` 返回的格式）默认支持 sRGB **纹理**格式。sRGB 格式是根据颜色的相对亮度而不是实际亮度来存储的。其原因是人眼对光线的感知不是线性的。我们注意到较深的颜色比较浅的颜色有更多差异。
 
 可以用下面的公式得到一个正确颜色的近似值。`srgb_color = (rgb_color / 255) ^ 2.2`。在 RGB 值为 (188, 0, 188) 的情况下，我们将得到 (0.511397819, 0.0, 0.511397819)。与我们的（0.5, 0.0, 0.5）有点偏差。虽然你可以通过调整公式来获得所需的数值，但使用**纹理**可能会节省很多时间，因为它们默认是以 sRGB 方式存储的，所以不会像顶点颜色那样出现颜色不准确的情况。我们会在下一课中介绍纹理。
 
+<div class="warning">
+
+假如你的显示设备使用的是 DisplayP3 或 BT.2100 等广色域色彩空间，那么当你使用取色器检查屏幕上的渲染结果时，拾取到的色值将与着色器内的返回值不一致。
+
+这是因为目前 WebGPU 仅支持较小色域的 sRGB 色彩空间，而硬件会执行色彩空间转换（color space conversion）将 sRGB 色值映射到更广的色域来显示到屏幕上，因此，使用取色器拾取到的色值是经过转换后的值。
+
+</div>
+
 ## 挑战
+
 使用顶点缓冲区和索引缓冲区创建一个比教程里做的更复杂的形状（也就是三个以上的三角形），并用空格键在两者之间切换。
 
 <WasmExample example="tutorial4_buffer"></WasmExample>
