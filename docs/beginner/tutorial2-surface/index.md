@@ -176,7 +176,7 @@ surface.configure(&device, &config);
 
 `usage` 字段描述了 `SurfaceTexture` 如何被使用。`RENDER_ATTACHMENT` 指定将被用来渲染到屏幕的纹理（我们将在后面讨论更多的 `TextureUsages` 枚举值）。
 
-`format` 定义了 `SurfaceTexture` 在 GPU 内存上如何被存储。不同的显示设备偏好不同的纹理格式。我们使用`surface.get_preferred_format(&adapter)` 来获取你使用的显示设备的最佳格式。
+`format` 定义了 `SurfaceTexture` 在 GPU 内存上如何被存储。不同的显示设备偏好不同的纹理格式。我们使用`surface.get_capabilities(&adapter).formats` 来获取当前显示设备的最佳格式。
 
 `width` 和 `height` 指定 `SurfaceTexture` 的宽度和高度（物理像素，等于逻辑像素乘以屏幕缩放因子）。这通常就是窗口的宽和高。
 
@@ -190,10 +190,10 @@ surface.configure(&device, &config);
 
 <div class="note">
 
-当你想让用户来选择他们使用的**呈现模式**时，可以使用 [Surface::get_supported_modes()](https://docs.rs/wgpu/latest/wgpu/struct.Surface.html#method.get_supported_modes) 获取展示平面支持的所有**呈现模式**的列表:
+当你想让用户来选择他们使用的**呈现模式**时，可以使用 [surface.get_capabilities(&adapter)](https://docs.rs/wgpu/latest/wgpu/struct.Surface.html#method.get_capabilities) 获取展示平面支持的所有**呈现模式**的列表:
 
 ```rust
-let modes = surface.get_supported_modes(&adapter);
+let modes = surface.get_capabilities(&adapter).present_modes;
 ```
 
 `PresentMode::Fifo` 模式无论如何都是被支持的，`PresentMode::AutoVsync` 和 `PresentMode::AutoNoVsync` 支持回退，因此也能工作在所有平台上。

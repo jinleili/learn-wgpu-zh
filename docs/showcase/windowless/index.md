@@ -24,7 +24,7 @@ let (device, queue) = adapter
 
 虽然我们已经说过不需要看到 gpu 在做什么，但确实需要在某些时候看到结果。如果回顾一下关于 [surface](/beginner/tutorial2-surface/#render) 的讨论，会发现我们是使用 `surface.get_current_texture()` 获取一个纹理来绘制。
 
-现在，我们跳过这一步，自己创建纹理。这里需要注意的是，需要指定 `TextureFormat::Rgba8UnormSrgb` 为纹理像素格式而不是 `surface.get_preferred_format(&adapter)`，因为 PNG 使用 RGBA 而不是 BGRA 像素格式：
+现在，我们跳过这一步，自己创建纹理。这里需要注意的是，需要指定 `TextureFormat::Rgba8UnormSrgb` 为纹理像素格式而不是 `surface.get_capabilities(&adapter).formats[0]`，因为 PNG 使用 RGBA 而不是 BGRA 像素格式：
 
 ```rust
 let texture_size = 256u32;
