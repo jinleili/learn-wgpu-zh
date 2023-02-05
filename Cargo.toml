@@ -41,7 +41,7 @@ naga = { version = "0.10" }
 pollster = "0.2"
 rayon = "1.4"
 tobj = "3.2"
-winit = "0.27.1"
+winit = "0.27.5"
 wgpu = { version = "0.15", default-features = false }
 
 # wasm32 dependencies

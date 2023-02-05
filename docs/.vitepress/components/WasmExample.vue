@@ -64,8 +64,8 @@ export default {
     },
 
     showErr(err) {
-      this.error = `An error occurred loading "${this.example}": ${e}`;
-      console.error(e);
+      this.error = `An error occurred loading "${this.example}": ${err}`;
+      console.error(err);
       this.exampleStarted = false;
       this.loading = false;
     }

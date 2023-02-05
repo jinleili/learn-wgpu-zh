@@ -254,10 +254,10 @@ WASM 环境中不能在异步函数里使用 `block_on`。`Future`（异步函�
 ```toml
 [dependencies]
 cfg-if = "1"
-winit = "0.27.1"
+winit = "0.27.5"
 env_logger = "0.9"
 log = "0.4"
-wgpu = "0.14"
+wgpu = "0.15"
 pollster = "0.2"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]

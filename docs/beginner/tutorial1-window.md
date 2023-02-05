@@ -6,10 +6,10 @@
 
 ```toml
 [dependencies]
-winit = "0.27.1"
+winit = "0.27.5"
 env_logger = "0.9"
 log = "0.4"
-wgpu = "0.14"
+wgpu = "0.15"
 ```
 
 ## 使用 Rust 的新版解析器

@@ -30,7 +30,7 @@ jobs:
         run: cp -r docs/.vitepress/components/wasm docs/.vitepress/dist/assets/
 
       - name: Deploy
-        uses: JamesIves/github-pages-deploy-action@4.1.5
+        uses: JamesIves/github-pages-deploy-action@4.4.1
         with:
           branch: gh-pages
           folder: docs/.vitepress/dist
