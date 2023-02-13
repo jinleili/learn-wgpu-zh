@@ -147,7 +147,7 @@ function sidebarConfig() {
           link: "/integration-and-debugging/snapdragon-profiler/",
         },
         {
-          text: "🆕 在 iOS Adroid App 中集成 Bevy 游戏引擎",
+          text: "🆕 在 iOS Android App 中集成 Bevy 游戏引擎",
           link: "/integration-and-debugging/bevy/",
         },
       ],
