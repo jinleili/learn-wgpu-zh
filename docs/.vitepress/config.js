@@ -38,7 +38,7 @@ export default defineConfig({
       next: "下一章",
     },
     outlineTitle: "本章内容",
-    
+
     // TODO: 新版本的 i18n 能正常工作后，此处配置可移除（2023/2/3）
     localeLinks: {
       text: "简体中文",
@@ -48,7 +48,11 @@ export default defineConfig({
     socialLinks: [
       { icon: "github", link: "https://github.com/jinleili/learn-wgpu-zh" },
     ],
-    nav: [],
+    nav: [
+      { text: "Simuverse", link: "https://github.com/jinleili/simuverse" },
+      { text: "wgpu-in-app", link: "https://github.com/jinleili/wgpu-in-app" },
+      { text: "bevy-in-app", link: "https://github.com/jinleili/bevy-in-app" },
+    ],
     sidebar: {
       "/": sidebarConfig(),
     },

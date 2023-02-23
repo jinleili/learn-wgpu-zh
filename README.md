@@ -49,7 +49,10 @@ cargo run-wasm --bin tutorial1-window
 # 使用 WebGL 2.0
 cargo run-wasm --bin tutorial1-window --features webgl
 ```
-**调试与集成** 部分的代码是一个独立的项目：[wgpu-in-app](https://github.com/jinleili/wgpu-in-app)
+**调试与集成** 部分的代码是一个独立的项目：
+[wgpu-in-app](https://github.com/jinleili/wgpu-in-app) 和 [bevy-in-app](https://github.com/jinleili/bevy-in-app)
+
+[**simuverse**](https://github.com/jinleili/simuverse) 是基于 wgpu + [egui](https://github.com/emilk/egui) 的扩展示例，提供了粒子矢量场，流体场及 GPU 程序化纹理的实现。
 
 ## 如何开启浏览器 WebGPU 试验功能
 
