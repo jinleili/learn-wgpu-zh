@@ -81,10 +81,10 @@ impl QuadBufferBuilder {
             },
         ]);
         self.index_data.extend(&[
-            self.current_quad * 4 + 0,
+            self.current_quad * 4,
             self.current_quad * 4 + 1,
             self.current_quad * 4 + 2,
-            self.current_quad * 4 + 0,
+            self.current_quad * 4,
             self.current_quad * 4 + 2,
             self.current_quad * 4 + 3,
         ]);

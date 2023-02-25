@@ -253,7 +253,7 @@ fn create_render_pipeline(
         vertex: wgpu::VertexState {
             module: &vs_module,
             entry_point: "main",
-            buffers: &vertex_layouts,
+            buffers: vertex_layouts,
         },
         fragment: Some(wgpu::FragmentState {
             module: &fs_module,

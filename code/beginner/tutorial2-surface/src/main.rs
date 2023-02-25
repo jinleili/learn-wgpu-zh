@@ -218,7 +218,7 @@ pub async fn run() {
                     // 系统内存不足时，程序应该退出。
                     Err(wgpu::SurfaceError::OutOfMemory) => *control_flow = ControlFlow::Exit,
                     // 所有其他错误（过期、超时等）应在下一帧解决
-                    Err(e) => eprintln!("{:?}", e),
+                    Err(e) => eprintln!("{e:?}"),
                 }
             }
             Event::MainEventsCleared => {

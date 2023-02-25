@@ -2,7 +2,7 @@ use std::iter;
 
 use app_surface::{AppSurface, SurfaceFrame};
 use wgpu::util::DeviceExt;
-use winit::window::WindowId;
+use winit::{dpi::PhysicalSize, window::WindowId};
 
 #[path = "../../../framework.rs"]
 mod framework;
@@ -216,7 +216,10 @@ impl Action for State {
     fn current_window_id(&self) -> WindowId {
         self.app.view.id()
     }
-    fn resize(&mut self) {
+    fn resize(&mut self, size: &PhysicalSize<u32>) {
+        if self.app.config.width == size.width && self.app.config.height == size.height {
+            return;
+        }
         self.app.resize_surface();
     }
     fn request_redraw(&mut self) {

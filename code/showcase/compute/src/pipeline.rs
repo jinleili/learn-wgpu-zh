@@ -104,11 +104,10 @@ pub fn create_compute_pipeline(
         bind_group_layouts,
         push_constant_ranges: &[],
     });
-    let pipeline = device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
+    device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
         label,
         layout: Some(&layout),
         module: &device.create_shader_module(shader_src),
         entry_point: "main",
-    });
-    pipeline
+    })
 }

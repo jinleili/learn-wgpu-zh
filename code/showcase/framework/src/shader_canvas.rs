@@ -105,6 +105,12 @@ pub struct ShaderCanvasBuilder<'a> {
     vert_code: Option<wgpu::ShaderModuleDescriptor<'a>>,
 }
 
+impl<'a> Default for ShaderCanvasBuilder<'a> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl<'a> ShaderCanvasBuilder<'a> {
     pub fn new() -> Self {
         Self {

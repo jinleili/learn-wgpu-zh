@@ -36,7 +36,7 @@ pub fn start() {
     let window = WindowBuilder::new()
         .with_visible(false)
         .with_title("Pong")
-        .with_fullscreen(video_mode.map(|vm| Fullscreen::Exclusive(vm)))
+        .with_fullscreen(video_mode.map(Fullscreen::Exclusive))
         .build(&event_loop)
         .unwrap();
 
@@ -271,10 +271,7 @@ fn process_input(
     keycode: VirtualKeyCode,
     control_flow: &mut ControlFlow,
 ) {
-    match (keycode, element_state) {
-        (VirtualKeyCode::Escape, ElementState::Pressed) => {
-            *control_flow = ControlFlow::Exit;
-        }
-        _ => {}
+    if let (VirtualKeyCode::Escape, ElementState::Pressed) = (keycode, element_state) {
+        *control_flow = ControlFlow::Exit;
     }
 }

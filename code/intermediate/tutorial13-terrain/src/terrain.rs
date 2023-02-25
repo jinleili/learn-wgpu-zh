@@ -43,7 +43,7 @@ impl Terrain {
         }
         let existing_chunk = index.map(|index| self.chunks.remove(index));
         self.chunks
-            .push(pipeline.gen_chunk(&device, &queue, corner, existing_chunk));
+            .push(pipeline.gen_chunk(device, queue, corner, existing_chunk));
     }
 }
 
@@ -200,10 +200,10 @@ impl GenerateChunk for TerrainPipeline {
             chunk.corner = corner;
             chunk
         } else {
-            let chunk_name = format!("Chunk {:?}", corner);
+            let chunk_name = format!("Chunk {corner:?}");
             let num_vertices = (self.chunk_size.x + 1) * (self.chunk_size.y + 1);
             let vertex_buffer = device.create_buffer(&wgpu::BufferDescriptor {
-                label: Some(&format!("{}: Vertices", chunk_name)),
+                label: Some(&format!("{chunk_name}: Vertices")),
                 size: (num_vertices * 8 * std::mem::size_of::<f32>() as u32) as _,
                 usage: wgpu::BufferUsages::STORAGE
                     | wgpu::BufferUsages::VERTEX
@@ -211,9 +211,9 @@ impl GenerateChunk for TerrainPipeline {
                 mapped_at_creation: false,
             });
             let num_elements = self.chunk_size.x * self.chunk_size.y * 6;
-            println!("num_elements: {}", num_elements);
+            println!("num_elements: {num_elements}");
             let index_buffer = device.create_buffer(&wgpu::BufferDescriptor {
-                label: Some(&format!("{}: Indices", chunk_name)),
+                label: Some(&format!("{chunk_name}: Indices")),
                 size: (num_elements * std::mem::size_of::<u32>() as u32) as _,
                 usage: wgpu::BufferUsages::STORAGE
                     | wgpu::BufferUsages::INDEX
@@ -465,10 +465,10 @@ impl GenerateChunk for TerrainHackPipeline {
             chunk.corner = corner;
             chunk
         } else {
-            let chunk_name = format!("Chunk {:?}", corner);
+            let chunk_name = format!("Chunk {corner:?}");
             let num_vertices = (self.chunk_size.x + 1) * (self.chunk_size.y + 1);
             let vertex_buffer = device.create_buffer(&wgpu::BufferDescriptor {
-                label: Some(&format!("{}: Vertices", chunk_name)),
+                label: Some(&format!("{chunk_name}: Vertices")),
                 size: (num_vertices * 8 * std::mem::size_of::<f32>() as u32) as _,
                 usage: wgpu::BufferUsages::COPY_DST
                     | wgpu::BufferUsages::VERTEX
@@ -477,7 +477,7 @@ impl GenerateChunk for TerrainHackPipeline {
             });
             let num_elements = self.chunk_size.x * self.chunk_size.y * 6;
             let index_buffer = device.create_buffer(&wgpu::BufferDescriptor {
-                label: Some(&format!("{}: Indices", chunk_name)),
+                label: Some(&format!("{chunk_name}: Indices")),
                 size: (num_elements * std::mem::size_of::<u32>() as u32) as _,
                 usage: wgpu::BufferUsages::COPY_DST
                     | wgpu::BufferUsages::INDEX
@@ -515,7 +515,7 @@ impl GenerateChunk for TerrainHackPipeline {
             corner,
             self.min_max_height,
         );
-        println!("gen data: {:?}", data);
+        println!("gen data: {data:?}");
         let gen_buffer = device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("HackTerrainPipeline: GenData"),
             size: size_of_val(&data) as _,
@@ -626,7 +626,7 @@ impl GenerateChunk for TerrainHackPipeline {
             .unwrap();
             use std::io::Write;
             for quad in indices.chunks(6) {
-                writeln!(f, "{:?}", quad);
+                let _ = writeln!(f, "{quad:?}");
             }
             drop(f);
 

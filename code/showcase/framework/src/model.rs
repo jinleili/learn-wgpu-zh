@@ -157,18 +157,16 @@ impl<'a> Model<'a> {
                         m.mesh.positions[i * 3],
                         m.mesh.positions[i * 3 + 1],
                         m.mesh.positions[i * 3 + 2],
-                    ]
-                    .into(),
-                    tex_coords: [m.mesh.texcoords[i * 2], m.mesh.texcoords[i * 2 + 1]].into(),
+                    ],
+                    tex_coords: [m.mesh.texcoords[i * 2], m.mesh.texcoords[i * 2 + 1]],
                     normal: [
                         m.mesh.normals[i * 3],
                         m.mesh.normals[i * 3 + 1],
                         m.mesh.normals[i * 3 + 2],
-                    ]
-                    .into(),
+                    ],
                     // We'll calculate these later
-                    tangent: [0.0; 3].into(),
-                    bitangent: [0.0; 3].into(),
+                    tangent: [0.0; 3],
+                    bitangent: [0.0; 3],
                 });
             }
 

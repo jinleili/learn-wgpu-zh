@@ -2,7 +2,7 @@ use std::{f32::consts, iter};
 
 use app_surface::{AppSurface, SurfaceFrame};
 use wgpu::util::DeviceExt;
-use winit::event::*;
+use winit::{event::*, dpi::PhysicalSize};
 use winit::window::WindowId;
 
 #[path = "../../../framework.rs"]
@@ -703,7 +703,10 @@ impl Action for State {
         self.app.view.id()
     }
 
-    fn resize(&mut self) {
+    fn resize(&mut self, size: &PhysicalSize<u32>) {
+        if self.app.config.width == size.width && self.app.config.height == size.height {
+            return;
+        }
         self.app.resize_surface();
         self.camera.aspect = self.app.config.width as f32 / self.app.config.height as f32;
         self.depth_pass.resize(&self.app.device, &self.app.config);

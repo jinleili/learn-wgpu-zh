@@ -26,7 +26,7 @@ impl ImageNode {
                     buffers: &[],
                 },
                 fragment: Some(wgpu::FragmentState {
-                    module: &shader,
+                    module: shader,
                     entry_point: fs_entry_point,
                     targets: &[Some(target.into())],
                 }),

@@ -601,7 +601,7 @@ impl State {
                 output.present();
             }
             Err(e) => {
-                eprintln!("{:?}", e);
+                eprintln!("{e:?}");
             }
         }
     }

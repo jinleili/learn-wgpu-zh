@@ -16,7 +16,7 @@ mod resources;
 mod terrain;
 mod texture;
 
-use model::{DrawLight, DrawModel, Vertex};
+use model::{DrawLight, Vertex};
 
 const NUM_INSTANCES_PER_ROW: u32 = 10;
 
@@ -170,15 +170,15 @@ fn create_render_pipeline(
     shader: &wgpu::ShaderModule,
 ) -> wgpu::RenderPipeline {
     device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-        label: Some(&format!("{:?}", shader)),
+        label: Some(&format!("{shader:?}")),
         layout: Some(layout),
         vertex: wgpu::VertexState {
-            module: &shader,
+            module: shader,
             entry_point: "vs_main",
             buffers: vertex_layouts,
         },
         fragment: Some(wgpu::FragmentState {
-            module: &shader,
+            module: shader,
             entry_point: "fs_main",
             targets: &[Some(wgpu::ColorTargetState {
                 format: color_format,

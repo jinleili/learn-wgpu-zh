@@ -23,6 +23,12 @@ pub struct RenderPipelineBuilder<'a> {
     multiview: Option<NonZeroU32>,
 }
 
+impl<'a> Default for RenderPipelineBuilder<'a> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl<'a> RenderPipelineBuilder<'a> {
     pub fn new() -> Self {
         Self {

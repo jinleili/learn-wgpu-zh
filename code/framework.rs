@@ -2,13 +2,14 @@ use winit::{
     event::*,
     event_loop::{ControlFlow, EventLoop},
     window::{WindowBuilder, WindowId},
+    dpi::PhysicalSize,
 };
 
 pub trait Action {
     fn new(app: app_surface::AppSurface) -> Self;
     fn get_adapter_info(&self) -> wgpu::AdapterInfo;
     fn current_window_id(&self) -> WindowId;
-    fn resize(&mut self);
+    fn resize(&mut self, size: &PhysicalSize<u32>);
     fn request_redraw(&mut self);
     fn input(&mut self, _event: &WindowEvent) -> bool {
         false
@@ -58,8 +59,6 @@ pub fn run<A: Action + 'static>(wh_ratio: Option<f32>) {
 }
 
 async fn create_action_instance<A: Action + 'static>(wh_ratio: Option<f32>) -> (EventLoop<()>, A) {
-    use winit::dpi::PhysicalSize;
-
     let event_loop = EventLoop::new();
     let window = WindowBuilder::new().build(&event_loop).unwrap();
 
@@ -155,12 +154,19 @@ fn start_event_loop<A: Action + 'static>(event_loop: EventLoop<()>, instance: A)
                                 },
                             ..
                         } => *control_flow = ControlFlow::Exit,
-                        WindowEvent::Resized(_physical_size) => {
-                            state.resize();
+                        WindowEvent::Resized(physical_size) => {
+                            if physical_size.width == 0 || physical_size.height == 0 {
+                                // 处理最小化窗口的事件
+                                println!("Window minimized!");
+                            } else {
+                                state.resize(physical_size);
+                            }
                         }
-                        WindowEvent::ScaleFactorChanged { .. } => {
-                            // new_inner_size is &mut so w have to dereference it twice
-                            state.resize();
+                        WindowEvent::ScaleFactorChanged {
+                            scale_factor: _,
+                            new_inner_size,
+                        } => {
+                            state.resize(*new_inner_size);
                         }
                         _ => {}
                     }
@@ -171,11 +177,11 @@ fn start_event_loop<A: Action + 'static>(event_loop: EventLoop<()>, instance: A)
                 match state.render() {
                     Ok(_) => {}
                     // 当展示平面的上下文丢失，就需重新配置
-                    Err(wgpu::SurfaceError::Lost) => state.resize(),
+                    Err(wgpu::SurfaceError::Lost) => eprintln!("Surface is lost"),
                     // 系统内存不足时，程序应该退出。
                     Err(wgpu::SurfaceError::OutOfMemory) => *control_flow = ControlFlow::Exit,
                     // 所有其他错误（过期、超时等）应在下一帧解决
-                    Err(e) => eprintln!("{:?}", e),
+                    Err(e) => eprintln!("{e:?}"),
                 }
             }
             Event::MainEventsCleared => {

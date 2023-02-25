@@ -6,8 +6,8 @@ edition.workspace = true
 rust-version.workspace = true
 
 [dependencies]
-# app-surface.workspace = true
-app-surface = { git = "https://github.com/jinleili/wgpu-on-app", rev = "210542f" }
+app-surface.workspace = true
+# app-surface = { git = "https://github.com/jinleili/wgpu-on-app", rev = "210542f" }
 bytemuck.workspace = true
 cfg-if.workspace = true
 env_logger.workspace = true
@@ -15,7 +15,7 @@ log.workspace = true
 pollster.workspace = true
 winit.workspace = true
 # wgpu.workspace = true
-wgpu = "0.14"
+wgpu = "0.15"
 png = "0.17"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]

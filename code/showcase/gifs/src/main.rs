@@ -141,9 +141,8 @@ async fn run() {
                 let padded_data = buffer_slice.get_mapped_range();
                 let data = padded_data
                     .chunks(padded_bytes_per_row as _)
-                    .map(|chunk| &chunk[..unpadded_bytes_per_row as _])
-                    .flatten()
-                    .map(|x| *x)
+                    .flat_map(|chunk| &chunk[..unpadded_bytes_per_row as _])
+                    .copied()
                     .collect::<Vec<_>>();
                 drop(padded_data);
                 output_buffer.unmap();
@@ -163,8 +162,8 @@ fn save_gif(path: &str, frames: &mut Vec<Vec<u8>>, speed: i32, size: u16) -> any
     let mut encoder = Encoder::new(&mut image, size, size, &[])?;
     encoder.set_repeat(Repeat::Infinite)?;
 
-    for mut frame in frames {
-        encoder.write_frame(&Frame::from_rgba_speed(size, size, &mut frame, speed))?;
+    for frame in frames {
+        encoder.write_frame(&Frame::from_rgba_speed(size, size, frame, speed))?;
     }
 
     Ok(())
@@ -186,7 +185,7 @@ fn create_render_pipeline(
         push_constant_ranges: &[],
     });
 
-    let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+    device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
         layout: Some(&render_pipeline_layout),
         label: Some("Render Pipeline"),
         vertex: wgpu::VertexState {
@@ -224,9 +223,7 @@ fn create_render_pipeline(
         // If the pipeline will be used with a multiview render pass, this
         // indicates how many array layers the attachments will have.
         multiview: None,
-    });
-
-    render_pipeline
+    })
 }
 
 fn main() {

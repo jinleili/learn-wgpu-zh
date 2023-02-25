@@ -47,11 +47,11 @@ wgpu = { version = "0.15", default-features = false }
 # wasm32 dependencies
 console_error_panic_hook = "0.1.7"
 console_log = "0.2.0"
-js-sys = "0.3.60"
+js-sys = "0.3.61"
 reqwest = { version = "0.11" }
-wasm-bindgen = "0.2.83"
-wasm-bindgen-futures = "0.4.33"
-web-sys = "0.3.60"
+wasm-bindgen = "0.2.84"
+wasm-bindgen-futures = "0.4.34"
+web-sys = "0.3.61"
 
 # build-dependencies
 anyhow = "1.0"
