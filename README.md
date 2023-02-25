@@ -2,7 +2,7 @@
 
 ![Minimum Rust Version](https://img.shields.io/badge/min%20rust-1.64-green.svg)
 [![Build Status](https://github.com/jinleili/learn-wgpu-zh/workflows/Build/badge.svg?branch=master)](https://github.com/jinleili/learn-wgpu-zh/actions)
-[![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/jinleili/learn-wgpu-zh/blob/main/LICENSE.MIT)
+[![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/jinleili/learn-wgpu-zh/blob/master/LICENSE.MIT)
 
 
 *为了便于读者的理解，译者选择性的添加了一些内容，并对原文中有歧义或错误的（比如：第八章、第十一章 Srgb 部分等等）地方进行重新表述。所有的添加与修改均不会做单独标记。*
