@@ -9,8 +9,8 @@
 ```rust
 let adapter = instance
     .request_adapter(&wgpu::RequestAdapterOptions {
-        power_preference: wgpu::PowerPreference::default(),
-        compatible_surface: None,
+        compatible_surface: Some(&surface),
+        ..Default::default()
     })
     .await
     .unwrap();
@@ -40,8 +40,7 @@ let texture_desc = wgpu::TextureDescriptor {
     dimension: wgpu::TextureDimension::D2,
     format: wgpu::TextureFormat::Rgba8UnormSrgb,
     usage: wgpu::TextureUsages::COPY_SRC
-        | wgpu::TextureUsages::RENDER_ATTACHMENT
-        ,
+        | wgpu::TextureUsages::RENDER_ATTACHMENT,
     label: None,
     view_formats: &[],
 };

@@ -1,6 +1,7 @@
 # 展示平面 (Surface)
 
 ## 封装 State
+
 为方便起见，我们将所有**字段**封装在一个**结构体**内，并在其上添加一些函数：
 
 ```rust
@@ -45,7 +46,8 @@ impl State {
 
 `surface`、`device`、`queue`、`config` 等对象是每个 wgpu 程序都需要的，且它们的创建过程涉及到很多模板代码，所以，从第 3 章开始，我将它们统一封装到了 [AppSurface](https://github.com/jinleili/wgpu-in-app/tree/master/app-surface) 对象中。
 
-`State` 中的这些函数在所有章节示例中都有用到，所以，在第 3～8 章，我将其抽象为了 `Action` trait:
+`State` 中的这些函数在所有章节示例中都有用到，所以，在第 3 ～ 8 章，我将其抽象为了 `Action` trait:
+
 ```rust
 pub trait Action {
     fn new(app: app_surface::AppSurface) -> Self;
@@ -64,6 +66,7 @@ pub trait Action {
 </div>
 
 ## 实例化 State
+
 这段代码很简单，但还是值得好好讲讲：
 
 ```rust
@@ -79,13 +82,11 @@ impl State {
             ..Default::default()
         });
         let surface = unsafe { instance.create_surface(window).unwrap() };
-        let adapter = instance.request_adapter(
-            &wgpu::RequestAdapterOptions {
-                power_preference: wgpu::PowerPreference::default(),
+        let adapter = instance
+            .request_adapter(&wgpu::RequestAdapterOptions {
                 compatible_surface: Some(&surface),
-                force_fallback_adapter: false,
-            },
-        ).await.unwrap();
+                ..Default::default()
+            }).await.unwrap();
 ```
 
 ### GPU 实例与适配器
@@ -94,9 +95,9 @@ impl State {
 
 **适配器**（Adapter）是指向 WebGPU API 实现的实例，一个系统上往往存在多个 WebGPU API 实现实例。也就是说，**适配器**是固定在特定图形后端的。假如你使用的是 Windows 且有 2 个显卡（集成显卡 + 独立显卡），则至少有 4 个**适配器**可供使用，分别有 2 个固定在 Vulkan 和 DirectX 后端。我们可以用它获取关联显卡的信息，例如显卡名称与其所适配到的后端图形驱动等。稍后我们会用它来创建**逻辑设备**和**命令队列**。现在先讨论一下 `RequestAdapterOptions` 所涉及的字段。
 
-* `power_preference` 枚举有两个可选项：`LowPower` 和 `HighPerformance`。 `LowPower` 对应偏向于高电池续航的适配器（如集成显卡上的 WebGPU 实现实例），`HighPerformance` 对应高功耗高性能的适配器（如独立显卡上的WebGPU 实现实例）。一旦不存在符合 `HighPerformance` 选项的适配器，wgpu 就会选择 `LowPower`。
-* `compatible_surface` 字段告诉 wgpu 找到与所传入的**展示平面**兼容的适配器。
-* `force_fallback_adapter` 强制 wgpu 选择一个能在所有系统上工作的适配器，这通常意味着渲染后端将使用一个**软渲染**系统，而非 GPU 这样的硬件。需要注意的是：WebGPU 标准并没有要求所有系统上都必须实现 [fallback adapter](https://gpuweb.github.io/gpuweb/#fallback-adapter) 。
+- `power_preference` 枚举有两个可选项：`LowPower` 和 `HighPerformance`。 `LowPower` 对应偏向于高电池续航的适配器（如集成显卡上的 WebGPU 实现实例），`HighPerformance` 对应高功耗高性能的适配器（如独立显卡上的 WebGPU 实现实例）。一旦不存在符合 `HighPerformance` 选项的适配器，wgpu 就会选择 `LowPower`。
+- `compatible_surface` 字段告诉 wgpu 找到与所传入的**展示平面**兼容的适配器。
+- `force_fallback_adapter` 强制 wgpu 选择一个能在所有系统上工作的适配器，这通常意味着渲染后端将使用一个**软渲染**系统，而非 GPU 这样的硬件。需要注意的是：WebGPU 标准并没有要求所有系统上都必须实现 [fallback adapter](https://gpuweb.github.io/gpuweb/#fallback-adapter) 。
 
 <div class="note">
 
@@ -107,21 +108,19 @@ let adapter = instance
     .enumerate_adapters(wgpu::Backends::all())
     .filter(|adapter| {
         // 检查该适配器是否兼容我们的展示平面
-        surface.get_preferred_format(&adapter).is_some()
+        !surface.get_capabilities(&adapter).formats.is_empty()
     })
     .next()
-    .unwrap()
+    .unwrap();
 ```
-
 
 更多可用于优化**适配器**搜索的函数，请[查看文档](https://docs.rs/wgpu/latest/wgpu/struct.Adapter.html)。
 
 </div>
 
-
 ### 展示平面
 
-**展示平面**（Surface）是我们绘制到窗口的部分，需要它来将绘制结果展示（或者说，呈现）到屏幕上。窗口程序需要实现 [raw-window-handle](https://crates.io/crates/raw-window-handle) **包**的 `HasRawWindowHandle`  trait 来创建展示平面。所幸 winit 的 `Window` 符合这个要求。我们还需要展示平面来请求**适配器**。
+**展示平面**（Surface）是我们绘制到窗口的部分，需要它来将绘制结果展示（或者说，呈现）到屏幕上。窗口程序需要实现 [raw-window-handle](https://crates.io/crates/raw-window-handle) **包**的 `HasRawWindowHandle` trait 来创建展示平面。所幸 winit 的 `Window` 符合这个要求。我们还需要展示平面来请求**适配器**。
 
 ### 逻辑设备与命令队列
 
@@ -387,6 +386,7 @@ fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
 ```rust
 let view = output.texture.create_view(&wgpu::TextureViewDescriptor::default());
 ```
+
 这一行创建了一个默认设置的**纹理视图**（TextureView），渲染代码需要利用**纹理视图**来与**纹理**交互。
 
 我们还需要创建一个**命令编码器**（CommandEncoder）来记录实际的**命令**发送给 GPU。大多数现代图形框架希望命令在被发送到 GPU 之前存储在一个**命令缓冲区**中。命令编码器创建了一个命令缓冲区，然后我们可以将其发送给 GPU。
@@ -524,8 +524,7 @@ Some(wgpu::RenderPassColorAttachment {
 
 ## 挑战
 
-修改 `input()` 函数以捕获鼠标事件，并使用该函数来更新**清屏**的颜色。*提示：你可能需要用到 `WindowEvent::CursorMoved`*。
-
+修改 `input()` 函数以捕获鼠标事件，并使用该函数来更新**清屏**的颜色。_提示：你可能需要用到 `WindowEvent::CursorMoved`_。
 
 <WasmExample example="tutorial2_surface"></WasmExample>
 
