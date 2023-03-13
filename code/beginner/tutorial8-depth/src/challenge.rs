@@ -2,8 +2,8 @@ use std::{f32::consts, iter};
 
 use app_surface::{AppSurface, SurfaceFrame};
 use wgpu::util::DeviceExt;
-use winit::{event::*, dpi::PhysicalSize};
 use winit::window::WindowId;
+use winit::{dpi::PhysicalSize, event::*};
 
 #[path = "../../../framework.rs"]
 mod framework;
@@ -307,7 +307,7 @@ impl DepthPass {
                 wgpu::BindGroupLayoutEntry {
                     binding: 1,
                     count: None,
-                    ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Comparison),
+                    ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering),
                     visibility: wgpu::ShaderStages::FRAGMENT,
                 },
             ],
