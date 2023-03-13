@@ -103,7 +103,7 @@ impl CameraUniform {
     }
 
     fn update_view_proj(&mut self, camera: &Camera) {
-        self.view_proj = camera.build_view_projection_matrix().into();
+        self.view_proj = camera.build_view_projection_matrix().to_cols_array_2d();
     }
 }
 ```

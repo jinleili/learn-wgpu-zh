@@ -108,7 +108,7 @@ let adapter = instance
     .enumerate_adapters(wgpu::Backends::all())
     .filter(|adapter| {
         // 检查该适配器是否兼容我们的展示平面
-        !surface.get_capabilities(&adapter).formats.is_empty()
+        adapter.is_surface_supported(&surface))
     })
     .next()
     .unwrap();
