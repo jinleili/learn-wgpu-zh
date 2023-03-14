@@ -67,7 +67,7 @@ cargo run-wasm --bin tutorial1-window --features webgl
 <img src="docs/public/res/firefox.png" alt="FireFox Nightly">
 
 ### Chrome  
-安装 Canary 版本，在地址栏中输入 `chrome://flags` , 将 `Unsafe WebGPU` 设置为 `Enabled`:
+安装 110.0 以上正式版或 Canary 版，在地址栏中输入 `chrome://flags` , 将 `Unsafe WebGPU` 设置为 `Enabled`:
 <img src="docs/public/res/chrome.png" alt="Chrome Canary">
 
 ## 关于译者
