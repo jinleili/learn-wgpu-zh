@@ -11,21 +11,29 @@
 
 *另外，专有名词在一个段落中第一次出现时做了**加粗**处理，同一段落里反复出现时就不再加粗。*
 
-## wgpu 是啥？
+## WebGPU 是啥？
+**WebGPU** 是由 W3C [GPU for the Web](https://www.w3.org/community/gpu/) 社区组所发布的规范，目标是允许网页代码以高性能且安全可靠的方式访问 GPU 功能。它通过借鉴 Vulkan API，并将其转换为宿主硬件上使用的各式 API（如 DirectX、Metal、Vulkan）来实现这一目标。
+
+## wgpu 又是啥？
 [wgpu](https://github.com/gfx-rs/wgpu) 是基于 [WebGPU API 规范](https://gpuweb.github.io/gpuweb/)的、跨平台的、安全的、纯 Rust 图形 API。它是 Firefox、Servo 和 Deno 中 WebGPU 整合的核心。
 
 **wgpu** 不仅可以在 Web 环境运行，还可以在 macOS / iOS、Android、Window 和 Linux 等系统上原生运行。
 
-## WebGPU 又是啥？
-**WebGPU** 是由 W3C [GPU for the Web](https://www.w3.org/community/gpu/) 社区组所发布的规范，目标是允许网页代码以高性能且安全可靠的方式访问 GPU 功能。它通过借鉴 Vulkan API，并将其转换为宿主硬件上使用的各式 API（如 DirectX、Metal、Vulkan）来实现这一目标。
-
-## 为什么使用 Rust？
+## 为什么要使用 Rust？
 
 wgpu 实际上提供了 C 语言绑定 ([wgpu-native](https://github.com/gfx-rs/wgpu-native))，你可以写 C/C++ 或其他能与 C 互通的语言来使用它。尽管如此，wgpu 本身是用 Rust 实现的，它便利的 Rust 绑定能减少你使用中的阻碍。更重要的是，Rust 是一门高性能，内存和线程安全且极具生产力的现代底层语言。
 
 在学习本教程之前你需要先熟悉 Rust，因为这里不会详细介绍 Rust 的语法知识。如果对 Rust 还不太熟悉，可以回顾一下 [Rust 教程](https://www.rust-lang.org/zh-CN/learn)或 [Rust 语言圣经](https://course.rs/about-book.html)。另外还需要熟悉 Rust 包管理工具 [Cargo](https://rustwiki.org/zh-CN/cargo/getting-started/index.html)。
 
-## WebGPU 的学习资料是不是很少？
+## 为什么要学习 wgpu，直接用 JS/TS 搞 WebGPU 开发不香吗？
+
+从 wgpu 及 dawn 这两个主要的 WebGPU 标准的实现库的开发动向可以看出，大量的扩展特性目前只有在 Native 端（Windows、macOS、Linux、iOS、Android）原生运行才能支持。wgpu 更是将 Native 端运行做为首要目标，WebGPU 是做为最低支持的特性集而存在。
+
+使用 wgpu 在桌面及移动端做跨平台原生应用开发的体验极好，甚至我偏向于认为：**WebGPU 更容易在 Native 端得到普及**。因为不用受限于 1.0 标准啥时候发布，用户的浏览器是否支持等问题，现在就可以发布采用了 wgpu 的商业应用。
+
+学习 wgpu 还有另一个重要的优势，那就是可以利用各种强大的桌面端 GPU 调试工具。在开发大型 2D/3D 应用时，通过使用命令记录/回放、帧捕捉、Buffer 视图等功能，可以快速定位 GPU 层代码/数据的性能瓶颈和程序缺陷。相较于仅依靠浏览器提供的有限调试能力，这些工具能够事半功倍，帮助开发者更快地解决问题。
+
+## wgpu/WebGPU 的学习资料是不是很少？
 
 其实不用纠结于 WebGPU 方面的直接学习资料的多少。
 
@@ -34,10 +42,6 @@ WebGPU 就是一套图形接口，绝大部分概念都是各图形接口里通�
 
 ## 现在学习 wgpu 是不是为时尚早？
 虽然 WebGPU 1.0 要到 2023 年年中才会正式发布，但 API 目前已经趋于稳定了，后面的修订更多是内部实现层的完善。
-
-从 wgpu 及 dawn 这两个主要的 WebGPU 标准的实现库的开发动向可以看出，大量的扩展特性目前只有 PC、Mac、iOS、Android 等系统上本地运行才能支持。wgpu 更是将本地运行做为首要目标，WebGPU 是做为最低支持的特性集而存在。
-
-使用 wgpu 在移动端做跨平台开发的体验极好，甚至我偏向于认为：**WebGPU 更容易在 iOS、Android 上得到普及**。因为不用受限于 1.0 标准啥时候发布，用户的浏览器是否支持等问题。
 
 ## 如何运行示例代码
 本教程的示例代码大部分放在 [`code/`](https://github.com/jinleili/learn-wgpu-zh/tree/master/code) 目录下，且示例程序的名称与程序目录同名。
