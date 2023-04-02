@@ -419,7 +419,7 @@ const VERTICES: &[Vertex] = &[
 ];
 ```
 
-现在我们就把树正确地放在六边形上了:
+现在我们就把树正确地放在五边形上了:
 
 ![our happy tree as it should be](./rightside-up.png)
 
