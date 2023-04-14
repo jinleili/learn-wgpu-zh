@@ -298,7 +298,7 @@ wasm-pack build --target web
     <title>Pong with WASM</title>
 </head>
 
-<body>
+<body id="wasm-example">
   <script type="module">
       import init from "./pkg/pong.js";
       init().then(() => {
@@ -310,8 +310,7 @@ wasm-pack build --target web
           background-color: black;
       }
   </style>
-    
-  <canvas id="wasm-example"></canvas>
+  
 </body>
 
 </html>
