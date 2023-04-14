@@ -17,11 +17,11 @@ wgpu = "0.15"
 
 ## 关于 env_logger
 通过 `env_logger::init()` 来启用日志是非常重要的。当 wgpu 遇到各类错误时，它都会用一条通用性的消息抛出 panic，并通过日志**包**来记录实际的错误信息。
-也就是说，如果不添加 `env_logger::init()`，wgpu 将静默地退出，从而令你非常困惑！
+也就是说，如果不添加 `env_logger::init()`，wgpu 将静默地退出，从而令你非常困惑！<br> 
 (下面的代码中已经启用)
 
 ## 创建一个新项目
-运行 `cargo new xxx`，xxx 是指你的项目名称。
+运行 `cargo new xxx`，xxx 是指你的项目名称。<br>
 (下面的例子中我使用了 `tutorial1_window`)
 
 ## 示例代码
@@ -126,10 +126,10 @@ web-sys = { version = "0.3.60", features = [
 
 * [console_error_panic_hook](https://docs.rs/console_error_panic_hook) 配置 `panic!` 宏以将错误发送到 javascript 控制台。如果没有这个，当遇到程序崩溃时，你就会对导致崩溃的原因一无所知。
 * [console_log](https://docs.rs/console_log) 实现了 [log](https://docs.rs/log) API。它将所有日志发送到 javascript 控制台。它还可以配置为仅发送特定级别的日志，这非常适合用于调试。
-* 当我们想在大多数当前浏览器上运行时，就需要在 wgpu 上启用 `WebGL` 功能。因为目前只在 Firefox Nightly 和 Chrome Canary 等浏览器的实验版本上才支持直接使用 WebGPU API。
-  欢迎你在这些浏览器上测试这段代码（wgpu 的开发者也会很感激），但为了简单起见，我打算坚持使用 WebGL 功能，直到 WebGPU API 达到一个更稳定的状态。
+* 当我们想在大多数当前浏览器上运行时，就需要在 wgpu 上启用 `WebGL` 功能。因为目前只在 Firefox Nightly 和 Chrome Canary 等浏览器的实验版本上才支持直接使用 WebGPU API。<br>
+  欢迎你在这些浏览器上测试这段代码（wgpu 的开发者也会很感激），但为了简单起见，我打算坚持使用 WebGL 功能，直到 WebGPU API 达到一个更稳定的状态。<br>
   如果你想了解更多详细信息，请查看 [wgpu 源码仓库](https://github.com/gfx-rs/wgpu/wiki/Running-on-the-Web-with-WebGPU-and-WebGL) 上的 web 编译指南
-* [wasm-bindgen](https://docs.rs/wasm-bindgen) 是此列表中最重要的依赖项。它负责生成样板代码，并告诉浏览器如何使用我们的项目。它还允许我们在 Rust 中公开可在 Javascript 中使用的**函数**，反之亦然。
+* [wasm-bindgen](https://docs.rs/wasm-bindgen) 是此列表中最重要的依赖项。它负责生成样板代码，并告诉浏览器如何使用我们的项目。它还允许我们在 Rust 中公开可在 Javascript 中使用的**函数**，反之亦然。<br>
   我不会详细介绍 wasm-bindgen，所以如果你需要入门（或者是复习），请查看[这里](https://rustwasm.github.io/wasm-bindgen/)
 * [web-sys](https://docs.rs/web-sys) 是一个包含了许多在 javascript 程序中可用的**函数**和**结构体**的工具箱，如：`get_element_by_id`、`append_child`。`features = [...]` 数组里列出的是我们目前最低限度需要的功能。
 
