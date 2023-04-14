@@ -89,6 +89,8 @@ crate-type = ["cdylib", "rlib"]
 
 仅在需要将项目做为其他 Rust 项目的**包**（crate）提供时，`[lib]` 项的配置才是必须的。所以我们的示例程序可以省略上面这一步。
 
+添加上述 `[lib]` 内容依赖于像原作者那样将主要代码写入一个 `lib.rs` 文件，而如果想要通过下文的 wasm-pack 方法构建，则需要进行上述步骤。
+
 </div>
 
 <div class="note">
@@ -222,11 +224,35 @@ pub fn run<A: Action + 'static>() {
 
 上边这些就是我们现在需要的所有 web 专用代码。接下来要做的就是**构建** Web Assembly 本身。
 
+<div class="note">
+
+**译者注**：以下关于 `wasm-pack` 的内容来自原文。但是由于它和 WebGPU 接口都尚未稳定，译者暂时不推荐用它构建此教程中的项目。参考本教程和原作者的仓库，这里给出一个使用 `cargo build` 的简易构建过程，如有疏漏请 PR 指正。
+
+1. 如果要支持 WebGL，那么在 `Cargo.toml` 中加入以下描述来启用 cargo 的 `--features` 参数，参考 [wgpu 的运行指南](https://github.com/gfx-rs/wgpu/wiki/Running-on-the-Web-with-WebGPU-and-WebGL)：
+    
+```toml
+[features]
+default = []
+webgl = ["wgpu/webgl"]
+```
+    
+2. 运行 `cargo build --target wasm32-unknown-unknown --features webgl`。
+    
+3. 安装 [`wasm-bindgen`](https://rustwasm.github.io/wasm-bindgen) 并运行：
+```shell
+cargo install -f wasm-bindgen-cli --version 0.2.84
+wasm-bindgen --no-typescript --out-dir {你的输出目录，例如 ./tutorial1_window_output} --web {wasm 所在的目录，例如 .\target\wasm32-unknown-unknown\release\tutorial1_window.wasm}
+```
+    
+4. 此时会得到一个包含 .wasm 和 .js 文件的文件夹。可以用下文的 html 引入该 .js 文件。如果直接在浏览器打开该 html 文件，可能遇到 [CORS 问题](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS)；如果正常运行，则可能出现一个警告 `Using exceptions for control flow, don't mind me. This isn't actually an error!`，忽略即可。
+
+</div>
+    
 ## Wasm Pack
 
 你可以只用 wasm-bindgen 来**构建**一个 wgpu 应用程序，但我在这样做的时候遇到了一些问题。首先，你需要在电脑上安装 wasm-bindgen，并将其作为一个依赖项。作为依赖关系的版本**需要**与你安装的版本完全一致，否则构建将会失败。
 
-为了克服这个缺点，并使阅读这篇教程人更容易上手，我选择在组合中加入 [wasm-pack](https://rustwasm.github.io/docs/wasm-pack/)。wasm-pack 可以为你安装正确的 wasm-bindgen 版本，而且它还支持为不同类型的 web 目标进行**构建**：浏览器、NodeJS 和 webpack 等打包工具。
+为了克服这个缺点，并使阅读这篇教程的人更容易上手，我选择在组合中加入 [wasm-pack](https://rustwasm.github.io/docs/wasm-pack/)。wasm-pack 可以为你安装正确的 wasm-bindgen 版本，而且它还支持为不同类型的 web 目标进行**构建**：浏览器、NodeJS 和 webpack 等打包工具。
 
 使用 wasm-pack 前，你需要先[安装](https://rustwasm.github.io/wasm-pack/installer/)。
 
@@ -235,6 +261,12 @@ pub fn run<A: Action + 'static>() {
 ```bash
 wasm-pack build game
 ```
+    
+<div class="note">
+
+**译者注**：`wasm-pack build` 需要如之前所说的那样加入 `[lib]` 等来构建静态库。
+
+</div>
 
 一旦 wasm-pack 完成**构建**，在你的**包**目录下就会有一个 `pkg` 目录，运行 WASM 代码所需的所有 javascript 代码都在这里。然后在 javascript 中导入 WASM 模块：
 
@@ -243,7 +275,7 @@ const init = await import('./pkg/game.js');
 init().then(() => console.log("WASM Loaded"));
 ```
 
-这个网站使用了 [VitePress](https://vitepress.vuejs.org)，并且是在 Vue 组件中加载 WASM。如果想看看我是怎么做的，可以查看[这里](https://github.com/sotrh/learn-wgpu/blob/master/docs/.vitepress/components/WasmExample.vue)。
+这个网站使用了 [VitePress](https://vitepress.vuejs.org)，并且是在 Vue 组件中加载 WASM。如果想看看我是怎么做的，可以查看[这里](https://github.com/jinleili/learn-wgpu-zh/blob/master/docs/.vitepress/components/WasmExample.vue)。
 
 <div class="note">
 
@@ -266,7 +298,7 @@ wasm-pack build --target web
     <title>Pong with WASM</title>
 </head>
 
-<body>
+<body id="wasm-example">
   <script type="module">
       import init from "./pkg/pong.js";
       init().then(() => {
@@ -278,6 +310,7 @@ wasm-pack build --target web
           background-color: black;
       }
   </style>
+  
 </body>
 
 </html>
