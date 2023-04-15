@@ -150,14 +150,18 @@ impl Action for State {
     }
 
     fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
-        let (output, view) = self.app.get_current_frame_view();
+        let output = self.app.surface.get_current_texture().unwrap();
+        // 此处与其它示例不同，使用了非 sRGB 格式的纹理视图
+        let view = output
+            .texture
+            .create_view(&wgpu::TextureViewDescriptor::default());
+
         let mut encoder = self
             .app
             .device
             .create_command_encoder(&wgpu::CommandEncoderDescriptor {
                 label: Some("Render Encoder"),
             });
-
         // 每 600 帧重置为初始状态
         if self.frame_count % 600 == 0 {
             self.reset_node.draw(&mut encoder, &self.blur_xy_tv);

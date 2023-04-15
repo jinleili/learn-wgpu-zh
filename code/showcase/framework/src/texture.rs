@@ -1,7 +1,7 @@
 use anyhow::*;
 use image::GenericImageView;
+use std::mem;
 use std::path::Path;
-use std::{mem, num::NonZeroU32};
 
 use crate::buffer;
 
@@ -89,6 +89,7 @@ impl<'a> Texture<'a> {
                 wgpu::TextureFormat::Rgba8UnormSrgb
             },
             usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
+            view_formats: &[],
             label: None,
         };
         let texture = device.create_texture(&desc);
@@ -103,8 +104,8 @@ impl<'a> Texture<'a> {
             &rgba,
             wgpu::ImageDataLayout {
                 offset: 0,
-                bytes_per_row: NonZeroU32::new(4 * dimensions.0),
-                rows_per_image: NonZeroU32::new(dimensions.1),
+                bytes_per_row: Some(4 * dimensions.0),
+                rows_per_image: Some(dimensions.1),
             },
             size,
         );
@@ -146,6 +147,7 @@ impl<'a> Texture<'a> {
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
             format: Self::DEPTH_FORMAT,
+            view_formats: &[],
             usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
         };
         Self::from_descriptor(device, desc)

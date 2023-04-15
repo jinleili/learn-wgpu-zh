@@ -1,5 +1,3 @@
-use std::num::NonZeroU32;
-
 async fn run() {
     let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
         backends: wgpu::Backends::all(),
@@ -136,8 +134,8 @@ async fn run() {
             buffer: &output_buffer,
             layout: wgpu::ImageDataLayout {
                 offset: 0,
-                bytes_per_row: NonZeroU32::new(u32_size * texture_size),
-                rows_per_image: NonZeroU32::new(texture_size),
+                bytes_per_row: Some(u32_size * texture_size),
+                rows_per_image: Some(texture_size),
             },
         },
         texture_desc.size,

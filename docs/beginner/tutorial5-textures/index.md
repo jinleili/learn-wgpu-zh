@@ -87,8 +87,8 @@ queue.write_texture(
     // 纹理的内存布局
     wgpu::ImageDataLayout {
         offset: 0,
-        bytes_per_row: std::num::NonZeroU32::new(4 * dimensions.0),
-        rows_per_image: std::num::NonZeroU32::new(dimensions.1),
+        bytes_per_row: Some(4 * dimensions.0),
+        rows_per_image: Some(dimensions.1),
     },
     texture_size,
 );
@@ -138,7 +138,7 @@ queue.submit(std::iter::once(encoder.finish()));
 
 现在纹理中已经有了数据，我们需要一种方法来使用它。这，就是**纹理视图**（`TextureView`）和**采样器**（`Sampler`）的用处。
 
-**纹理视图**描述纹理及其关联的元数据。**采样器**控制纹理如何被 *采样*。采样工作类似于 GIMP/Photoshop 中的滴管工具。我们的程序在纹理上提供一个坐标（被称为 *纹理坐标* ），然后采样器根据纹理和一些内部参数返回相应的颜色。
+**纹理视图**描述纹理及其关联的元数据。**采样器**控制纹理如何被 _采样_。采样工作类似于 GIMP/Photoshop 中的滴管工具。我们的程序在纹理上提供一个坐标（被称为 _纹理坐标_ ），然后采样器根据纹理和一些内部参数返回相应的颜色。
 
 现在我们来定义 `diffuse_texture_view` 和 `diffuse_sampler`：
 
@@ -158,17 +158,18 @@ let diffuse_sampler = device.create_sampler(&wgpu::SamplerDescriptor {
 
 `address_mode_*` 参数指定了如果**采样器**得到的纹理坐标超出了纹理边界时该如何处理。我们有几个选项可供选择：
 
-* `ClampToEdge`：任何在纹理外的纹理坐标将返回离纹理边缘最近的像素的颜色。
-* `Repeat`。当纹理坐标超过纹理的尺寸时，纹理将重复。
-* `MirrorRepeat`。类似于`Repeat`，但图像在越过边界时将翻转。
+- `ClampToEdge`：任何在纹理外的纹理坐标将返回离纹理边缘最近的像素的颜色。
+- `Repeat`。当纹理坐标超过纹理的尺寸时，纹理将重复。
+- `MirrorRepeat`。类似于`Repeat`，但图像在越过边界时将翻转。
 
 ![address_mode.png](./address_mode.png)
 
 `mag_filter` 与 `min_filter` 字段描述了当采样足迹小于或大于一个纹素（Texel）时该如何处理。当场景中的贴图远离或靠近 camera 时，这两个字段的设置通常会有效果。
 
 有 2 个选项:
-* `Linear`：在每个维度中选择两个纹素，并在它们的值之间返回线性插值。
-* `Nearest`：返回离纹理坐标最近的纹素的值。这创造了一个从远处看比较清晰但近处有像素的图像。然而，如果你的纹理被设计成像素化的，比如像素艺术游戏，或者像 Minecraft 这样的体素游戏，这可能是符合预期的。
+
+- `Linear`：在每个维度中选择两个纹素，并在它们的值之间返回线性插值。
+- `Nearest`：返回离纹理坐标最近的纹素的值。这创造了一个从远处看比较清晰但近处有像素的图像。然而，如果你的纹理被设计成像素化的，比如像素艺术游戏，或者像 Minecraft 这样的体素游戏，这可能是符合预期的。
 
 Mipmaps 是一个复杂的话题，需要在未来单独写一个章节。现在，我们可以说 `mipmap_filter` 的功能有点类似于 `(mag/min)_filter`，因为它告诉采样器如何在 mipmaps 之间混合。
 
@@ -296,6 +297,7 @@ async fn new(...) {
 ```
 
 ## 修改 VERTICES 常量
+
 对于 `Vertex` 的定义有几处需要修改。到目前为止，我们一直在使用 `color` 字段来设置网格颜色。现在我们要用 `tex_coords` 代替 `color`，这些坐标会被传递给采样器以获取**纹素**（Texel）的颜色。
 
 由于 `tex_coords` 是二维的，需要修改这个字段的类型为两个浮点数的数组。
@@ -456,7 +458,7 @@ impl Texture {
     pub fn from_bytes(
         device: &wgpu::Device,
         queue: &wgpu::Queue,
-        bytes: &[u8], 
+        bytes: &[u8],
         label: &str
     ) -> Result<Self> {
         let img = image::load_from_memory(bytes)?;
@@ -500,8 +502,8 @@ impl Texture {
             &rgba,
             wgpu::ImageDataLayout {
                 offset: 0,
-                bytes_per_row: std::num::NonZeroU32::new(4 * dimensions.0),
-                rows_per_image: std::num::NonZeroU32::new(dimensions.1),
+                bytes_per_row: Some(4 * dimensions.0),
+                rows_per_image: Some(dimensions.1),
             },
             size,
         );
@@ -518,7 +520,7 @@ impl Texture {
                 ..Default::default()
             }
         );
-        
+
         Ok(Self { texture, view, sampler })
     }
 }
@@ -590,7 +592,7 @@ impl State {
     }
 }
 ```
- 
+
 经过上边的整理，代码的工作方式还和以前一样，但我们现在有了一个更便利的方式来创建纹理。
 
 ## 挑战

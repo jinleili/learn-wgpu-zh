@@ -1,8 +1,8 @@
 use std::iter;
 
 use app_surface::{AppSurface, SurfaceFrame};
-use winit::{event::*, dpi::PhysicalSize};
 use winit::window::WindowId;
+use winit::{dpi::PhysicalSize, event::*};
 
 #[path = "../../../framework.rs"]
 mod framework;
@@ -46,7 +46,7 @@ impl Action for State {
                     module: &shader,
                     entry_point: "fs_main",
                     targets: &[Some(wgpu::ColorTargetState {
-                        format: app.config.format,
+                        format: app.config.format.add_srgb_suffix(),
                         blend: Some(wgpu::BlendState {
                             color: wgpu::BlendComponent::REPLACE,
                             alpha: wgpu::BlendComponent::REPLACE,
@@ -99,7 +99,7 @@ impl Action for State {
                         module: &shader,
                         entry_point: "fs_main",
                         targets: &[Some(wgpu::ColorTargetState {
-                            format: app.config.format,
+                            format: app.config.format.add_srgb_suffix(),
                             blend: Some(wgpu::BlendState::REPLACE),
                             write_mask: wgpu::ColorWrites::ALL,
                         })],
@@ -140,7 +140,7 @@ impl Action for State {
     fn current_window_id(&self) -> WindowId {
         self.app.view.id()
     }
-    fn resize(&mut self, size: &PhysicalSize<u32 >) {
+    fn resize(&mut self, size: &PhysicalSize<u32>) {
         if self.app.config.width == size.width && self.app.config.height == size.height {
             return;
         }

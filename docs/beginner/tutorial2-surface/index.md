@@ -529,3 +529,7 @@ Some(wgpu::RenderPassColorAttachment {
 <WasmExample example="tutorial2_surface"></WasmExample>
 
 <AutoGithubLink/>
+
+## 加入 wgpu 微信学习群交流群
+
+<JoinWeiChatGroup />

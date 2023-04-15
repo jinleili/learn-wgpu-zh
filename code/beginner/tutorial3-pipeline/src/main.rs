@@ -43,7 +43,7 @@ impl Action for State {
                     module: &shader,
                     entry_point: "fs_main",
                     targets: &[Some(wgpu::ColorTargetState {
-                        format: app.sdq.config.format,
+                        format: app.config.format.add_srgb_suffix(),
                         blend: Some(wgpu::BlendState {
                             color: wgpu::BlendComponent::REPLACE,
                             alpha: wgpu::BlendComponent::REPLACE,

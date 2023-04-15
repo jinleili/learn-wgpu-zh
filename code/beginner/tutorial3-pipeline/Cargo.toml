@@ -5,14 +5,8 @@ authors = ["Ben Hansen <bhbenjaminhansen@gmail.com>"]
 edition.workspace = true
 rust-version.workspace = true
 
-[target.'cfg(not(target_arch = "wasm32"))'.dependencies.wgc]
-workspace = true
-features = ["raw-window-handle"]
-
-[target.'cfg(target_arch = "wasm32")'.dependencies.wgc]
-workspace = true
-features = ["raw-window-handle"]
-optional = true
+[features]
+webgl = ["wgpu/webgl", "app-surface/webgl"]
 
 [dependencies]
 cfg-if.workspace = true
@@ -21,7 +15,7 @@ env_logger.workspace = true
 log.workspace = true
 wgpu = { workspace = true }
 pollster.workspace = true
-app-surface.workspace = true
+app-surface = { workspace = true }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 console_error_panic_hook.workspace = true
@@ -29,11 +23,7 @@ console_log.workspace = true
 js-sys.workspace = true
 wasm-bindgen.workspace = true
 wasm-bindgen-futures.workspace = true
-web-sys = { workspace = true, features = [
-    "Document",
-    "Window",
-    "Element"
-] }
+web-sys = { workspace = true, features = ["Document", "Window", "Element"] }
 
 [[bin]]
 name = "tutorial3-challenge"

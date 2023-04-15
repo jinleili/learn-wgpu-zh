@@ -25,7 +25,7 @@ pub fn load_shader(src_path: PathBuf) -> Result<()> {
 
     let src = read_to_string(src_path.clone())?;
     // let spv_path = src_path.with_extension(format!("{}.spv", extension));
-    let wgsl_path = src_path.with_extension(format!("{}.wgsl", extension));
+    let wgsl_path = src_path.with_extension(format!("{extension}.wgsl"));
 
     let mut parser = Parser::default();
     let options = Options::from(kind);

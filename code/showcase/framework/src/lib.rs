@@ -33,8 +33,11 @@ pub struct Display {
 impl Display {
     pub async fn new(window: Window) -> Result<Self, Error> {
         let size = window.inner_size();
-        let instance = wgpu::Instance::new(wgpu::Backends::all());
-        let surface = unsafe { instance.create_surface(&window) };
+        let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
+            backends: wgpu::Backends::all(),
+            ..Default::default()
+        });
+        let surface = unsafe { instance.create_surface(&window).unwrap() };
         let adapter = instance
             .request_adapter(&wgpu::RequestAdapterOptions {
                 power_preference: wgpu::PowerPreference::default(),
@@ -60,12 +63,14 @@ impl Display {
             )
             .await
             .unwrap();
+        let caps = surface.get_capabilities(&adapter);
         let config = wgpu::SurfaceConfiguration {
             usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
-            format: surface.get_supported_formats(&adapter)[0],
+            format: caps.formats[0],
             width: size.width,
             height: size.height,
-            present_mode: wgpu::PresentMode::Fifo,
+            present_mode: caps.present_modes[0],
+            view_formats: vec![],
             alpha_mode: wgpu::CompositeAlphaMode::Auto,
         };
         surface.configure(&device, &config);
@@ -201,8 +206,6 @@ pub trait Demo: 'static + Sized {
 }
 
 pub async fn run<D: Demo>() -> Result<(), Error> {
-    wgpu_subscriber::initialize_default_subscriber(None);
-
     let event_loop = EventLoop::new();
     let window = WindowBuilder::new()
         .with_title(env!("CARGO_PKG_NAME"))

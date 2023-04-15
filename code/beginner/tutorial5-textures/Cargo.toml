@@ -5,6 +5,9 @@ authors = ["Ben Hansen <bhbenjaminhansen@gmail.com>"]
 edition.workspace = true
 rust-version.workspace = true
 
+[features]
+webgl = ["wgpu/webgl", "app-surface/webgl"]
+
 [dependencies]
 anyhow.workspace = true
 cfg-if.workspace = true

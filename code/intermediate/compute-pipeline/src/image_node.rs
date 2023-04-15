@@ -21,7 +21,7 @@ impl ImageNode {
                 label: Some("render pipeline"),
                 layout: None,
                 vertex: wgpu::VertexState {
-                    module: &shader,
+                    module: shader,
                     entry_point: "vs_main",
                     buffers: &[],
                 },

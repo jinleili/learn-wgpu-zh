@@ -9,15 +9,6 @@ rust-version.workspace = true
 default = []
 webgl = ["wgpu/webgl"]
 
-[target.'cfg(not(target_arch = "wasm32"))'.dependencies.wgc]
-workspace = true
-features = ["raw-window-handle"]
-
-[target.'cfg(target_arch = "wasm32")'.dependencies.wgc]
-workspace = true
-features = ["raw-window-handle"]
-optional = true
-
 [dependencies]
 cfg-if.workspace = true
 winit.workspace = true

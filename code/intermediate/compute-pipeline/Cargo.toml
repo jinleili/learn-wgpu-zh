@@ -6,18 +6,14 @@ edition.workspace = true
 rust-version.workspace = true
 
 [dependencies]
-# app-surface.workspace = true
-app-surface = { git = "https://github.com/jinleili/wgpu-on-app", branch = "wgpu_trunk"}
-# app-surface = { path = "../../../../idroid/wgpu-in-app/app-surface" }
+app-surface.workspace = true
 bytemuck.workspace = true
 cfg-if.workspace = true
 env_logger.workspace = true
 log.workspace = true
 pollster.workspace = true
 winit.workspace = true
-# wgpu.workspace = true
-# wgpu = "0.15"
-wgpu = { git = "https://github.com/gfx-rs/wgpu", rev = "cfc038ae" }
+wgpu.workspace = true
 png = "0.17"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]

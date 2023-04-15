@@ -2,8 +2,8 @@ use std::{f32::consts, iter};
 
 use app_surface::{AppSurface, SurfaceFrame};
 use wgpu::util::DeviceExt;
-use winit::{event::*, dpi::PhysicalSize};
 use winit::window::WindowId;
+use winit::{dpi::PhysicalSize, event::*};
 
 #[path = "../../../framework.rs"]
 mod framework;
@@ -446,7 +446,7 @@ impl Action for State {
                     module: &shader,
                     entry_point: "fs_main",
                     targets: &[Some(wgpu::ColorTargetState {
-                        format: app.config.format,
+                        format: app.config.format.add_srgb_suffix(),
                         blend: Some(wgpu::BlendState {
                             color: wgpu::BlendComponent::REPLACE,
                             alpha: wgpu::BlendComponent::REPLACE,

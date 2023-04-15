@@ -22,13 +22,8 @@ rust-version = "1.64"
 version = "0.24"
 default-features = false
 
-[workspace.dependencies.wgc]
-package = "wgpu-core"
-features = ["raw-window-handle"]
-version = "0.15"
-
 [workspace.dependencies]
-app-surface = { git = "https://github.com/jinleili/wgpu-on-app", rev = "5c01ecc" }
+app-surface = { git = "https://github.com/jinleili/wgpu-on-app", rev = "2dd7600" }
 # app-surface = { path = "../idroid/wgpu-in-app/app-surface" }
 bytemuck = "1.4"
 cfg-if = "1"
@@ -37,12 +32,13 @@ env_logger = "0.9"
 futures-intrusive = "0.4"
 instant = "0.1"
 log = "0.4"
-naga = { version = "0.10" }
+naga = { version = "0.11" }
 pollster = "0.2"
 rayon = "1.4"
 tobj = "3.2"
 winit = "0.27.5"
-wgpu = { version = "0.15", default-features = false }
+# wgpu = { version = "0.15", default-features = false }
+wgpu = { git = "https://github.com/gfx-rs/wgpu", rev = "7c25c00f" }
 
 # wasm32 dependencies
 console_error_panic_hook = "0.1.7"

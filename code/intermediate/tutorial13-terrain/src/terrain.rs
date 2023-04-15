@@ -570,10 +570,8 @@ impl GenerateChunk for TerrainHackPipeline {
                 buffer: &chunk.mesh.vertex_buffer,
                 layout: wgpu::ImageDataLayout {
                     offset: 0,
-                    bytes_per_row: std::num::NonZeroU32::new(
-                        std::mem::size_of::<u32>() as u32 * self.texture_size,
-                    ),
-                    rows_per_image: std::num::NonZeroU32::new(self.texture_size),
+                    bytes_per_row: Some(std::mem::size_of::<u32>() as u32 * self.texture_size),
+                    rows_per_image: Some(self.texture_size),
                 },
             },
             wgpu::Extent3d {
@@ -593,10 +591,8 @@ impl GenerateChunk for TerrainHackPipeline {
                 buffer: &chunk.mesh.index_buffer,
                 layout: wgpu::ImageDataLayout {
                     offset: 0,
-                    bytes_per_row: std::num::NonZeroU32::new(
-                        std::mem::size_of::<u32>() as u32 * self.texture_size,
-                    ),
-                    rows_per_image: std::num::NonZeroU32::new(self.texture_size),
+                    bytes_per_row: Some(std::mem::size_of::<u32>() as u32 * self.texture_size),
+                    rows_per_image: Some(self.texture_size),
                 },
             },
             wgpu::Extent3d {

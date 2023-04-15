@@ -1,10 +1,13 @@
 extern crate framework;
 
 // use anyhow::*;
-use std::{iter, mem, num::NonZeroU32};
+use std::{iter, mem};
 
 async fn run() {
-    let instance = wgpu::Instance::new(wgpu::Backends::all());
+    let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
+        backends: wgpu::Backends::all(),
+        ..Default::default()
+    });
     let adapter = instance
         .request_adapter(&wgpu::RequestAdapterOptions::default())
         .await
@@ -50,6 +53,7 @@ async fn run() {
         sample_count: 1,
         dimension: wgpu::TextureDimension::D2,
         format: wgpu::TextureFormat::Rgba8UnormSrgb,
+        view_formats: &[],
         usage: wgpu::TextureUsages::COPY_SRC | wgpu::TextureUsages::RENDER_ATTACHMENT,
         label: None,
     };
@@ -118,8 +122,8 @@ async fn run() {
                 buffer: &output_buffer,
                 layout: wgpu::ImageDataLayout {
                     offset: 0,
-                    bytes_per_row: NonZeroU32::new(padded_bytes_per_row),
-                    rows_per_image: NonZeroU32::new(texture_size),
+                    bytes_per_row: Some(padded_bytes_per_row),
+                    rows_per_image: Some(texture_size),
                 },
             },
             render_target.desc.size,

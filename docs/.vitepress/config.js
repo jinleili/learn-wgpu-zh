@@ -177,11 +177,6 @@ function sidebarConfig() {
           text: "Compute Example: Tangents and Bitangents",
           link: "/showcase/compute/",
         },
-        {
-          text: "Memory Layout in WGSL",
-          link: "/showcase/alignment",
-        },
-        { text: "Basic Imgui Demo", link: "/showcase/imgui-demo/" },
       ],
     },
     {
