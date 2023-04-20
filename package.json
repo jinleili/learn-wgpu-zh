@@ -1,6 +1,6 @@
 {
     "name": "learn-wgpu-zh",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "description": "使用 Rust 学习 wgpu",
     "packageManager": "yarn@3.2.3",
     "engines": {
