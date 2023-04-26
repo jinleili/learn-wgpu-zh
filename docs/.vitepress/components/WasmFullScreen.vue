@@ -39,13 +39,22 @@ export default {
             }
         },
         window_resized() {
+            // 窗口小于一定尺寸时，VitePress 的线上环境会出现子导航
+            let localNav = document.getElementsByClassName("VPLocalNav");
+            var top = 64;
+            if (localNav[0]) {
+                top += localNav[0].clientHeight;
+            }
+            let container = document.getElementById("simuverse_container");
+            container.style.top = top + "px";
+
             clearTimeout(this.timeOutFunctionId);
-            if (this.can_resize_canvas || this.missedResizeCount > 15) {
+            if (this.can_resize_canvas || this.missedResizeCount > 10) {
                 this.missedResizeCount = 0;
                 // Currently(2022/05/19), Firefox Nightly + winit(v0.27) change canvas size frequently will cause crash
-                this.timeOutFunctionId = setTimeout(this.dispatch_resize_event, 300);
+                this.timeOutFunctionId = setTimeout(this.dispatch_resize_event, 100);
             } else {
-                // Wait for the rust side to complete canvas resize
+                // 等待 rust 端 resize 完成
                 this.missedResizeCount++;
                 this.timeOutFunctionId = setTimeout(this.window_resized, 100);
             }
@@ -66,13 +75,11 @@ export default {
         },
 
         async loadSimuverse() {
-            const module = await import(`../simuverse/${this.wasmName}.js`);
-            module.default().then((instance) => {
+            import(`https://jinleili.github.io/simuverse/${this.wasmName}.js`).then(module => {
                 this.hideLoading();
-            }, (e) => {
-                if (!`${e}`.includes("don't mind me. This isn't actually an error!")) {
-                } else {
-                }
+                module.default();
+            }).catch(error => {
+                // 处理加载失败的情况
             });
         },
     },
@@ -111,8 +118,8 @@ body {
 }
 
 #simuverse_container {
-    position: absolute;
-    top: 0px;
+    position: fixed;
+    top: 64px;
     left: 0;
     right: 0;
     bottom: 0;
