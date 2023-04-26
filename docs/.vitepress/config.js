@@ -4,7 +4,7 @@ export default defineConfig({
   // https://vitepress.vuejs.org/config/app-configs
   lang: "zh-CN",
   title: "学习 wgpu",
-  description: "wgpu：面向下一个十年的跨平台图形接口 WebGPU 的 Rust 实现",
+  description: "wgpu：下一代跨平台图形接口 WebGPU 的 Rust 实现",
   base: "/learn-wgpu-zh/",
   appearance: true,
   lastUpdated: true,
@@ -49,7 +49,7 @@ export default defineConfig({
       { icon: "github", link: "https://github.com/jinleili/learn-wgpu-zh" },
     ],
     nav: [
-      { text: "Simuverse", link: "https://github.com/jinleili/simuverse" },
+      { text: "Simuverse", link: "/simuverse" },
       { text: "wgpu-in-app", link: "https://github.com/jinleili/wgpu-in-app" },
       { text: "bevy-in-app", link: "https://github.com/jinleili/bevy-in-app" },
     ],
