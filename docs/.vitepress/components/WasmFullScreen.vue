@@ -3,7 +3,8 @@
         <div id="alert" style="display: none;">
             <div style="line-height: 40px;">此浏览器版本不支持 WebGPU</div>
             <div style="font-size: 16px;color: #999999;">请使用 Chrome 113 及以上版本，或者 Chrome Canary 并
-                <span><a href="https://jinleili.github.io/learn-wgpu-zh/#如何开启浏览器-webgpu-试验功能" class="a">开启 WebGPU 实验功能</a></span>
+                <span><a href="https://jinleili.github.io/learn-wgpu-zh/#如何开启浏览器-webgpu-试验功能" class="a">开启 WebGPU
+                        实验功能</a></span>
             </div>
         </div>
         <div id="loading" style="display: block;">
@@ -13,44 +14,44 @@
 </template>
 
 <script>
-var can_resize_canvas = true
-// Called by rust
-window.canvas_resize_completed = function () {
-    can_resize_canvas = true;
-}
-
-window.dispatch_resize_event = function () {
-    can_resize_canvas = false;
-    let elem = document.getElementById("simuverse_container");
-    if (elem != null) {
-        elem.dispatchEvent(new Event("canvas_size_need_change"));
-    }
-}
-
-var timeOutFunctionId;
-var missedResizeCount = 0;
-function window_resized() {
-    clearTimeout(timeOutFunctionId);
-    if (can_resize_canvas || missedResizeCount > 20) {
-        missedResizeCount = 0;
-        // Currently(2022/05/19), Firefox Nightly + winit(v0.27) change canvas size frequently will cause crash
-        timeOutFunctionId = setTimeout(dispatch_resize_event, 300);
-    } else {
-        // Wait for the rust side to complete canvas resize
-        missedResizeCount++;
-        timeOutFunctionId = setTimeout(window_resized, 100);
-    }
-}
-window.onresize = window_resized;
-
 export default {
     name: "WasmFullScreen",
     props: {
         wasmName: "",
     },
+    data() {
+        return {
+            timeOutFunctionId: 0,
+            missedResizeCount: 0,
+            can_resize_canvas: true,
+        }
+    },
     methods: {
+        // Called by rust side
+        canvas_resize_completed() {
+            this.can_resize_canvas = true;
+        },
+        dispatch_resize_event() {
+            this.can_resize_canvas = false;
+            let elem = document.getElementById("simuverse_container");
+            if (elem != null) {
+                elem.dispatchEvent(new Event("canvas_size_need_change"));
+            }
+        },
+        window_resized() {
+            clearTimeout(this.timeOutFunctionId);
+            if (this.can_resize_canvas || this.missedResizeCount > 15) {
+                this.missedResizeCount = 0;
+                // Currently(2022/05/19), Firefox Nightly + winit(v0.27) change canvas size frequently will cause crash
+                this.timeOutFunctionId = setTimeout(this.dispatch_resize_event, 300);
+            } else {
+                // Wait for the rust side to complete canvas resize
+                this.missedResizeCount++;
+                this.timeOutFunctionId = setTimeout(this.window_resized, 100);
+            }
+        },
         showAlert() {
-            hideLoading();
+            this.hideLoading();
             let alert = document.getElementById("alert");
             if (alert != null) {
                 alert.style.display = "block";
@@ -67,7 +68,7 @@ export default {
         async loadSimuverse() {
             const module = await import(`../simuverse/${this.wasmName}.js`);
             module.default().then((instance) => {
-                hideLoading();
+                this.hideLoading();
             }, (e) => {
                 if (!`${e}`.includes("don't mind me. This isn't actually an error!")) {
                 } else {
@@ -76,6 +77,10 @@ export default {
         },
     },
     async mounted() {
+        window.onresize = this.window_resized;
+        window.dispatch_resize_event = this.dispatch_resize_event;
+        window.canvas_resize_completed = this.canvas_resize_completed;
+
         if ('navigator' in window && 'gpu' in navigator) {
             navigator.gpu.requestAdapter().then(adapter => {
                 // 浏览器支持 WebGPU
@@ -88,6 +93,11 @@ export default {
             this.showAlert();
         }
     },
+    beforeDestroy() {
+        delete window.onresize;
+        delete window.dispatch_resize_event;
+        delete window.canvas_resize_completed;
+    }
 }
 </script>
 

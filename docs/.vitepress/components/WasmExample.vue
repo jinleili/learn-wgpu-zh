@@ -45,7 +45,7 @@ export default {
       this.loading = true;
       this.exampleStarted = true;
       try {
-        const module = await import(`./wasm/${this.example}.js`.replace('_', '-'));
+        const module = await import(`./wasm/${this.example}.js`.replace('_', '-')/* @vite-ignore */);
         module.default().then((instance) => {
           this.loading = false;
           this.exampleStarted = true;
