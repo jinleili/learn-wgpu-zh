@@ -54,7 +54,7 @@ cargo run --bin tutorial1-window
 # 在浏览器中运行
 # 需要先安装 Rust WebAssembly target
 rustup target add wasm32-unknown-unknown
-# 使用 WebGPU（需要使用 FireFox Nightly 或 Chrome Canary 并开启 WebGPU 试验功能）
+# 使用 WebGPU（需要使用 Chrome 113+ 或 Chrome Canary，Canary 需手动开启 WebGPU 试验功能）
 cargo run-wasm --bin tutorial1-window
 # 使用 WebGL 2.0
 cargo run-wasm --bin tutorial1-window --features webgl
@@ -70,8 +70,8 @@ cargo run-wasm --bin tutorial1-window --features webgl
 安装 Nightly 版本，在地址栏中输入 `about:config` , 将 `dom.webgpu.enabled` 设置为 `true`:
 <img src="docs/public/res/firefox.png" alt="FireFox Nightly">
 
-### Chrome  
-安装 110.0 以上正式版或 Canary 版，在地址栏中输入 `chrome://flags` , 将 `Unsafe WebGPU` 设置为 `Enabled`:
+### Chrome Canary 
+Chrome 113 开已经默认开始了 WebGPU 支持。如果安装的是 Canary 版，在地址栏中输入 `chrome://flags` , 将 `Unsafe WebGPU` 设置为 `Enabled`:
 <img src="docs/public/res/chrome.png" alt="Chrome Canary">
 
 ## 关于译者

@@ -46,8 +46,10 @@ let tex = app.device.create_texture(&wgpu::TextureDescriptor {
 ```
 
 在 WGSL 中，**存储缓冲区**与**存储纹理**有一些使用上的区别：
+
 - **存储缓冲区**：默认访问模式是**只读**，可以通过 `read_write` 声明为可读可写, 读写操作类似于数组的访问与赋值;
 - **存储纹理**：默认访问模式是**只写**，而且在 Web 端只能用**只写**模式，在 Native 端我们可以使用 `TEXTURE_ADAPTER_SPECIFIC_FORMAT_FEATURES` feature 来打开可读可写的访问模式。还有，存储纹理必须明确声明纹素的格式，且不支持带 `Srgb` 后缀的格式。从这里可以查阅到所有受支持的格式： [WGSL 标准：存储纹素格式](https://gpuweb.github.io/gpuweb/wgsl/#storage-texel-formats)
+
 ```rust
 struct Particle {
   pos : vec2<f32>,
@@ -92,6 +94,7 @@ queue.submit(iter::once(encoder.finish()));
 `dispatch_workgroups()` 就是调度计算任务的命令，接受 3 个 `u32` 类型的值做为参数。这些参数具体是什么意思呢？那就要说到计算管线里最重要的一个概念了：
 
 ## 工作组
+
 GPU 通过同时运行大量线程来实现并行处理的能力，而**工作组**（Workgroup）就是用于指定 GPU 如何组织这些线程。<br />
 一个**工作组**实质上就是一组调用，同一工作组中的线程同时分别执行一个**计算着色器**实例，并共享对工作组地址空间中着色器变量的访问。计算着色器通常被设计成线程相互独立运行，但线程在其工作组上进行协作也很常见。
 
@@ -112,6 +115,7 @@ GPU 通过同时运行大量线程来实现并行处理的能力，而**工作�
 ### 内建输入量
 
 WGSL 计算着色器有 5 个**内建输入量**（Buit-in Input Values）用于标识当前线程及工作组：
+
 - `global_invocation_id`：当前线程在计算着色器网格中的全局三维坐标;
 - `local_invocation_id`：当前线程在所处的工作组中的局部三维坐标;
 - `local_invocation_index`：当前线程在所处的工作组中的线性化索引;
@@ -122,9 +126,10 @@ WGSL 计算着色器有 5 个**内建输入量**（Buit-in Input Values）用于
 
 例如，给定一个由 `16 * 16 * 1` 个线程组成的网格，将其划分为 `2 * 4 * 1` 个工作组，`8 * 4 * 1` 个线程。
 那么:
-- 一个线程在网格中的 `global_invocation_id` 全局三维坐标是 `(9, 10)`（左图）; 
-- 此线程在所处工作组中的 `local_invocation_id` 局部三维坐标是 `(1, 2)`， `local_invocation_index` 线性化索引是 `17`（右图）; 
-- 所处工作组在工作组网格中的 `workgroup_id` 三维坐标就是 `(1, 2)` （右图的蓝绿色块）： 
+
+- 一个线程在网格中的 `global_invocation_id` 全局三维坐标是 `(9, 10)`（左图）;
+- 此线程在所处工作组中的 `local_invocation_id` 局部三维坐标是 `(1, 2)`， `local_invocation_index` 线性化索引是 `17`（右图）;
+- 所处工作组在工作组网格中的 `workgroup_id` 三维坐标就是 `(1, 2)` （右图的蓝绿色块）：
 
 <div style="display: flex;">
     <div>
@@ -160,6 +165,7 @@ fn cs_main(@builtin(global_invocation_id) global_id: vec3<u32>) {
   // ...
 }
 ```
+
 <div class="warn">
 
 使用计算着色器需要注意避免坐标越界问题，因为通常纹理图像的分辨率与我们的**工作组**大小不是整除关系。
@@ -176,7 +182,7 @@ fn cs_main(@builtin(global_invocation_id) global_id: vec3<u32>) {
 
 这三个维度的最大值容易让人误解，以为可以在计算着色器中设置 `@workgroup_size(256, 256, 64)`。
 
-事实上 WebGPU spec 的验证规则是：`x * y * z <= max(x, max(y, z))`, 也就是说，设置的 
+事实上 WebGPU spec 的验证规则是：`x * y * z <= max(x, max(y, z))`, 也就是说，设置的
 `@workgroup_size` 三个维度的乘积不能大于 `maxComputeWorkgroupSizeX，Y，Z` 三个维度中的最大值。
 
 </div>
@@ -184,9 +190,11 @@ fn cs_main(@builtin(global_invocation_id) global_id: vec3<u32>) {
 通常，当只需要在计算着色器中操作存储缓冲区时，使用一维工作组 `@workgroup_size(x)` 是合适的, y、z 维度保持默认值 1; 当需要操作**纹理**，使用二维或三维工作组 `@workgroup_size(x，y)` 会更便利。
 
 现在我们可以来回答开头的问题了：<br />
+
 ```rust
 cpass.dispatch_workgroups(workgroup_count.0, workgroup_count.1, workgroup_count.2);
 ```
+
 上面计算通道的**调度**命令接收的参数具体是什么意思呢？
 
 它们就是工作组网格的 3 个维度量。<br />
@@ -198,6 +206,7 @@ workgroup_count = ((1000 + (32 -1)) / 32, (768 + (16 -1)) / 16, 1);
 ```
 
 ## CPU 端读取计算管线输出
+
 在[案例展示/离屏渲染](../../showcase/windowless/#从缓冲区中读取数据)章节已讲解过如何从缓冲区中读取数据，存储纹理的读取也是一样的，这里不再赘述。
 
 ## 实战：实现高斯模糊
@@ -207,7 +216,8 @@ workgroup_count = ((1000 + (32 -1)) / 32, (768 + (16 -1)) / 16, 1);
 点击下方的**查看源码**就能看到所有实现代码。如对图片模糊算法的细节感兴趣，可以查看[这里](https://www.intel.com/content/www/us/en/developer/articles/technical/an-investigation-of-fast-real-time-gpu-based-image-blur-algorithms.html)
 
 ## 运行示例代码
-*此示例目前只能在桌面端及 Chrome Canary 浏览器中运行（[如何开启浏览器 webgpu 试验功能](../../#如何开启浏览器-webgpu-试验功能)）！使用隐式绑定组布局目前在 Firefox Nightly 上有 bug: <span style="color: gray;">Uncaught (in promise) TypeError: GPUDevice.createComputePipeline: 'layout' member of GPUPipelineDescriptorBase is not an object.</span>*
+
+_此示例目前只能在桌面端及 Chrome 113+ / Chrome Canary 浏览器中运行（[如何开启浏览器 webgpu 试验功能](../../#如何开启浏览器-webgpu-试验功能)）！使用隐式绑定组布局目前在 Firefox Nightly 上有 bug: <span style="color: gray;">Uncaught (in promise) TypeError: GPUDevice.createComputePipeline: 'layout' member of GPUPipelineDescriptorBase is not an object.</span>_
 
 <WasmExample example="compute_pipeline"></WasmExample>
 
