@@ -170,7 +170,6 @@ impl Action for State {
 
         let num_triangles = num_vertices - 2;
         let challenge_indices = (1u16..num_triangles + 1)
-            .into_iter()
             .flat_map(|i| vec![i + 1, i, 0])
             .collect::<Vec<_>>();
         let num_challenge_indices = challenge_indices.len() as u32;
