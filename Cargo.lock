@@ -3535,6 +3535,7 @@ dependencies = [
  "console_error_panic_hook",
  "console_log",
  "env_logger 0.9.3",
+ "js-sys",
  "log",
  "pollster",
  "wasm-bindgen",

@@ -85,7 +85,7 @@ async fn create_action_instance<A: Action + 'static>(wh_ratio: Option<f32>) -> (
         use winit::platform::web::WindowExtWebSys;
         web_sys::window()
             .and_then(|win| win.document())
-            .and_then(|doc| {
+            .map(|doc| {
                 match doc.get_element_by_id("wasm-example") {
                     Some(dst) => {
                         let height = 500;
@@ -105,12 +105,10 @@ async fn create_action_instance<A: Action + 'static>(wh_ratio: Option<f32>) -> (
                             &(canvas.style().css_text()
                                 + "background-color: black; display: block; margin: 20px auto;"),
                         );
-                        doc.body().and_then(|body| {
-                            Some(body.append_child(&web_sys::Element::from(canvas)))
-                        });
+                        doc.body()
+                            .map(|body| body.append_child(&web_sys::Element::from(canvas)));
                     }
                 };
-                Some(())
             })
             .expect("Couldn't append canvas to document body.");
     };
@@ -127,7 +125,7 @@ async fn create_action_instance<A: Action + 'static>(wh_ratio: Option<f32>) -> (
     println!("{gpu_info}");
     #[cfg(target_arch = "wasm32")]
     log::warn!(
-        "{gpu_info:?}\n这不是一条警告，仅仅是为了在控制台能默认打印出来而不需要开启烦人的 info 日志等级。"
+        "{gpu_info:?}\n这不是一条警告，仅仅是为了在控制台能默认打印出来而不必开启 info 日志等级。"
     );
 
     (event_loop, instance)
