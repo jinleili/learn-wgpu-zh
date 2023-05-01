@@ -39,7 +39,7 @@ WebGPU 就是一套图形接口，绝大部分概念都是各图形接口里通�
 
 ## 现在学习 wgpu 是不是为时尚早？
 
-虽然 WebGPU 1.0 要到 2023 年年中才会正式发布，但 API 目前已经趋于稳定了，后面的修订更多是内部实现层的完善。
+虽然 WebGPU 1.0 要到 2023 年年中才会正式发布，但 API 目前已经稳定了，且 [Google 已经在 2023/4/6 宣布从 Chrome 113 版本开始正式支持 WebGPU](https://developer.chrome.com/blog/webgpu-release/)。
 
 ## 如何运行示例代码
 
@@ -73,7 +73,7 @@ cargo run-wasm --bin tutorial1-window --features webgl
 
 ### Chrome
 
-安装 110.0 以上正式版或 Canary 版，在地址栏中输入 `chrome://flags` , 将 `Unsafe WebGPU` 设置为 `Enabled`:
+Chrome 113+ 已经默认开启了 WebGPU 支持。如果安装的是 Canary 版，在地址栏中输入 `chrome://flags` , 将 `Unsafe WebGPU` 设置为 `Enabled`:
 <img src="/res/chrome.png" alt="Chrome Canary">
 
 ## 贡献与支持
@@ -85,4 +85,3 @@ cargo run-wasm --bin tutorial1-window --features webgl
 ## 关于译者
 
 我是一名移动端架构师，有多年使用 OpenGL ES / WebGL, Metal 的实践经验。2018 年开始接触 WebGPU，目前正积极地参与到 [wgpu 开源项目的开发与完善](https://github.com/gfx-rs/wgpu/commits?author=jinleili)之中，并且已于两年前在 AppStore 上架了基于 wgpu 实现的毛笔书法模拟 App [字习 Pro](https://apps.apple.com/cn/app/字习-pro/id1507339788)。
-

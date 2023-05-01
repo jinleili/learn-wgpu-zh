@@ -4,17 +4,18 @@
 [![Build Status](https://github.com/jinleili/learn-wgpu-zh/workflows/Build/badge.svg?branch=master)](https://github.com/jinleili/learn-wgpu-zh/actions)
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/jinleili/learn-wgpu-zh/blob/master/LICENSE.MIT)
 
+_为了便于读者的理解，译者选择性的添加了一些内容，并对原文中有歧义或错误的（比如：第八章、第十一章 Srgb 部分等等）地方进行重新表述。所有的添加与修改均不会做单独标记。_
 
-*为了便于读者的理解，译者选择性的添加了一些内容，并对原文中有歧义或错误的（比如：第八章、第十一章 Srgb 部分等等）地方进行重新表述。所有的添加与修改均不会做单独标记。*
+_翻译时采用了第一人称视角，故，除了带 🆕 标记的章节，教程中的**我**主要指的是原作者 [@sotrh](https://github.com/sotrh)。_
 
-*翻译时采用了第一人称视角，故，除了带 🆕 标记的章节，教程中的**我**主要指的是原作者 [@sotrh](https://github.com/sotrh)。*
-
-*另外，专有名词在一个段落中第一次出现时做了**加粗**处理，同一段落里反复出现时就不再加粗。*
+_另外，专有名词在一个段落中第一次出现时做了**加粗**处理，同一段落里反复出现时就不再加粗。_
 
 ## WebGPU 是啥？
+
 **WebGPU** 是由 W3C [GPU for the Web](https://www.w3.org/community/gpu/) 社区组所发布的规范，目标是允许网页代码以高性能且安全可靠的方式访问 GPU 功能。它通过借鉴 Vulkan API，并将其转换为宿主硬件上使用的各式 API（如 DirectX、Metal、Vulkan）来实现这一目标。
 
 ## wgpu 又是啥？
+
 [wgpu](https://github.com/gfx-rs/wgpu) 是基于 [WebGPU API 规范](https://gpuweb.github.io/gpuweb/)的、跨平台的、安全的、纯 Rust 图形 API。它是 Firefox、Servo 和 Deno 中 WebGPU 整合的核心。
 
 **wgpu** 不仅可以在 Web 环境运行，还可以在 macOS / iOS、Android、Window 和 Linux 等系统上原生运行。
@@ -41,9 +42,11 @@ WebGPU 就是一套图形接口，绝大部分概念都是各图形接口里通�
 要利用好这些经典资料，前提仅仅就是要先学习一套图形接口。因为图形学的书不是使用统一的特定图形接口所写，先学会一个图形接口及常见的概念，然后再去深入学习某个方面的资料就会事半功倍。
 
 ## 现在学习 wgpu 是不是为时尚早？
-虽然 WebGPU 1.0 要到 2023 年年中才会正式发布，但 API 目前已经趋于稳定了，后面的修订更多是内部实现层的完善。
+
+虽然 WebGPU 1.0 要到 2023 年年中才会正式发布，但 API 目前已经稳定了，且 [Google 已经在 2023/4/6 宣布从 Chrome 113 版本开始正式支持 WebGPU](https://developer.chrome.com/blog/webgpu-release/)。
 
 ## 如何运行示例代码
+
 本教程的示例代码大部分放在 [`code/`](https://github.com/jinleili/learn-wgpu-zh/tree/master/code) 目录下，且示例程序的名称与程序目录同名。
 比如，第一章 **依赖与窗口** 所有在的目录是 **code/beginner/`tutorial1-window`**, 此示例程序的名称也叫 `tutorial1-window`:
 
@@ -59,22 +62,24 @@ cargo run-wasm --bin tutorial1-window
 # 使用 WebGL 2.0
 cargo run-wasm --bin tutorial1-window --features webgl
 ```
-**调试与集成** 部分的代码是一个独立的项目：
+
+**调试与集成** 部分的代码是 2 个独立的项目：
 [wgpu-in-app](https://github.com/jinleili/wgpu-in-app) 和 [bevy-in-app](https://github.com/jinleili/bevy-in-app)
 
 [**simuverse**](https://github.com/jinleili/simuverse) 是基于 wgpu + [egui](https://github.com/emilk/egui) 的扩展示例，提供了粒子矢量场，流体场及 GPU 程序化纹理的实现。
 
 ## 如何开启浏览器 WebGPU 试验功能
 
-### FireFox  
+### FireFox
+
 安装 Nightly 版本，在地址栏中输入 `about:config` , 将 `dom.webgpu.enabled` 设置为 `true`:
 <img src="docs/public/res/firefox.png" alt="FireFox Nightly">
 
-### Chrome Canary 
-Chrome 113 开已经默认开始了 WebGPU 支持。如果安装的是 Canary 版，在地址栏中输入 `chrome://flags` , 将 `Unsafe WebGPU` 设置为 `Enabled`:
+### Chrome Canary
+
+Chrome 113+ 已经默认开启了 WebGPU 支持。如果安装的是 Canary 版，在地址栏中输入 `chrome://flags` , 将 `Unsafe WebGPU` 设置为 `Enabled`:
 <img src="docs/public/res/chrome.png" alt="Chrome Canary">
 
 ## 关于译者
+
 我是一名移动端架构师, 有多年使用 OpenGL ES / WebGL, Metal 的实践经验。2018 年开始接触 WebGPU，目前正积极地参与到 [wgpu 开源项目的开发与完善](https://github.com/gfx-rs/wgpu/commits?author=jinleili)之中，并且已于两年前在 AppStore 上架了基于 wgpu 实现的毛笔书法模拟 App [字习 Pro](https://apps.apple.com/cn/app/字习-pro/id1507339788)。
-
-

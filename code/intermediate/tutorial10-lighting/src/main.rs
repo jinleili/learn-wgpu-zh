@@ -2,14 +2,10 @@ use std::{f32::consts, iter};
 
 use app_surface::{AppSurface, SurfaceFrame};
 use wgpu::util::DeviceExt;
-use winit::{
-    event::*,
-    event_loop::{ControlFlow, EventLoop},
-    window::Window,
-};
+use winit::{event::*, window::WindowId};
 
-#[cfg(target_arch = "wasm32")]
-use wasm_bindgen::prelude::*;
+mod framework;
+use framework::run;
 
 mod model;
 mod resources;
@@ -328,9 +324,7 @@ fn create_render_pipeline(
 }
 
 impl State {
-    async fn new(window: Window) -> Self {
-        let app = AppSurface::new(window).await;
-
+    async fn new(app: AppSurface) -> Self {
         let texture_bind_group_layout =
             app.device
                 .create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
@@ -552,7 +546,19 @@ impl State {
         }
     }
 
-    fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
+    fn get_adapter_info(&self) -> wgpu::AdapterInfo {
+        self.app.adapter.get_info()
+    }
+
+    fn current_window_id(&self) -> WindowId {
+        self.app.view.id()
+    }
+
+    fn request_redraw(&mut self) {
+        self.app.view.request_redraw();
+    }
+
+    fn resize(&mut self, new_size: &winit::dpi::PhysicalSize<u32>) {
         if new_size.width > 0 && new_size.height > 0 {
             self.app.resize_surface();
             self.camera.aspect = self.app.config.width as f32 / self.app.config.height as f32;
@@ -646,103 +652,6 @@ impl State {
     }
 }
 
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen(start))]
-pub async fn run() {
-    cfg_if::cfg_if! {
-        if #[cfg(target_arch = "wasm32")] {
-            std::panic::set_hook(Box::new(console_error_panic_hook::hook));
-            console_log::init_with_level(log::Level::Warn).expect("Could't initialize logger");
-        } else {
-            env_logger::init();
-        }
-    }
-
-    let event_loop = EventLoop::new();
-    let title = env!("CARGO_PKG_NAME");
-    let window = winit::window::WindowBuilder::new()
-        .with_title(title)
-        .build(&event_loop)
-        .unwrap();
-
-    #[cfg(target_arch = "wasm32")]
-    {
-        // Winit prevents sizing with CSS, so we have to set
-        // the size manually when on web.
-        use winit::dpi::PhysicalSize;
-        use winit::platform::web::WindowExtWebSys;
-        web_sys::window()
-            .and_then(|win| win.document())
-            .and_then(|doc| {
-                match doc.get_element_by_id("wasm-example") {
-                    Some(dst) => {
-                        window.set_inner_size(PhysicalSize::new(450, 400));
-                        let _ = dst.append_child(&web_sys::Element::from(window.canvas()));
-                    }
-                    None => {
-                        window.set_inner_size(PhysicalSize::new(800, 800));
-                        let canvas = window.canvas();
-                        canvas.style().set_css_text(
-                            "background-color: black; display: block; margin: 20px auto;",
-                        );
-                        doc.body().and_then(|body| {
-                            Some(body.append_child(&web_sys::Element::from(canvas)))
-                        });
-                    }
-                };
-                Some(())
-            })
-            .expect("Couldn't append canvas to document body.");
-    }
-
-    // State::new uses async code, so we're going to wait for it to finish
-    let mut state = State::new(window).await;
-
-    event_loop.run(move |event, _, control_flow| {
-        *control_flow = ControlFlow::Poll;
-        match event {
-            Event::MainEventsCleared => state.app.view.request_redraw(),
-            Event::WindowEvent {
-                ref event,
-                window_id,
-            } if window_id == state.app.view.id() => {
-                if !state.input(event) {
-                    match event {
-                        WindowEvent::CloseRequested
-                        | WindowEvent::KeyboardInput {
-                            input:
-                                KeyboardInput {
-                                    state: ElementState::Pressed,
-                                    virtual_keycode: Some(VirtualKeyCode::Escape),
-                                    ..
-                                },
-                            ..
-                        } => *control_flow = ControlFlow::Exit,
-                        WindowEvent::Resized(physical_size) => {
-                            state.resize(*physical_size);
-                        }
-                        WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
-                            state.resize(**new_inner_size);
-                        }
-                        _ => {}
-                    }
-                }
-            }
-            Event::RedrawRequested(window_id) if window_id == state.app.view.id() => {
-                state.update();
-                match state.render() {
-                    Ok(_) => {}
-                    Err(wgpu::SurfaceError::Lost | wgpu::SurfaceError::Outdated) => {
-                        state.resize((state.app.config.width, state.app.config.height).into())
-                    }
-                    Err(wgpu::SurfaceError::OutOfMemory) => *control_flow = ControlFlow::Exit,
-                    Err(wgpu::SurfaceError::Timeout) => log::warn!("Surface timeout"),
-                }
-            }
-            _ => {}
-        }
-    });
-}
-
 fn main() {
-    pollster::block_on(run());
+    run(None);
 }
