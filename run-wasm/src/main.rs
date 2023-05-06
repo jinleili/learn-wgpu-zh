@@ -34,7 +34,7 @@ fn main() {
                     }
                     Some("tutorial9-models") => {
                         out_dir = out_dir.join("tutorial9-models");
-                        res_dir = res_dir.join("intermediate/tutorial9-models/res");
+                        res_dir = res_dir.join("beginner/tutorial9-models/res");
                         is_need_copy = true;
                     }
                     _ => {}
@@ -44,9 +44,7 @@ fn main() {
                     let _ = copy_items(&[&res_dir], out_dir, &copy_options);
                 }
             }
-            _ => {
-                // handle other arguments
-            }
+            _ => {}
         }
     }
 

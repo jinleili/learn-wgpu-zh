@@ -1,12 +1,15 @@
 # 管线 (Pipeline)
 
 ## 什么是管线?
+
 如果你熟悉 OpenGL，应该记得使用着色器程序。你可以把**管线** (Pipeline) 看成是更强大的版本。一个管线描述了 GPU 将对一组数据执行的所有操作。在本节中，我们将具体创建一个渲染管线（`RenderPipeline`）。
 
 ## 什么是着色器?
+
 **着色器**（Shader）是你发送给 GPU 的微型程序，用于对数据进行操作。有三种主要类型的着色器：**顶点**（Vertex）、**片元**（Fragment）和**计算**（Compute）着色器。另外还有其他的如几何着色器，但它们属于进阶话题。现在，我们只需要使用顶点和片元着色器。
 
 ## 什么是顶点和片元？
+
 **顶点**（Vertex）就是三维（或二维）空间中的一个点。这些顶点会两个一组以构成线段集合，或者三个一组以构成三角形集合。
 
 <img alt="Vertices Graphic" src="./tutorial3-pipeline-vertices.png" />
@@ -21,18 +24,12 @@
 
 ## WebGPU 着色器语言: WGSL
 
-[WebGPU Shading Language](https://www.w3.org/TR/WGSL/) (WGSL) 是 WebGPU 的着色器语言。
+**WGSL** (WebGPU Shading Language) 是 WebGPU 的着色器语言。
 WGSL 的开发重点是让它轻松转换为与后端对应的着色器语言；例如，Vulkan 的 SPIR-V、Metal 的 MSL、DX12 的 HLSL 和 OpenGL 的 GLSL。
-这种转换是在内部完成的，我们通常不需要关心这些细节。
+这种转换是在内部完成的，我们不需要关心这些细节。
 就 wgpu 而言，它是由名为 [naga](https://github.com/gfx-rs/naga) 的**包**完成的。
 
-请注意，在写这篇文章的时候，一些 WebGPU 的实现也支持 SPIR-V，但这只是在向 WGSL 过渡期间的临时措施，将被移除（如果你好奇 SPIR-V 和 WGSL 背后的故事，请参考[这篇博文](http://kvark.github.io/spirv/2021/05/01/spirv-horrors.html)）。
-
-<div class="note">
-
-如果你以前看过这个教程，可能会注意到我已经从使用 GLSL 转换到使用 WGSL。鉴于对 GLSL 的支持是次要的，而 WGSL 是 WGPU 的一等语言，我选择将所有的教程转换为使用 WGSL。一些展示性的例子暂时仍然使用 GLSL，但主要的教程和所有的例子都将使用 WGSL。
-
-</div>
+在 [WGSL 着色器语言](../wgsl) 一章中，对 WGSL 的由来及语法做了比较详细介绍。
 
 <div class="note">
 
@@ -41,6 +38,7 @@ WGSL 规范及其在 WGPU 中的应用仍在开发中。如果在使用中遇到
 </div>
 
 ## 编写着色器
+
 在 `main.rs` 所在的目录中创建一个 `shader.wgsl` 文件。在其中写入以下代码：
 
 ```rust
@@ -127,6 +125,7 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
 `@location(0)` 属性标记了该函数返回的 `vec4` 值将存储在第一个**颜色附件**（Color Attachment）中。我们会在后面详细介绍。
 
 ## 使用着色器
+
 我们终于用到了本章节标题提到的概念：**管线**（Pipeline）。首先，我们来修改 `State` 以包括以下代码。
 
 ```rust
@@ -160,7 +159,6 @@ let shader = device.create_shader_module(include_wgsl!("shader.wgsl"));
 ```
 
 </div>
-
 
 还需要创建一个 `PipelineLayout`。在讲完**缓冲区**（`Buffer`）之后，我们会对它有更多地了解。
 
@@ -197,10 +195,11 @@ let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescrip
 ```
 
 有几点需要注意：
+
 1. 可以在这里指定着色器中的哪个函数应该是入口点（ `entry_point`）。那是我们用 `@vertex` 和 `@fragment` 标记的函数。
 2. `buffers` 字段告诉 `wgpu` 要把什么类型的顶点数据传递给顶点着色器。我们会在顶点着色器中指定顶点，所以这里先留空。下一个教程中会在此加入一些数据。
 3. `fragment` 字段是 Option 类型，所以必须用 `Some()` 来包装 `FragmentState` 实例。如果想把颜色数据存储到 `surface` 就需要用到它 。
-4. `targets` 字段告诉 `wgpu` 应该设置哪些颜色输出目标。目前只需为 `surface` 设置一个输出目标。我们使用 `surface` 的格式以便复制，并且指定混合模式为仅用新的像素数据替换旧的。我们还告诉 `wgpu` 可写入全部 4 个颜色通道：红、蓝、绿和透明度。*在讨论纹理时会更多地介绍* `color_state`。
+4. `targets` 字段告诉 `wgpu` 应该设置哪些颜色输出目标。目前只需为 `surface` 设置一个输出目标。我们使用 `surface` 的格式以便复制，并且指定混合模式为仅用新的像素数据替换旧的。我们还告诉 `wgpu` 可写入全部 4 个颜色通道：红、蓝、绿和透明度。_在讨论纹理时会更多地介绍_ `color_state`。
 
 ```rust
 primitive: wgpu::PrimitiveState {
@@ -236,7 +235,8 @@ primitive: wgpu::PrimitiveState {
 ```
 
 该函数的其余部分非常简单：
-1. 我们目前没有使用深度/模板缓冲区，因此将 `depth_stencil` 保留为 `None`。*以后会用到*。
+
+1. 我们目前没有使用深度/模板缓冲区，因此将 `depth_stencil` 保留为 `None`。_以后会用到_。
 2. `count` 确定管线将使用多少个**采样**。多重采样是一个复杂的主题，因此不会在这里展开讨论。
 3. `mask` 指定哪些采样应处于活动状态。目前我们使用全部采样。
 4. `alpha_to_coverage_enabled` 与抗锯齿有关。在这里不介绍抗锯齿，因此将其保留为 false。
@@ -300,6 +300,7 @@ Self {
 ```
 
 上面代码所做的少量修改：
+
 1. 把 `_render_pass` 声明为可变变量并重命名为 `render_pass`。
 2. 在 `render_pass` 上设置刚刚创建的**管线**。
 3. 告诉 `wgpu` 用 3 个顶点和 1 个实例（实例的索引就是 `@builtin(vertex_index)` 的由来）来进行绘制。
@@ -309,7 +310,8 @@ Self {
 ![可爱的棕色三角形](./tutorial3-pipeline-triangle.png)
 
 ## 挑战
-创建第二个管线，使用三角形顶点的位置数据来创建一个颜色并发送给片元着色器。当你按下空格键时让应用程序交替使用两个管线。*提示：你需要修改* `VertexOutput`。
+
+创建第二个管线，使用三角形顶点的位置数据来创建一个颜色并发送给片元着色器。当你按下空格键时让应用程序交替使用两个管线。_提示：你需要修改_ `VertexOutput`。
 
 <WasmExample example="tutorial3_pipeline"></WasmExample>
 
