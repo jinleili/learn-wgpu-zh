@@ -31,7 +31,9 @@ WebGPU 成员花了 2 年半的时间来争论 WebGPU 是否应该有自己的�
 我从 2018 年开始使用 wgpu (那时还是 使用 GLSL 做为着色器语言)，2021 年底完成了个人作品 [字习 Pro](https://apps.apple.com/cn/app/字习-pro/id1507339788) 及其他几个练手作品从 GLSL 到 WGSL 的 100 多个着色器的移植工作，在这个过程中对这两个着色器语言有了比较深入的了解。这个增补章节旨在介绍 WGSL 的一些基础知识，希望这对从 OpenGL / WebGL 迁移到 WebGPU 的朋友带来一点有益的经验（下边的所有 GLSL 代码均是按照 **GLSL450** 标准编写的）。
 
 <div class="note">
+
 增补一个网上新出现的学习资源：[Tour of WGSL](https://google.github.io/tour-of-wgsl/)
+
 </div>
 
 ## 一个简单的绘制着色器：对比 GLSL

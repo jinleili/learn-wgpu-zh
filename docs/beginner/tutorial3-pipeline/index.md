@@ -29,7 +29,7 @@ WGSL 的开发重点是让它轻松转换为与后端对应的着色器语言；
 这种转换是在内部完成的，我们不需要关心这些细节。
 就 wgpu 而言，它是由名为 [naga](https://github.com/gfx-rs/naga) 的**包**完成的。
 
-在 [WGSL 着色器语言](../wgsl) 一章中，对 WGSL 的由来及语法做了比较详细介绍。
+在 [WGSL 着色器语言](../wgsl) 一章中，有对 WGSL 的由来及语法的更详细介绍。
 
 <div class="note">
 
@@ -78,17 +78,11 @@ fn vs_main(
 
 </div>
 
-<div class="note">
-
-使用 `var` 定义的变量可以在随后重新赋值，但必须指定其类型。使用 `let` 定义的变量可以推断其类型，但在创建之后不能再重新赋值。
-
-</div>
-
 现在我们可以把 `clip_position` 保存到 `out`。然后只需返回 `out` 就完成了顶点着色器的工作!
 
 <div class="note">
 
-从技术的角度来看，在我们这个例子中并不需要使用 stuct，可以直接按以下代码来实现：
+我们也可以不使用 stuct，直接按以下代码来实现：
 
 ```rust
 @vertex
@@ -98,8 +92,6 @@ fn vs_main(
     // 顶点着色器 code...
 }
 ```
-
-后面我们会给 `VertexOutput` 添加更多的字段，所以不妨现在就开始使用它。
 
 </div>
 
@@ -122,11 +114,11 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
 
 </div>
 
-`@location(0)` 属性标记了该函数返回的 `vec4` 值将存储在第一个**颜色附件**（Color Attachment）中。我们会在后面详细介绍。
+`@location(0)` 属性标记了该函数返回的 `vec4` 值将存储在第一个**颜色附件**（Color Attachment）中。
 
 ## 使用着色器
 
-我们终于用到了本章节标题提到的概念：**管线**（Pipeline）。首先，我们来修改 `State` 以包括以下代码。
+终于要用到本章节标题提到的概念 **管线**（Pipeline）了。首先，我们来修改 `State` 以包括以下代码。
 
 ```rust
 // lib.rs
@@ -141,7 +133,7 @@ struct State {
 }
 ```
 
-现在，开始在 `new()` 函数内创建**管线**。我们需要载入先前制作的，渲染管线所需要的着色器。
+现在，开始在 `new()` 函数内创建**管线**。我们需要载入先前写的，渲染管线所需要的着色器。
 
 ```rust
 let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
@@ -191,7 +183,7 @@ let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescrip
             write_mask: wgpu::ColorWrites::ALL,
         })],
     }),
-    // continued ...
+    // ...
 ```
 
 有几点需要注意：
@@ -199,7 +191,7 @@ let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescrip
 1. 可以在这里指定着色器中的哪个函数应该是入口点（ `entry_point`）。那是我们用 `@vertex` 和 `@fragment` 标记的函数。
 2. `buffers` 字段告诉 `wgpu` 要把什么类型的顶点数据传递给顶点着色器。我们会在顶点着色器中指定顶点，所以这里先留空。下一个教程中会在此加入一些数据。
 3. `fragment` 字段是 Option 类型，所以必须用 `Some()` 来包装 `FragmentState` 实例。如果想把颜色数据存储到 `surface` 就需要用到它 。
-4. `targets` 字段告诉 `wgpu` 应该设置哪些颜色输出目标。目前只需为 `surface` 设置一个输出目标。我们使用 `surface` 的格式以便复制，并且指定混合模式为仅用新的像素数据替换旧的。我们还告诉 `wgpu` 可写入全部 4 个颜色通道：红、蓝、绿和透明度。_在讨论纹理时会更多地介绍_ `color_state`。
+4. `targets` 字段告诉 `wgpu` 应该设置哪些颜色输出目标。目前只需设置一个输出目标。格式指定为使用 `surface` 的格式，并且指定混合模式为仅用新的像素数据替换旧的。我们还告诉 `wgpu` 可写入全部 4 个颜色通道：红、蓝、绿和透明度。_在讨论纹理时会更多地介绍_ `color_state`。
 
 ```rust
 primitive: wgpu::PrimitiveState {
