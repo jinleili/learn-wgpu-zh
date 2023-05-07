@@ -53,7 +53,7 @@ cargo run --bin tutorial1-window
 # 在浏览器中运行
 # 需要先安装 Rust WebAssembly target
 rustup target add wasm32-unknown-unknown
-# 使用 WebGPU（需要使用 Chrome 113+ 或 Chrome Canary，Canary 需手动开启 WebGPU 试验功能）
+# 使用 WebGPU（需要使用 Chrome/Edge 113+ 或 Chrome/Edge Canary，Canary 需手动开启 WebGPU 试验功能）
 cargo run-wasm --bin tutorial1-window
 # 使用 WebGL 2.0
 cargo run-wasm --bin tutorial1-window --features webgl
@@ -75,6 +75,11 @@ cargo run-wasm --bin tutorial1-window --features webgl
 
 Chrome 113+ 已经默认开启了 WebGPU 支持。如果安装的是 Canary 版，在地址栏中输入 `chrome://flags` , 将 `Unsafe WebGPU` 设置为 `Enabled`:
 <img src="/res/chrome.png" alt="Chrome Canary">
+
+### Microsoft Edge
+
+Microsoft Edge 113+ 也已默认开启了 WebGPU 支持。如果安装的是 Canary 版，在地址栏中输入 `edge://flags` , 将 `Unsafe WebGPU Support` 设置为 `Enabled`:
+<img src="/res/edge.png" alt="Edge Canary">
 
 ## 贡献与支持
 

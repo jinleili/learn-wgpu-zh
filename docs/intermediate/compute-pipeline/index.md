@@ -217,7 +217,7 @@ workgroup_count = ((1000 + (32 -1)) / 32, (768 + (16 -1)) / 16, 1);
 
 ## 运行示例代码
 
-_此示例目前只能在桌面端及 Chrome 113+ / Chrome Canary 浏览器中运行（[如何开启浏览器 webgpu 试验功能](../../#如何开启浏览器-webgpu-试验功能)）！使用隐式绑定组布局目前在 Firefox Nightly 上有 bug: <span style="color: gray;">Uncaught (in promise) TypeError: GPUDevice.createComputePipeline: 'layout' member of GPUPipelineDescriptorBase is not an object.</span>_
+_此示例目前只能在桌面端及 Chrome/Edge 113+、Chrome/Edge Canary 浏览器中运行（[如何开启浏览器 webgpu 试验功能](../../#如何开启浏览器-webgpu-试验功能)）！使用隐式绑定组布局目前在 Firefox Nightly 上有 bug: <span style="color: gray;">Uncaught (in promise) TypeError: GPUDevice.createComputePipeline: 'layout' member of GPUPipelineDescriptorBase is not an object.</span>_
 
 <WasmExample example="compute_pipeline"></WasmExample>
 
