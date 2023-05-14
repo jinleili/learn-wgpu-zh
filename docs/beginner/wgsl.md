@@ -32,7 +32,9 @@ WebGPU 成员花了 2 年半的时间来争论 WebGPU 是否应该有自己的�
 
 <div class="note">
 
-增补一个网上新出现的学习资源：[Tour of WGSL](https://google.github.io/tour-of-wgsl/)
+增补两个网上新出现的学习资源：
+
+[Tour of WGSL](https://google.github.io/tour-of-wgsl/) 与 [compute.toys](https://compute.toys)
 
 </div>
 
