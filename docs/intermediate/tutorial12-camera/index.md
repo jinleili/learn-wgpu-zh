@@ -45,6 +45,9 @@ impl Camera {
     }
 
     pub fn calc_matrix(&self) -> glam::Mat4 {
+        let (sin_pitch, cos_pitch) = self.pitch.sin_cos();
+        let (sin_yaw, cos_yaw) = self.yaw.sin_cos();
+
         glam::Mat4::look_to_rh(
             self.position,
             glam::Vec3::new(cos_pitch * cos_yaw, sin_pitch, cos_pitch * sin_yaw).normalize(),
@@ -198,8 +201,8 @@ impl CameraController {
         camera.position.y += (self.amount_up - self.amount_down) * self.speed * dt;
 
         // 旋转
-        camera.yaw += Rad(self.rotate_horizontal) * self.sensitivity * dt;
-        camera.pitch += Rad(-self.rotate_vertical) * self.sensitivity * dt;
+        camera.yaw += self.rotate_horizontal * self.sensitivity * dt;
+        camera.pitch += -self.rotate_vertical * self.sensitivity * dt;
 
         // 重置旋转值为 0。没有鼠标移动发生时，摄像机就停止旋转。
         self.rotate_horizontal = 0.0;
