@@ -51,7 +51,7 @@ export default {
           this.exampleStarted = true;
         }, (e) => {
           if (!`${e}`.includes("don't mind me. This isn't actually an error!")) {
-            showErr(e);
+            this.showErr(e);
           } else {
             this.exampleStarted = true;
             this.loading = false;
@@ -59,7 +59,7 @@ export default {
         });
 
       } catch (e) {
-        showErr(e);
+        this.showErr(e);
       }
     },
 
