@@ -195,7 +195,7 @@ WGSL 没有强制使用固定的 `main()` 函数作为**入口点**（`Entry Poi
 @vertex
 fn vs_main() {}
 
-// 片无着色器入口点
+// 片元着色器入口点
 @fragment
 fn fs_main() -> @location(X) vec4<f32>{}
 
