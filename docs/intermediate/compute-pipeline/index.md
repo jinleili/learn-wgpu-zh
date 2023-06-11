@@ -52,8 +52,8 @@ let tex = app.device.create_texture(&wgpu::TextureDescriptor {
 
 ```rust
 struct Particle {
-  pos : vec2<f32>,
-  vel : vec2<f32>,
+  pos : vec2f,
+  vel : vec2f,
 };
 // 存储缓冲区
 @group(0) @binding(0) var<storage, read_write> particles: array<Particle>;
@@ -67,7 +67,7 @@ fn cs_main(@builtin(global_invocation_id) global_id: vec3<u32>) {
     // 读取存储缓冲区
     let particle = particles[vu.x * uv.y];
 
-    var texel: vec4<f32>;
+    var texel: vec4f;
     // ...
     // 写入纹素数据到存储纹理
     textureStore(to_tex, uv, texel);

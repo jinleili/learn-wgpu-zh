@@ -22,19 +22,19 @@
 //  MIT License. © Ian McEwan, Stefan Gustavson, Munrocket
 // - Less condensed glsl implementation with comments can be found at https://weber.itn.liu.se/~stegu/jgt2012/article.pdf
 
-fn permute3(x: vec3<f32>) -> vec3<f32> { return (((x * 34.) + 1.) * x) % vec3<f32>(289.); }
+fn permute3(x: vec3f) -> vec3f { return (((x * 34.) + 1.) * x) % vec3f(289.); }
 
-fn snoise2(v: vec2<f32>) -> f32 {
-  let C = vec4<f32>(0.211324865405187, 0.366025403784439, -0.577350269189626, 0.024390243902439);
-  var i: vec2<f32> = floor(v + dot(v, C.yy));
+fn snoise2(v: vec2f) -> f32 {
+  let C = vec4f(0.211324865405187, 0.366025403784439, -0.577350269189626, 0.024390243902439);
+  var i: vec2f = floor(v + dot(v, C.yy));
   let x0 = v - i + dot(i, C.xx);
   // I flipped the condition here from > to < as it fixed some artifacting I was observing
-  var i1: vec2<f32> = select(vec2<f32>(1., 0.), vec2<f32>(0., 1.), (x0.x < x0.y));
-  var x12: vec4<f32> = x0.xyxy + C.xxzz - vec4<f32>(i1, 0., 0.);
-  i = i % vec2<f32>(289.);
-  let p = permute3(permute3(i.y + vec3<f32>(0., i1.y, 1.)) + i.x + vec3<f32>(0., i1.x, 1.));
-  var m: vec3<f32> = max(0.5 -
-      vec3<f32>(dot(x0, x0), dot(x12.xy, x12.xy), dot(x12.zw, x12.zw)), vec3<f32>(0.));
+  var i1: vec2f = select(vec2f(1., 0.), vec2f(0., 1.), (x0.x < x0.y));
+  var x12: vec4f = x0.xyxy + C.xxzz - vec4f(i1, 0., 0.);
+  i = i % vec2f(289.);
+  let p = permute3(permute3(i.y + vec3f(0., i1.y, 1.)) + i.x + vec3f(0., i1.x, 1.));
+  var m: vec3f = max(0.5 -
+      vec3f(dot(x0, x0), dot(x12.xy, x12.xy), dot(x12.zw, x12.zw)), vec3f(0.));
   m = m * m;
   m = m * m;
   let x = 2. * fract(p * C.www) - 1.;
@@ -42,7 +42,7 @@ fn snoise2(v: vec2<f32>) -> f32 {
   let ox = floor(x + 0.5);
   let a0 = x - ox;
   m = m * (1.79284291400159 - 0.85373472095314 * (a0 * a0 + h * h));
-  let g = vec3<f32>(a0.x * x0.x + h.x * x0.y, a0.yz * x12.xz + h.yz * x12.yw);
+  let g = vec3f(a0.x * x0.x + h.x * x0.y, a0.yz * x12.xz + h.yz * x12.yw);
   return 130. * dot(m, g);
 }
 
@@ -62,13 +62,13 @@ fn snoise2(v: vec2<f32>) -> f32 {
 这个函数的代码其实很简单：
 
 ```rust
-fn fbm(p: vec2<f32>) -> f32 {
+fn fbm(p: vec2f) -> f32 {
     let NUM_OCTAVES: u32 = 5u;
     var x = p * 0.01;
     var v = 0.0;
     var a = 0.5;
-    let shift = vec2<f32>(100.0);
-    let cs = vec2<f32>(cos(0.5), sin(0.5));
+    let shift = vec2f(100.0);
+    let cs = vec2f(cos(0.5), sin(0.5));
     let rot = mat2x2<f32>(cs.x, cs.y, -cs.y, cs.x);
 
     for (var i=0u; i<NUM_OCTAVES; i=i+1u) {
@@ -96,12 +96,12 @@ fn fbm(p: vec2<f32>) -> f32 {
 struct ChunkData {
     chunk_size: vec2<u32>,
     chunk_corner: vec2<i32>,
-    min_max_height: vec2<f32>,
+    min_max_height: vec2f,
 }
 
 struct Vertex {
-    @location(0) position: vec3<f32>,
-    @location(1) normal: vec3<f32>,
+    @location(0) position: vec3f,
+    @location(1) normal: vec3f,
 }
 
 struct VertexBuffer {
@@ -124,21 +124,21 @@ struct IndexBuffer {
 着色器的下一个部分是在网格上生成一个点，以及该点的一个顶点：
 
 ```rust
-fn terrain_point(p: vec2<f32>) -> vec3<f32> {
-    return vec3<f32>(
+fn terrain_point(p: vec2f) -> vec3f {
+    return vec3f(
         p.x,
         mix(chunk_data.min_max_height.x,chunk_data.min_max_height.y, fbm(p)),
         p.y,
     );
 }
 
-fn terrain_vertex(p: vec2<f32>) -> Vertex {
+fn terrain_vertex(p: vec2f) -> Vertex {
     let v = terrain_point(p);
 
-    let tpx = terrain_point(p + vec2<f32>(0.1, 0.0)) - v;
-    let tpz = terrain_point(p + vec2<f32>(0.0, 0.1)) - v;
-    let tnx = terrain_point(p + vec2<f32>(-0.1, 0.0)) - v;
-    let tnz = terrain_point(p + vec2<f32>(0.0, -0.1)) - v;
+    let tpx = terrain_point(p + vec2f(0.1, 0.0)) - v;
+    let tpz = terrain_point(p + vec2f(0.0, 0.1)) - v;
+    let tnx = terrain_point(p + vec2f(-0.1, 0.0)) - v;
+    let tnz = terrain_point(p + vec2f(0.0, -0.1)) - v;
 
     let pn = normalize(cross(tpz, tpx));
     let nn = normalize(cross(tnz, tnx));
@@ -204,11 +204,10 @@ for wgx in num_workgroups.x:
 
 </div>
 
+TODO:
 
-
-TODO: 
 - Note changes to `create_render_pipeline`
 - Mention `swizzle` feature for cgmath
 - Compare workgroups and workgroups sizes to nested for loops
-    - Maybe make a diagram in blender?
+  - Maybe make a diagram in blender?
 - Change to camera movement speed

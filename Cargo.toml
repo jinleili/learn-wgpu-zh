@@ -23,7 +23,7 @@ version = "0.24"
 default-features = false
 
 [workspace.dependencies]
-app-surface = { git = "https://github.com/jinleili/wgpu-on-app", version = "0.2.1" }
+app-surface = { git = "https://github.com/jinleili/wgpu-in-app", tag = "0.2.1" }
 # app-surface = { path = "../idroid/wgpu-in-app/app-surface" }
 bytemuck = "1.4"
 cfg-if = "1"
@@ -43,11 +43,18 @@ wgpu = { version = "0.16" }
 # wasm32 dependencies
 console_error_panic_hook = "0.1.7"
 console_log = "0.2.0"
-js-sys = "0.3.61"
 reqwest = { version = "0.11" }
+js-sys = "0.3.61"
 wasm-bindgen = "0.2.84"
 wasm-bindgen-futures = "0.4.34"
 web-sys = "0.3.61"
+# 必须与 wgpu 里使用的版本一致，因为 web-sys 里有类型名称的变更：
+# variant or associated item not found in `GpuTextureFormat`
+# help: there is a variant with a similar name: `Depth24plusStencil8`
+# js-sys = "0.3.63"
+# wasm-bindgen = "0.2.86"
+# wasm-bindgen-futures = "0.4.36"
+# web-sys = "0.3.63"
 
 # build-dependencies
 anyhow = "1.0"
@@ -60,5 +67,4 @@ glob = "0.3"
 # opt-level = 1 # very slow and big wasm. Don't do this.
 opt-level = 2 # fast and small wasm, basically same as `opt-level = 's'`
 # opt-level = 3 # unecessarily large wasm for no performance gain
-
 # debug = true # include debug symbols, useful when profiling wasm

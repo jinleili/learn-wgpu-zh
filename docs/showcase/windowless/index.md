@@ -1,6 +1,6 @@
 # 离屏渲染
 
-有时我们只是想利用 gpu，也许是要并行地计算一组大的数字; 也许是正在制作一部 3D 电影，并需要用路径追踪来创建一个看起来很真实的场景; 也许正在挖掘一种加密货币。在所有这些情况下，我们可能 *不需要* 从窗口看到正在发生的事情。
+有时我们只是想利用 gpu，也许是要并行地计算一组大的数字; 也许是正在制作一部 3D 电影，并需要用路径追踪来创建一个看起来很真实的场景; 也许正在挖掘一种加密货币。在所有这些情况下，我们可能 _不需要_ 从窗口看到正在发生的事情。
 
 ## 如何使用？
 
@@ -75,7 +75,7 @@ let output_buffer = device.create_buffer(&output_buffer_desc);
 // 顶点着色器
 
 struct VertexOutput {
-    @builtin(position) clip_position: vec4<f32>,
+    @builtin(position) clip_position: vec4f,
 };
 
 @vertex
@@ -85,15 +85,15 @@ fn vs_main(
     var out: VertexOutput;
     let x = f32(1 - i32(in_vertex_index)) * 0.5;
     let y = f32(i32(in_vertex_index & 1u) * 2 - 1) * 0.5;
-    out.clip_position = vec4<f32>(x, y, 0.0, 1.0);
+    out.clip_position = vec4f(x, y, 0.0, 1.0);
     return out;
 }
 
 // 片元着色器
 
 @fragment
-fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
-    return vec4<f32>(0.3, 0.2, 0.1, 1.0);
+fn fs_main(in: VertexOutput) -> @location(0) vec4f {
+    return vec4f(0.3, 0.2, 0.1, 1.0);
 }
 ```
 

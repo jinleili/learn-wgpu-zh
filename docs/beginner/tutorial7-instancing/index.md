@@ -220,10 +220,10 @@ render_pass.draw_indexed(0..self.num_indices, 0, 0..self.instances.len() as _);
 
 ```rust
 struct InstanceInput {
-    @location(5) model_matrix_0: vec4<f32>,
-    @location(6) model_matrix_1: vec4<f32>,
-    @location(7) model_matrix_2: vec4<f32>,
-    @location(8) model_matrix_3: vec4<f32>,
+    @location(5) model_matrix_0: vec4f,
+    @location(6) model_matrix_1: vec4f,
+    @location(7) model_matrix_2: vec4f,
+    @location(8) model_matrix_3: vec4f,
 };
 ```
 
@@ -235,7 +235,7 @@ fn vs_main(
     model: VertexInput,
     instance: InstanceInput,
 ) -> VertexOutput {
-    let model_matrix = mat4x4<f32>(
+    let model_matrix = mat4x4f(
         instance.model_matrix_0,
         instance.model_matrix_1,
         instance.model_matrix_2,
@@ -256,7 +256,7 @@ fn vs_main(
     // ...
     var out: VertexOutput;
     out.tex_coords = model.tex_coords;
-    out.clip_position = camera.view_proj * model_matrix * vec4<f32>(model.position, 1.0);
+    out.clip_position = camera.view_proj * model_matrix * vec4f(model.position, 1.0);
     return out;
 }
 ```

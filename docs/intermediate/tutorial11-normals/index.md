@@ -132,9 +132,9 @@ var t_normal: texture_2d<f32>;
 var s_normal: sampler;
 
 @fragment
-fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
-    let object_color: vec4<f32> = textureSample(t_diffuse, s_diffuse, in.tex_coords);
-    let object_normal: vec4<f32> = textureSample(t_normal, s_normal, in.tex_coords);
+fn fs_main(in: VertexOutput) -> @location(0) vec4f {
+    let object_color: vec4f = textureSample(t_diffuse, s_diffuse, in.tex_coords);
+    let object_normal: vec4f = textureSample(t_normal, s_normal, in.tex_coords);
     // 环境光强度
     let ambient_strength = 0.1;
     let ambient_color = light.color * ambient_strength;
@@ -153,7 +153,7 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
 
     let result = (ambient_color + diffuse_color + specular_color) * object_color.xyz;
 
-    return vec4<f32>(result, object_color.a);
+    return vec4f(result, object_color.a);
 }
 ```
 
@@ -181,7 +181,7 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
 我们将创建一个矩阵，代表相对于顶点法向量的**坐标空间**（Coordinate Space）。然后使用它来变换法线贴图数据，使其处于世界空间：
 
 ```rust
-let coordinate_system = mat3x3<f32>(
+let coordinate_system = mat3x3f(
     vec3(1, 0, 0), // x axis (右)
     vec3(0, 1, 0), // y axis (上)
     vec3(0, 0, 1)  // z axis (前)
@@ -273,7 +273,7 @@ let meshes = models
             let v0 = vertices[c[0] as usize];
             let v1 = vertices[c[1] as usize];
             let v2 = vertices[c[2] as usize];
-           
+
             let pos0: glam::Vec3 = v0.position.into();
             let pos1: glam::Vec3 = v1.position.into();
             let pos2: glam::Vec3 = v2.position.into();
@@ -355,11 +355,11 @@ let meshes = models
 
 ```rust
 struct VertexInput {
-    @location(0) position: vec3<f32>,
-    @location(1) tex_coords: vec2<f32>;
-    @location(2) normal: vec3<f32>;
-    @location(3) tangent: vec3<f32>;
-    @location(4) bitangent: vec3<f32>;
+    @location(0) position: vec3f,
+    @location(1) tex_coords: vec2f;
+    @location(2) normal: vec3f;
+    @location(3) tangent: vec3f;
+    @location(4) bitangent: vec3f;
 };
 ```
 
@@ -367,12 +367,12 @@ struct VertexInput {
 
 ```rust
 struct VertexOutput {
-    @builtin(position) clip_position: vec4<f32>;
-    @location(0) tex_coords: vec2<f32>;
+    @builtin(position) clip_position: vec4f;
+    @location(0) tex_coords: vec2f;
     // 更新!
-    @location(1) tangent_position: vec3<f32>;
-    @location(2) tangent_light_position: vec3<f32>;
-    @location(3) tangent_view_position: vec3<f32>;
+    @location(1) tangent_position: vec3f;
+    @location(2) tangent_light_position: vec3f;
+    @location(3) tangent_view_position: vec3f;
 };
 
 @vertex
@@ -381,7 +381,7 @@ fn vs_main(
     instance: InstanceInput,
 ) -> VertexOutput {
     // ...
-    let normal_matrix = mat3x3<f32>(
+    let normal_matrix = mat3x3f(
         instance.normal_matrix_0,
         instance.normal_matrix_1,
         instance.normal_matrix_2,
@@ -391,13 +391,13 @@ fn vs_main(
     let world_normal = normalize(normal_matrix * model.normal);
     let world_tangent = normalize(normal_matrix * model.tangent);
     let world_bitangent = normalize(normal_matrix * model.bitangent);
-    let tangent_matrix = transpose(mat3x3<f32>(
+    let tangent_matrix = transpose(mat3x3f(
         world_tangent,
         world_bitangent,
         world_normal,
     ));
 
-    let world_position = model_matrix * vec4<f32>(model.position, 1.0);
+    let world_position = model_matrix * vec4f(model.position, 1.0);
 
     var out: VertexOutput;
     out.clip_position = camera.view_proj * world_position;
@@ -413,7 +413,7 @@ fn vs_main(
 
 ```rust
 @fragment
-fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
+fn fs_main(in: VertexOutput) -> @location(0) vec4f {
     // Sample textures..
 
     // 光照计算需要的向量

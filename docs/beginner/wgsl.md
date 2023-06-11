@@ -79,21 +79,21 @@ void main(void) {
 
 ```rust
 struct VertexOutput {
-    @location(0) uv: vec2<f32>,
-    @builtin(position) position: vec4<f32>,
+    @location(0) uv: vec2f,
+    @builtin(position) position: vec4f,
 };
 
 struct UniformParams {
-    mvp: mat4x4<f32>,
-	tint_color: vec3<f32>,
+    mvp: mat4x4f,
+	tint_color: vec3f,
 };
 
 @group(0) @binding(0) var<uniform> params: UniformParams;
 
 @vertex
-fn vs_main(@location(0) pos: vec3<f32>, @location(1) uv: vec2<f32>) -> VertexOutput {
+fn vs_main(@location(0) pos: vec3f, @location(1) uv: vec2f) -> VertexOutput {
     var out: VertexOutput;
-    out.position = params.mvp * vec4<f32>(pos, 1.0);
+    out.position = params.mvp * vec4f(pos, 1.0);
     out.uv = uv;
     return out;
 }
@@ -102,9 +102,9 @@ fn vs_main(@location(0) pos: vec3<f32>, @location(1) uv: vec2<f32>) -> VertexOut
 @group(0) @binding(2) var sampler_front: sampler;
 
 @fragment
-fn fs_main(input: VertexOutput) -> @location(0) vec4<f32> {
+fn fs_main(input: VertexOutput) -> @location(0) vec4f {
     let front = textureSample(texture_front, sampler_front, input.uv);
-    return front * vec4<f32>(params.tintColor, 1.0);
+    return front * vec4f(params.tintColor, 1.0);
 }
 ```
 
@@ -197,7 +197,7 @@ fn vs_main() {}
 
 // 片元着色器入口点
 @fragment
-fn fs_main() -> @location(X) vec4<f32>{}
+fn fs_main() -> @location(X) vec4f{}
 
 // 计算着色器入口点
 @compute
@@ -234,7 +234,7 @@ lowp vec4 color;
 vec4 color;
 
 // WGSL:
-var color: vec4<f32>;
+var color: vec4f;
 ```
 
 WGSL 没有像 `lowp` 这样的精度说明符, 而是显式指定具体类型，例如 `f32`（32 位浮点数）。如果要使用 `f16` 类型，需要在你的 WebGPU 程序中开启 `shader-f16` 扩展（wgpu 中目前已经加入了此扩展，但是 naga 中还没有完全实现对 `f16` 的支持）。
@@ -243,10 +243,10 @@ WGSL 支持自动类型推断。因此，如果在声明变量的同时进行赋
 
 ```rust
 // 显式指定变量类型声明
-var color: vec4<f32> = vec4<f32>(1.0, 0.0, 0.0, 1.0);
+var color: vec4f = vec4f(1.0, 0.0, 0.0, 1.0);
 
 // 省略类型声明，变量类型将在编译时自动推断得出
-var color = vec4<f32>(1.0, 0.0, 0.0, 1.0);
+var color = vec4f(1.0, 0.0, 0.0, 1.0);
 ```
 
 WGSL 中的 `var` `let` 关键字与 Swift 语言一样：
@@ -272,12 +272,12 @@ gl_Position = mvp_matrix * vec4(position, 1.0);
 
 // WGSL
 struct UniformParams {
-    mvp: mat4x4<f32>,
-	tint_color: vec3<f32>,
+    mvp: mat4x4f,
+	tint_color: vec3f,
 };
 @group(0) @binding(0) var<uniform> params: UniformParams;
 // ...
-out.position = params.mvp * vec4<f32>(pos, 1.0);
+out.position = params.mvp * vec4f(pos, 1.0);
 ```
 
 注意到上面 Unoform 缓冲区在声明及使用上的两个区别了吗？
@@ -294,8 +294,8 @@ WGSL 的**输入和输出结构体**比较独特，在 GLSL 中没有对应物�
 
 ```rust
 struct VertexOutput {
-    @location(0) uv: vec2<f32>,
-    @builtin(position) position: vec4<f32>,
+    @location(0) uv: vec2f,
+    @builtin(position) position: vec4f,
 };
 ```
 
@@ -410,9 +410,9 @@ let n = x % y;
 ///#include "func/edge_detection.wgsl"
 
 @fragment
-fn fs_main(vertex: VertexOutput) -> @location(0) vec4<f32> {
+fn fs_main(vertex: VertexOutput) -> @location(0) vec4f {
     let color = textureSample(tex, tex_sampler, vertex.uv);
-    return vec4<f32>(edge_detection(length(color.rgb), 0.125));
+    return vec4f(edge_detection(length(color.rgb), 0.125));
 }
 ```
 

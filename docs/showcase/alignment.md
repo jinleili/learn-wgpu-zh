@@ -20,13 +20,14 @@ GPUs are designed to process thousands of pixels in parallel. In order to achiev
 
 Let's take a look at the following table:
 
----------------------------------------------------------------
+---
+
 | Type                   | Alignment in Bytes | Size in Bytes |
-|------------------------|--------------------|---------------|
-| scalar (i32, u32, f32) |                  4 |             4 |
-| vec2&lt;T&gt;          |                  8 |             8 |
-| vec3&lt;T&gt;          |             **16** |            12 |
-| vec4&lt;T&gt;          |                 16 |            16 |
+| ---------------------- | ------------------ | ------------- |
+| scalar (i32, u32, f32) | 4                  | 4             |
+| vec2&lt;T&gt;          | 8                  | 8             |
+| vec3&lt;T&gt;          | **16**             | 12            |
+| vec4&lt;T&gt;          | 16                 | 16            |
 
 You can see for `vec3` the alignment is the next power of 2 from the size, 16. This can catch beginners (and even veterans) off guard as it's not the most intuitive. This becomes especially important when we start laying out structs. Take the light struct from the [lighting tutorial](../intermediate/tutorial10-lighting/#seeing-the-light):
 
@@ -34,8 +35,8 @@ You can see the full table of the alignments in section [4.3.7.1 of the WGSL spe
 
 ```rust
 struct Light {
-    position: vec3<f32>,
-    color: vec3<f32>,
+    position: vec3f,
+    color: vec3f,
 }
 ```
 
@@ -50,7 +51,7 @@ AlignOf(S) = max(AlignOfMember(S, M1), ... , AlignOfMember(S, Mn))
 Basically, the alignment of the struct is the maximum of the alignments of the members of the struct. This means that:
 
 ```
-AlignOf(Light) 
+AlignOf(Light)
     = max(AlignOfMember(Light, position), AlignOfMember(Light, color))
     = max(16, 16)
     = 16

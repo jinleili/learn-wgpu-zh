@@ -146,8 +146,8 @@ wgpu::VertexBufferLayout {
 2. `step_mode` 告诉管线此缓冲区中的数组数据中的每个元素代表的是每个顶点还是每个实例的数据，如果只想在开始绘制一个新实例时改变顶点，就可以设置为 `wgpu::VertexStepMode::Instance`。在后面的教程里我们会讲解实例化绘制。
 3. `attributes` 描述顶点的各个属性（Attribute）的布局。一般来说，这与结构体的字段是 1:1 映射的，在我们的案例中也是如此。
 4. `offset` 定义了属性在一个顶点元素中的字节偏移量。对于第一个属性，偏移量通常为零。其后属性的偏移量应为在其之前各属性的 `size_of` 之和。
-5. `shader_location` 告诉着色器要在什么位置存储这个属性。例如 `@location(0) x: vec3<f32>` 在顶点着色器中对应于 `Vertex` 结构体的 `position` 字段，而 `@location(1) x: vec3<f32>` 对应 `color` 字段。
-6. `format` 告诉着色器该属性的数据格式。`Float32x3`对应于着色器代码中的 `vec3<f32>`。我们可以在一个属性中存储的最大值是`Float32x4`（`Uint32x4` 和 `Sint32x4` 也可以）。当我们需要存储比 `Float32x4` 更大的东西时请记住这一点。
+5. `shader_location` 告诉着色器要在什么位置存储这个属性。例如 `@location(0) x: vec3f` 在顶点着色器中对应于 `Vertex` 结构体的 `position` 字段，而 `@location(1) x: vec3f` 对应 `color` 字段。
+6. `format` 告诉着色器该属性的数据格式。`Float32x3`对应于着色器代码中的 `vec3f`。我们可以在一个属性中存储的最大值是`Float32x4`（`Uint32x4` 和 `Sint32x4` 也可以）。当我们需要存储比 `Float32x4` 更大的东西时请记住这一点。
 
 对于视觉学习者来说，我们的顶点缓冲区看起来是这样的：
 
@@ -286,13 +286,13 @@ render_pass.draw(0..self.num_vertices, 0..1);
 // 顶点着色器
 
 struct VertexInput {
-    @location(0) position: vec3<f32>,
-    @location(1) color: vec3<f32>,
+    @location(0) position: vec3f,
+    @location(1) color: vec3f,
 };
 
 struct VertexOutput {
-    @builtin(position) clip_position: vec4<f32>,
-    @location(0) color: vec3<f32>,
+    @builtin(position) clip_position: vec4f,
+    @location(0) color: vec3f,
 };
 
 @vertex
@@ -301,15 +301,15 @@ fn vs_main(
 ) -> VertexOutput {
     var out: VertexOutput;
     out.color = model.color;
-    out.clip_position = vec4<f32>(model.position, 1.0);
+    out.clip_position = vec4f(model.position, 1.0);
     return out;
 }
 
 // 片元着色器
 
 @fragment
-fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
-    return vec4<f32>(in.color, 1.0);
+fn fs_main(in: VertexOutput) -> @location(0) vec4f {
+    return vec4f(in.color, 1.0);
 }
 ```
 
