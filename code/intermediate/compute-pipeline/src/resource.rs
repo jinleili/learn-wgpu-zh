@@ -19,7 +19,7 @@ pub fn load_a_texture(app_surface: &app_surface::AppSurface) -> (wgpu::Texture, 
         dimension: wgpu::TextureDimension::D2,
         format: wgpu::TextureFormat::Rgba8UnormSrgb,
         usage: wgpu::TextureUsages::COPY_DST | wgpu::TextureUsages::TEXTURE_BINDING,
-        view_formats: &[],
+        view_formats: &[wgpu::TextureFormat::Rgba8Unorm],
     });
     app_surface.queue.write_texture(
         texture.as_image_copy(),

@@ -13,6 +13,8 @@ mod resource;
 use blur_node::BlurNode;
 use image_node::ImageNode;
 
+const SWAP_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Rgba8Unorm;
+
 struct State {
     app: AppSurface,
     blur_x: BlurNode,
@@ -27,13 +29,17 @@ impl Action for State {
     fn new(app: AppSurface) -> Self {
         let mut app = app;
         // 使用线性纹理格式，避免手动做 gamma 运算
-        // Bgra8Unorm 的兼容性最好，是全平台支持的格式
+        // Bgra8Unorm 的兼容性最好，几乎是全平台支持的格式（已知 Android 上不支持此格式的 SurfaceConfiguration）
         app.sdq
             .update_config_format(wgpu::TextureFormat::Bgra8Unorm);
 
         let _format = wgpu::TextureFormat::Rgba8UnormSrgb;
+
         let (tex, size) = resource::load_a_texture(&app);
-        let original_tv = tex.create_view(&wgpu::TextureViewDescriptor::default());
+        let original_tv = tex.create_view(&wgpu::TextureViewDescriptor {
+            format: Some(SWAP_FORMAT),
+            ..Default::default()
+        });
 
         // 使用缩小的纹理来实现模糊，不但能降低 GPU 负载，还能让模糊的效果更好。
         let swap_size = wgpu::Extent3d {
@@ -41,7 +47,6 @@ impl Action for State {
             height: size.height / 2,
             depth_or_array_layers: 1,
         };
-        let swap_format = wgpu::TextureFormat::Rgba8Unorm;
         let usage = TextureUsages::STORAGE_BINDING | TextureUsages::TEXTURE_BINDING;
 
         let get_a_tv = |usage: wgpu::TextureUsages| {
@@ -51,7 +56,7 @@ impl Action for State {
                 mip_level_count: 1,
                 sample_count: 1,
                 dimension: wgpu::TextureDimension::D2,
-                format: swap_format,
+                format: SWAP_FORMAT,
                 usage,
                 view_formats: &[],
             });
@@ -111,7 +116,7 @@ impl Action for State {
             &sampler,
             &render_shader,
             "fs_srgb_to_linear",
-            swap_format,
+            SWAP_FORMAT,
         );
         let display_node = ImageNode::new(
             &app,

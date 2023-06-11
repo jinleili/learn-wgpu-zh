@@ -1,5 +1,5 @@
 use app_surface::AppSurface;
-use wgpu::{Sampler, ShaderModule, TextureView};
+use wgpu::{Sampler, ShaderModule, ShaderStages, TextureView, TextureViewDimension};
 
 pub struct ImageNode {
     pipeline: wgpu::RenderPipeline,
@@ -15,11 +15,42 @@ impl ImageNode {
         fs_entry_point: &str,
         target: wgpu::TextureFormat,
     ) -> Self {
+        let bind_group_layout =
+            app.device
+                .create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+                    entries: &[
+                        wgpu::BindGroupLayoutEntry {
+                            binding: 0,
+                            visibility: ShaderStages::FRAGMENT,
+                            ty: wgpu::BindingType::Texture {
+                                sample_type: wgpu::TextureSampleType::Float { filterable: true },
+                                view_dimension: TextureViewDimension::D2,
+                                multisampled: false,
+                            },
+                            count: None,
+                        },
+                        wgpu::BindGroupLayoutEntry {
+                            binding: 1,
+                            visibility: ShaderStages::FRAGMENT,
+                            ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering),
+                            count: None,
+                        },
+                    ],
+                    label: None,
+                });
+        let pipeline_layout = app
+            .device
+            .create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+                label: None,
+                bind_group_layouts: &[&bind_group_layout],
+                push_constant_ranges: &[],
+            });
+
         let pipeline = app
             .device
             .create_render_pipeline(&wgpu::RenderPipelineDescriptor {
                 label: Some("render pipeline"),
-                layout: None,
+                layout: Some(&pipeline_layout),
                 vertex: wgpu::VertexState {
                     module: shader,
                     entry_point: "vs_main",
@@ -36,7 +67,7 @@ impl ImageNode {
                 multiview: None,
             });
         let bind_group = app.device.create_bind_group(&wgpu::BindGroupDescriptor {
-            layout: &pipeline.get_bind_group_layout(0),
+            layout: &bind_group_layout,
             entries: &[
                 wgpu::BindGroupEntry {
                     binding: 0,

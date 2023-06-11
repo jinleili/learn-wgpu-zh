@@ -1,5 +1,5 @@
 use app_surface::AppSurface;
-use wgpu::{util::DeviceExt, ShaderModule, TextureView};
+use wgpu::{util::DeviceExt, ShaderModule, ShaderStages, TextureView, TextureViewDimension};
 
 pub struct BlurNode {
     pipeline: wgpu::ComputePipeline,
@@ -16,10 +16,55 @@ impl BlurNode {
         shader: &ShaderModule,
         workgroup_count: (u32, u32),
     ) -> Self {
+        let bind_group_layout =
+            app.device
+                .create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+                    entries: &[
+                        wgpu::BindGroupLayoutEntry {
+                            binding: 0,
+                            visibility: ShaderStages::COMPUTE,
+                            ty: wgpu::BindingType::Buffer {
+                                ty: wgpu::BufferBindingType::Uniform,
+                                has_dynamic_offset: false,
+                                min_binding_size: wgpu::BufferSize::new(0),
+                            },
+                            count: None,
+                        },
+                        wgpu::BindGroupLayoutEntry {
+                            binding: 1,
+                            visibility: ShaderStages::COMPUTE,
+                            ty: wgpu::BindingType::Texture {
+                                sample_type: wgpu::TextureSampleType::Float { filterable: true },
+                                view_dimension: TextureViewDimension::D2,
+                                multisampled: false,
+                            },
+                            count: None,
+                        },
+                        wgpu::BindGroupLayoutEntry {
+                            binding: 2,
+                            visibility: ShaderStages::COMPUTE,
+                            ty: wgpu::BindingType::StorageTexture {
+                                view_dimension: TextureViewDimension::D2,
+                                access: wgpu::StorageTextureAccess::WriteOnly,
+                                format: super::SWAP_FORMAT,
+                            },
+                            count: None,
+                        },
+                    ],
+                    label: None,
+                });
+        let pipeline_layout = app
+            .device
+            .create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+                label: None,
+                bind_group_layouts: &[&bind_group_layout],
+                push_constant_ranges: &[],
+            });
+
         let pipeline = app
             .device
             .create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
-                layout: None,
+                layout: Some(&pipeline_layout),
                 module: shader,
                 entry_point: "cs_main",
                 label: None,
@@ -34,7 +79,7 @@ impl BlurNode {
             });
 
         let bind_group = app.device.create_bind_group(&wgpu::BindGroupDescriptor {
-            layout: &pipeline.get_bind_group_layout(0),
+            layout: &bind_group_layout,
             entries: &[
                 wgpu::BindGroupEntry {
                     binding: 0,
