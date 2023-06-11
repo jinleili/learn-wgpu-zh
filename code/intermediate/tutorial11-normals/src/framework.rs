@@ -16,7 +16,7 @@ pub fn run(wh_ratio: Option<f32>) {
 
 #[cfg(target_arch = "wasm32")]
 pub fn run(wh_ratio: Option<f32>) {
-    use wasm_bindgen::{prelude::*, JsCast};
+    use wasm_bindgen::prelude::*;
 
     std::panic::set_hook(Box::new(console_error_panic_hook::hook));
     console_log::init_with_level(log::Level::Warn).expect("无法初始化日志库");
