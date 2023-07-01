@@ -5,6 +5,7 @@ members = [
     "code/beginner/*",
     # intermediate tutorials
     "code/intermediate/*",
+    "code/utils",
     # showcase
     "code/showcase/*",
     "run-wasm",
@@ -39,6 +40,7 @@ tobj = "3.2"
 winit = "0.27.5"
 wgpu = { version = "0.16" }
 # wgpu = { git = "https://github.com/gfx-rs/wgpu", rev = "7c25c00f" }
+utils = { path = "code/utils" }
 
 # wasm32 dependencies
 console_error_panic_hook = "0.1.7"

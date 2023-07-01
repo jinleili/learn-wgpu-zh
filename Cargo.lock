@@ -3894,6 +3894,30 @@ dependencies = [
 ]
 
 [[package]]
+name = "utils"
+version = "0.0.0"
+dependencies = [
+ "app-surface",
+ "bytemuck",
+ "cfg-if 1.0.0",
+ "console_error_panic_hook",
+ "console_log",
+ "env_logger 0.9.3",
+ "glam",
+ "image",
+ "js-sys",
+ "log",
+ "png",
+ "pollster",
+ "reqwest",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "web-sys",
+ "wgpu 0.16.1",
+ "winit 0.27.5",
+]
+
+[[package]]
 name = "value-bag"
 version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3916,6 +3940,29 @@ name = "version_check"
 version = "0.9.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "49874b5167b65d7193b8aba1567f5c7d93d001cafc34600cee003eda787e483f"
+
+[[package]]
+name = "vertex-animation"
+version = "0.1.0"
+dependencies = [
+ "app-surface",
+ "bytemuck",
+ "cfg-if 1.0.0",
+ "console_error_panic_hook",
+ "console_log",
+ "env_logger 0.9.3",
+ "glam",
+ "js-sys",
+ "log",
+ "png",
+ "pollster",
+ "utils",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "web-sys",
+ "wgpu 0.16.1",
+ "winit 0.27.5",
+]
 
 [[package]]
 name = "waker-fn"
