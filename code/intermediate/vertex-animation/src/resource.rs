@@ -1,7 +1,7 @@
 use utils::load_texture::AnyTexture;
 
-pub fn load_a_texture(app_surface: &app_surface::AppSurface) -> AnyTexture {
-    let img_data = include_bytes!("../assets/fu.png");
+pub fn load_a_texture(app: &app_surface::AppSurface, img_data: &[u8]) -> AnyTexture {
+    
     let decoder = png::Decoder::new(std::io::Cursor::new(img_data));
 
     let mut reader = decoder.read_info().unwrap();
@@ -14,7 +14,7 @@ pub fn load_a_texture(app_surface: &app_surface::AppSurface) -> AnyTexture {
         depth_or_array_layers: 1,
     };
     let format = wgpu::TextureFormat::Rgba8UnormSrgb;
-    let texture = app_surface.device.create_texture(&wgpu::TextureDescriptor {
+    let texture = app.device.create_texture(&wgpu::TextureDescriptor {
         label: None,
         size,
         mip_level_count: 1,
@@ -24,7 +24,7 @@ pub fn load_a_texture(app_surface: &app_surface::AppSurface) -> AnyTexture {
         usage: wgpu::TextureUsages::COPY_DST | wgpu::TextureUsages::TEXTURE_BINDING,
         view_formats: &[wgpu::TextureFormat::Rgba8Unorm],
     });
-    app_surface.queue.write_texture(
+    app.queue.write_texture(
         texture.as_image_copy(),
         &buf,
         wgpu::ImageDataLayout {

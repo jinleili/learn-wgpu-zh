@@ -5,8 +5,8 @@ mod resource;
 mod vertex_ani_app;
 pub use vertex_ani_app::VertexAnimationApp;
 
-mod hilbert_curve;
-use hilbert_curve::HilbertCurve;
+// mod hilbert_curve;
+// use hilbert_curve::HilbertCurve;
 
 #[repr(C)]
 #[derive(Clone, Copy, Debug, Pod, Zeroable)]

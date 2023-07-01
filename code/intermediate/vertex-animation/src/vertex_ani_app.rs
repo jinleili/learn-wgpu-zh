@@ -6,17 +6,22 @@ use winit::{dpi::PhysicalSize, window::WindowId};
 
 use utils::{
     framework::Action,
-    node::{BindGroupData, ViewNode, ViewNodeBuilder},
+    node::{BindGroupData, BufferlessFullscreenNode, ViewNode, ViewNodeBuilder},
     vertex::PosTex,
     BufferObj, MVPMatUniform, Plane,
 };
 
 pub struct VertexAnimationApp {
     app: AppSurface,
+    // 背景图节点
+    bg_node: BufferlessFullscreenNode,
+    // 翻页动画节点
     turning_node: ViewNode,
+    // 深度纹理（视图）
     depth_tex_view: wgpu::TextureView,
+    // 当前动画帧的索引，用于设置缓冲区的动态偏移
     animate_index: u32,
-    pub draw_count: u32,
+    draw_count: u32,
 }
 
 impl Action for VertexAnimationApp {
@@ -38,7 +43,7 @@ impl Action for VertexAnimationApp {
             (draw_count * offset_buffer_size) as wgpu::BufferAddress,
             offset_buffer_size,
             true,
-            Some("dynamic turning buffer"),
+            Some("动态偏移缓冲区"),
         );
 
         let start_pos = glam::Vec2::new(1.0, 0.0);
@@ -46,13 +51,13 @@ impl Action for VertexAnimationApp {
         let target_pos = glam::Vec2::new(-5.8, 2.5);
         let gap_pos = target_pos - start_pos;
 
-        // 填充 uniform 动态缓冲区
-        for step in 1..=draw_count {
+        // 按动态偏移量填充 uniform 缓冲区
+        for step in 0..draw_count {
             let radius = 1.0 / 8.0;
             let data = Self::step_turning_data(radius, step as u32, draw_count as u32, gap_pos);
             app.queue.write_buffer(
                 &turning_buf.buffer,
-                offset_buffer_size * (step - 1),
+                offset_buffer_size * (step),
                 bytemuck::bytes_of(&data),
             );
         }
@@ -67,12 +72,14 @@ impl Action for VertexAnimationApp {
         .generate_vertices();
 
         // 加载纸张纹理
-        let paper_tex = resource::load_a_texture(&app);
-        let sampler = app
-            .device
-            .create_sampler(&wgpu::SamplerDescriptor::default());
+        let bg_data = include_bytes!("../assets/bg.png");
+        let bg_tex = resource::load_a_texture(&app, bg_data);
+        let paper_data = include_bytes!("../assets/fu.png");
+        let paper_tex = resource::load_a_texture(&app, paper_data);
 
-        let bg_data = BindGroupData {
+        let sampler = utils::bilinear_sampler(&app.device);
+
+        let bind_group_data = BindGroupData {
             uniforms: vec![&mvp_buffer],
             inout_tv: vec![(&paper_tex, None)],
             samplers: vec![&sampler],
@@ -88,24 +95,45 @@ impl Action for VertexAnimationApp {
             ],
             ..Default::default()
         };
-        let turning_shader = app
-            .device
-            .create_shader_module(wgpu::ShaderModuleDescriptor {
-                label: None,
-                source: wgpu::ShaderSource::Wgsl(
-                    include_str!("../assets/page_turning.wgsl").into(),
-                ),
-            });
-        let builder = ViewNodeBuilder::<PosTex>::new(bg_data, &turning_shader)
+        let (turning_shader, bg_shader) = {
+            let create_shader = |wgsl: &'static str| -> wgpu::ShaderModule {
+                app.device
+                    .create_shader_module(wgpu::ShaderModuleDescriptor {
+                        label: None,
+                        source: wgpu::ShaderSource::Wgsl(wgsl.into()),
+                    })
+            };
+            (
+                create_shader(include_str!("../assets/page_turning.wgsl")),
+                create_shader(include_str!("../assets/bg_draw.wgsl")),
+            )
+        };
+        let builder = ViewNodeBuilder::<PosTex>::new(bind_group_data, &turning_shader)
             .with_vertices_and_indices((vertices, indices))
             .with_use_depth_stencil(true)
             .with_cull_mode(None);
-
         let turning_node = builder.build(&app.device);
+
+        let bind_group_data = BindGroupData {
+            inout_tv: vec![(&bg_tex, None)],
+            samplers: vec![&sampler],
+            visibilitys: vec![wgpu::ShaderStages::FRAGMENT, wgpu::ShaderStages::FRAGMENT],
+            ..Default::default()
+        };
+        let bg_node = BufferlessFullscreenNode::new(
+            &app.device,
+            app.config.format,
+            &bind_group_data,
+            &bg_shader,
+            None,
+            1,
+        );
+
         let depth_tex_view = crate::create_depth_tex(&app);
 
         Self {
             app,
+            bg_node,
             turning_node,
             depth_tex_view,
             animate_index: 0,
@@ -167,6 +195,7 @@ impl Action for VertexAnimationApp {
                     stencil_ops: None,
                 }),
             });
+            self.bg_node.draw_by_pass(&mut rpass);
             self.turning_node
                 .draw_rpass_by_offset(&mut rpass, self.animate_index, instance_count);
         }
@@ -190,6 +219,14 @@ impl VertexAnimationApp {
         draw_count: u32,
         gap_pos: glam::Vec2,
     ) -> TurningDynamicUniform {
+        if step == 0 {
+            return TurningDynamicUniform {
+                radius,
+                angle: 0.0,
+                np: [0.0; 2],
+                n: [0.0; 2],
+            };
+        }
         // 由慢到快的缓动效果
         let step = 1.0 - (FRAC_PI_2 * (step as f32 / draw_count as f32)).cos();
         let step_pos = gap_pos * step;
