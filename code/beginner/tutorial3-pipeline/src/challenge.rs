@@ -4,9 +4,7 @@ use app_surface::{AppSurface, SurfaceFrame};
 use winit::window::WindowId;
 use winit::{dpi::PhysicalSize, event::*};
 
-#[path = "../../../framework.rs"]
-mod framework;
-use framework::{run, Action};
+use utils::framework::{run, Action};
 
 struct State {
     app: AppSurface,

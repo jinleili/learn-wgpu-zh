@@ -16,6 +16,7 @@ log.workspace = true
 wgpu.workspace = true
 pollster.workspace = true
 app-surface.workspace = true
+utils.workspace = true
 # NEW!
 bytemuck = { workspace = true, features = ["derive"] }
 

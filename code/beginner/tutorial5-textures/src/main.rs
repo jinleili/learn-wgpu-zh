@@ -3,10 +3,7 @@ use std::iter;
 use app_surface::{AppSurface, SurfaceFrame};
 use wgpu::util::DeviceExt;
 use winit::{dpi::PhysicalSize, window::WindowId};
-
-#[path = "../../../framework.rs"]
-mod framework;
-use framework::{run, Action};
+use utils::framework::{run, Action};
 
 mod texture;
 

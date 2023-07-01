@@ -18,6 +18,7 @@ wgpu.workspace = true
 pollster.workspace = true
 app-surface.workspace = true
 bytemuck = { workspace = true, features = ["derive"] }
+utils.workspace = true
 
 [dependencies.image]
 workspace = true

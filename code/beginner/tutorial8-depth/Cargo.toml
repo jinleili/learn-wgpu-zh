@@ -19,6 +19,7 @@ log.workspace = true
 pollster.workspace = true
 winit.workspace = true
 wgpu.workspace = true
+utils.workspace = true
 
 [dependencies.image]
 workspace = true

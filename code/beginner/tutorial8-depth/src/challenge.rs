@@ -4,10 +4,7 @@ use app_surface::{AppSurface, SurfaceFrame};
 use wgpu::util::DeviceExt;
 use winit::window::WindowId;
 use winit::{dpi::PhysicalSize, event::*};
-
-#[path = "../../../framework.rs"]
-mod framework;
-use framework::{run, Action};
+use utils::framework::{run, Action};
 
 mod texture;
 

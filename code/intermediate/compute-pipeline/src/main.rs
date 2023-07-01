@@ -3,9 +3,7 @@ use std::iter;
 use wgpu::{TextureUsages, TextureView};
 use winit::{dpi::PhysicalSize, window::WindowId};
 
-#[path = "../../../framework.rs"]
-mod framework;
-use framework::{run, Action};
+use utils::framework::{run, Action};
 
 mod blur_node;
 mod image_node;

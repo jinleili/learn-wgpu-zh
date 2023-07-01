@@ -16,6 +16,7 @@ log.workspace = true
 wgpu = { workspace = true }
 pollster.workspace = true
 app-surface = { workspace = true }
+utils.workspace = true
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 console_error_panic_hook.workspace = true

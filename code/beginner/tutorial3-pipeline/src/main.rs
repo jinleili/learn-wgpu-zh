@@ -1,10 +1,7 @@
 use app_surface::{AppSurface, SurfaceFrame};
 use std::iter;
+use utils::framework::{run, Action};
 use winit::{dpi::PhysicalSize, window::WindowId};
-
-#[path = "../../../framework.rs"]
-mod framework;
-use framework::{run, Action};
 
 struct State {
     app: AppSurface,

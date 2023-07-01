@@ -2,10 +2,7 @@ use app_surface::{AppSurface, SurfaceFrame};
 use std::iter;
 use wgpu::util::DeviceExt;
 use winit::{dpi::PhysicalSize, window::WindowId};
-
-#[path = "../../../framework.rs"]
-mod framework;
-use framework::{run, Action};
+use utils::framework::{run, Action};
 
 #[repr(C)]
 #[derive(Copy, Clone, Debug, bytemuck::Pod, bytemuck::Zeroable)]
