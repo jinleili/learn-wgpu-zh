@@ -1,4 +1,4 @@
-#[allow(dead_code)]
+#![allow(dead_code)]
 use bytemuck::{Pod, Zeroable};
 pub trait Vertex {
     fn vertex_attributes(offset: u32) -> Vec<wgpu::VertexAttribute>;

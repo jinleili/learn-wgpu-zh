@@ -1,7 +1,6 @@
 use utils::load_texture::AnyTexture;
 
 pub fn load_a_texture(app: &app_surface::AppSurface, img_data: &[u8]) -> AnyTexture {
-    
     let decoder = png::Decoder::new(std::io::Cursor::new(img_data));
 
     let mut reader = decoder.read_info().unwrap();
@@ -22,7 +21,7 @@ pub fn load_a_texture(app: &app_surface::AppSurface, img_data: &[u8]) -> AnyText
         dimension: wgpu::TextureDimension::D2,
         format,
         usage: wgpu::TextureUsages::COPY_DST | wgpu::TextureUsages::TEXTURE_BINDING,
-        view_formats: &[wgpu::TextureFormat::Rgba8Unorm],
+        view_formats: &[format.remove_srgb_suffix()],
     });
     app.queue.write_texture(
         texture.as_image_copy(),
@@ -34,7 +33,10 @@ pub fn load_a_texture(app: &app_surface::AppSurface, img_data: &[u8]) -> AnyText
         },
         size,
     );
-    let tex_view = texture.create_view(&wgpu::TextureViewDescriptor::default());
+    let tex_view = texture.create_view(&wgpu::TextureViewDescriptor {
+        format: Some(format.remove_srgb_suffix()),
+        ..Default::default()
+    });
     AnyTexture {
         size,
         tex: texture,

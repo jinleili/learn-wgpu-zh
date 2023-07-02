@@ -5,6 +5,7 @@ import AutoGithubLink from "../components/AutoGithubLink.vue";
 import JoinWeiChatGroup from "../components/JoinWeiChatGroup.vue";
 import WasmExample from "../components/WasmExample.vue";
 import WasmFullScreen from "../components/WasmFullScreen.vue";
+import WebGPUExample from "../components/WebGPUExample.vue";
 
 export default {
   ...DefaultTheme,
@@ -12,6 +13,6 @@ export default {
     app.component("AutoGithubLink", AutoGithubLink);
     app.component("JoinWeiChatGroup", JoinWeiChatGroup);
     app.component("WasmExample", WasmExample);
-    app.component("WasmFullScreen", WasmFullScreen);
+    app.component("WebGPUExample", WebGPUExample);
   },
 };

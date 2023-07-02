@@ -22,7 +22,6 @@ export default defineConfig({
     },
   },
 
-  // 新版本的 i18n 似乎无法正常工作, 官方也没有线上示例（2023/2/3）
   locales: {
     root: { label: "中文" },
     en: { label: "English", link: "https://sotrh.github.io/learn-wgpu/" },
@@ -38,12 +37,6 @@ export default defineConfig({
       next: "下一章",
     },
     outlineTitle: "本章内容",
-
-    // TODO: 新版本的 i18n 能正常工作后，此处配置可移除（2023/2/3）
-    localeLinks: {
-      text: "简体中文",
-      items: [{ text: "English", link: "https://sotrh.github.io/learn-wgpu/" }],
-    },
 
     socialLinks: [
       { icon: "github", link: "https://github.com/jinleili/learn-wgpu-zh" },
@@ -123,6 +116,7 @@ function sidebarConfig() {
         },
         { text: "更好的摄像机", link: "/intermediate/tutorial12-camera/" },
         { text: "🆕 计算管线", link: "/intermediate/compute-pipeline/" },
+        { text: "🆕 顶点动画", link: "/intermediate/vertex-animation/" },
         // '/intermediate/tutorial13-terrain/',
       ],
     },

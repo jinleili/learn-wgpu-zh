@@ -34,7 +34,7 @@ impl ParticleInk {
         let w = app.config.width;
         let h = app.config.height;
         // 粒子像素尺寸
-        let particle_point_size = app.scale_factor * 2.0;
+        let particle_point_size = app.scale_factor * 1.0;
         let particle_num = wgpu::Extent3d {
             width: w / particle_point_size as u32,
             height: h / particle_point_size as u32,
@@ -140,8 +140,8 @@ impl ParticleInk {
         // let sampler2 = utils::default_sampler(&app.device);
         let bind_group_data = BindGroupData {
             uniforms: vec![mvp_buf],
-            inout_tv: vec![(&texture_view, None)],
-            samplers: vec![&sampler],
+            inout_tv: vec![(texture_view, None)],
+            samplers: vec![sampler],
             visibilitys: vec![
                 wgpu::ShaderStages::VERTEX,
                 wgpu::ShaderStages::FRAGMENT,

@@ -2,7 +2,7 @@ use crate::{particle_ink::ParticleInk, resource, TurningDynamicUniform};
 use app_surface::{AppSurface, SurfaceFrame};
 use std::f32::consts::FRAC_PI_2;
 use std::iter;
-use wgpu::{Sampler, TextureView};
+use wgpu::Sampler;
 use winit::{dpi::PhysicalSize, window::WindowId};
 
 use utils::{
@@ -34,6 +34,12 @@ pub struct VertexAnimationApp {
 
 impl Action for VertexAnimationApp {
     fn new(app: AppSurface) -> Self {
+        let mut app = app;
+        // 兼容 web
+        let format = app.config.format.remove_srgb_suffix();
+        app.sdq
+            .update_config_format(format);
+
         let (p_matrix, mv_matrix) =
             utils::matrix_helper::perspective_fullscreen_mvp((&app.config).into());
         let mvp_buffer = BufferObj::create_uniform_buffer(
@@ -120,7 +126,6 @@ impl Action for VertexAnimationApp {
             ..Default::default()
         };
 
-        let format = app.config.format.remove_srgb_suffix();
         let builder = ViewNodeBuilder::<PosTex>::new(bind_group_data, &turning_shader)
             .with_vertices_and_indices((vertices, indices))
             .with_use_depth_stencil(true)

@@ -16,7 +16,8 @@ RUSTFLAGS=--cfg=web_sys_unstable_apis cargo build --no-default-features --releas
 
 # 只能使用 WebGPU 的示例程序
 RUSTFLAGS=--cfg=web_sys_unstable_apis cargo build --no-default-features --release --target wasm32-unknown-unknown \
---bin compute-pipeline
+--bin compute-pipeline \
+--bin vertex-animation
 
 # Generate bindings
 for i in target/wasm32-unknown-unknown/release/*.wasm;

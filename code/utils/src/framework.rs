@@ -61,13 +61,14 @@ pub fn run<A: Action + 'static>(wh_ratio: Option<f32>) {
 async fn create_action_instance<A: Action + 'static>(wh_ratio: Option<f32>) -> (EventLoop<()>, A) {
     let event_loop = EventLoop::new();
     let window = WindowBuilder::new().build(&event_loop).unwrap();
+    let scale_factor = window.scale_factor() as f32;
 
     // 计算一个默认显示高度
     let height = (if cfg!(target_arch = "wasm32") {
         550.0
     } else {
         600.0
-    } * window.scale_factor()) as u32;
+    } * scale_factor) as u32;
 
     let width = if let Some(ratio) = wh_ratio {
         (height as f32 * ratio) as u32
@@ -88,14 +89,21 @@ async fn create_action_instance<A: Action + 'static>(wh_ratio: Option<f32>) -> (
             .map(|doc| {
                 match doc.get_element_by_id("wasm-example") {
                     Some(dst) => {
-                        let height = 500;
-                        let width = (height as f32
+                        let mut height = 420.0;
+                        let rect = dst.get_bounding_client_rect();
+                        let width_limit = rect.width() as u32;
+                        if width_limit > 420 {
+                            height = width_limit as f32;
+                        }
+                        height *= scale_factor;
+
+                        let width = (height
                             * if let Some(ratio) = wh_ratio {
                                 ratio
                             } else {
                                 1.1
                             }) as u32;
-                        window.set_inner_size(PhysicalSize::new(width, height));
+                        window.set_inner_size(PhysicalSize::new(width, height as u32));
                         let _ = dst.append_child(&web_sys::Element::from(window.canvas()));
                     }
                     None => {
