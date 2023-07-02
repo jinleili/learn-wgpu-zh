@@ -3963,6 +3963,7 @@ dependencies = [
  "log",
  "png",
  "pollster",
+ "rand",
  "utils",
  "wasm-bindgen",
  "wasm-bindgen-futures",

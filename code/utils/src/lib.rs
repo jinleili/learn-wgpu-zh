@@ -3,7 +3,7 @@ pub use framework::{run, Action};
 
 pub mod load_texture;
 pub use load_texture::{
-    bilinear_sampler, default_sampler, mirror_repeate_sampler, repeate_sampler,
+    bilinear_sampler, default_sampler, mirror_repeate_sampler, repeate_sampler, AnyTexture,
 };
 pub mod node;
 

@@ -328,7 +328,7 @@ impl ViewNode {
         rpass.draw_indexed(0..self.index_count as u32, 0, 0..instance_count);
     }
 
-    fn set_rpass<'a, 'b: 'a>(&'b self, rpass: &mut wgpu::RenderPass<'a>) {
+    pub fn set_rpass<'a, 'b: 'a>(&'b self, rpass: &mut wgpu::RenderPass<'a>) {
         rpass.set_pipeline(&self.pipeline);
         rpass.set_bind_group(0, &self.bg_setting.bind_group, &[]);
         rpass.set_index_buffer(self.index_buf.slice(..), wgpu::IndexFormat::Uint32);

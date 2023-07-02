@@ -1,5 +1,6 @@
 use app_surface::math::Size;
 
+#[derive(Clone, Copy)]
 pub struct FullscreenFactor {
     pub sx: f32,
     pub sy: f32,

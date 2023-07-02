@@ -1,6 +1,6 @@
 struct VertexOutput {
     @location(0) uv: vec2f,
-    @builtin(position) position: vec4<f32>,
+    @builtin(position) position: vec4f,
 };
 
 // 绘制一个大三角形覆盖在剪辑空间上（星号代表剪辑空间边界），如下所示： 
@@ -34,6 +34,6 @@ fn vs_main(@builtin(vertex_index) vertexIndex: u32) -> VertexOutput {
 @group(0) @binding(1) var tex_sampler: sampler;
 
 @fragment 
-fn fs_main(in : VertexOutput) -> @location(0) vec4<f32> {
+fn fs_main(in : VertexOutput) -> @location(0) vec4f {
   return textureSample(tex, tex_sampler, in.uv);
 }

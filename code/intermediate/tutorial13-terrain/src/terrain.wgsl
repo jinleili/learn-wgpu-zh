@@ -49,7 +49,7 @@ fn fbm(p: vec2f) -> f32 {
 }
 
 struct ChunkData {
-    chunk_size: vec2<u32>,
+    chunk_size: vec2u,
     chunk_corner: vec2<i32>,
     min_max_height: vec2f,
 }
@@ -95,7 +95,7 @@ fn terrain_vertex(p: vec2f, min_max_height: vec2f) -> Vertex {
     return Vertex(v, n);
 }
 
-fn index_to_p(vert_index: u32, chunk_size: vec2<u32>, chunk_corner: vec2<i32>) -> vec2f {
+fn index_to_p(vert_index: u32, chunk_size: vec2u, chunk_corner: vec2<i32>) -> vec2f {
     return vec2(
         f32(vert_index) % f32(chunk_size.x + 1u),
         f32(vert_index / (chunk_size.x + 1u)),
@@ -136,7 +136,7 @@ fn gen_terrain_compute(
 // ============================
 
 struct GenData {
-    chunk_size: vec2<u32>,
+    chunk_size: vec2u,
     chunk_corner: vec2<i32>,
     min_max_height: vec2f,
     texture_size: u32,

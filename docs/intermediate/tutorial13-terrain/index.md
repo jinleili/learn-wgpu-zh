@@ -94,7 +94,7 @@ fn fbm(p: vec2f) -> f32 {
 
 ```rust
 struct ChunkData {
-    chunk_size: vec2<u32>,
+    chunk_size: vec2u,
     chunk_corner: vec2<i32>,
     min_max_height: vec2f,
 }

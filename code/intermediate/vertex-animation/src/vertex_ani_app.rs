@@ -1,14 +1,15 @@
-use crate::{resource, TurningDynamicUniform};
+use crate::{particle_ink::ParticleInk, resource, TurningDynamicUniform};
 use app_surface::{AppSurface, SurfaceFrame};
 use std::f32::consts::FRAC_PI_2;
 use std::iter;
+use wgpu::{Sampler, TextureView};
 use winit::{dpi::PhysicalSize, window::WindowId};
 
 use utils::{
     framework::Action,
     node::{BindGroupData, BufferlessFullscreenNode, ViewNode, ViewNodeBuilder},
     vertex::PosTex,
-    BufferObj, MVPMatUniform, Plane,
+    AnyTexture, BufferObj, MVPMatUniform, Plane,
 };
 
 pub struct VertexAnimationApp {
@@ -17,8 +18,15 @@ pub struct VertexAnimationApp {
     bg_node: BufferlessFullscreenNode,
     // 翻页动画节点
     turning_node: ViewNode,
+    // 粒子动画节点
+    particle_ink: ParticleInk,
+    mvp_buffer: BufferObj,
+    paper_tex: AnyTexture,
+    sampler: Sampler,
     // 深度纹理（视图）
     depth_tex_view: wgpu::TextureView,
+    // 当前是否为粒子动画阶段
+    is_particle_ink_phase: bool,
     // 当前动画帧的索引，用于设置缓冲区的动态偏移
     animate_index: u32,
     draw_count: u32,
@@ -35,6 +43,29 @@ impl Action for VertexAnimationApp {
             },
             Some("MVPMatUniform"),
         );
+
+        // 加载纸张纹理
+        let bg_data = include_bytes!("../assets/bg.png");
+        let bg_tex = resource::load_a_texture(&app, bg_data);
+        let paper_data = include_bytes!("../assets/fu.png");
+        let paper_tex = resource::load_a_texture(&app, paper_data);
+
+        let sampler = utils::bilinear_sampler(&app.device);
+        // 着色器
+        let (turning_shader, bg_shader) = {
+            let create_shader = |wgsl: &'static str| -> wgpu::ShaderModule {
+                app.device
+                    .create_shader_module(wgpu::ShaderModuleDescriptor {
+                        label: None,
+                        source: wgpu::ShaderSource::Wgsl(wgsl.into()),
+                    })
+            };
+            (
+                create_shader(include_str!("../assets/page_turning.wgsl")),
+                create_shader(include_str!("../assets/bg_draw.wgsl")),
+            )
+        };
+
         // 翻页动作总帧总
         let draw_count = 60 * 3;
         let offset_buffer_size = 256;
@@ -43,7 +74,7 @@ impl Action for VertexAnimationApp {
             (draw_count * offset_buffer_size) as wgpu::BufferAddress,
             offset_buffer_size,
             true,
-            Some("动态偏移缓冲区"),
+            Some("翻页动画的动态偏移缓冲区"),
         );
 
         let start_pos = glam::Vec2::new(1.0, 0.0);
@@ -71,14 +102,7 @@ impl Action for VertexAnimationApp {
         )
         .generate_vertices();
 
-        // 加载纸张纹理
-        let bg_data = include_bytes!("../assets/bg.png");
-        let bg_tex = resource::load_a_texture(&app, bg_data);
-        let paper_data = include_bytes!("../assets/fu.png");
-        let paper_tex = resource::load_a_texture(&app, paper_data);
-
-        let sampler = utils::bilinear_sampler(&app.device);
-
+        // 准备绑定组需要的数据
         let bind_group_data = BindGroupData {
             uniforms: vec![&mvp_buffer],
             inout_tv: vec![(&paper_tex, None)],
@@ -88,32 +112,23 @@ impl Action for VertexAnimationApp {
                 wgpu::ShaderStages::FRAGMENT,
                 wgpu::ShaderStages::FRAGMENT,
             ],
-            // 配置动态缓冲区
+            // 配置动态偏移缓冲区
             dynamic_uniforms: vec![&turning_buf],
             dynamic_uniform_visibilitys: vec![
                 wgpu::ShaderStages::VERTEX | wgpu::ShaderStages::FRAGMENT,
             ],
             ..Default::default()
         };
-        let (turning_shader, bg_shader) = {
-            let create_shader = |wgsl: &'static str| -> wgpu::ShaderModule {
-                app.device
-                    .create_shader_module(wgpu::ShaderModuleDescriptor {
-                        label: None,
-                        source: wgpu::ShaderSource::Wgsl(wgsl.into()),
-                    })
-            };
-            (
-                create_shader(include_str!("../assets/page_turning.wgsl")),
-                create_shader(include_str!("../assets/bg_draw.wgsl")),
-            )
-        };
+
+        let format = app.config.format.remove_srgb_suffix();
         let builder = ViewNodeBuilder::<PosTex>::new(bind_group_data, &turning_shader)
             .with_vertices_and_indices((vertices, indices))
             .with_use_depth_stencil(true)
-            .with_cull_mode(None);
+            .with_cull_mode(None)
+            .with_color_format(format);
         let turning_node = builder.build(&app.device);
 
+        // 准备绑定组需要的数据
         let bind_group_data = BindGroupData {
             inout_tv: vec![(&bg_tex, None)],
             samplers: vec![&sampler],
@@ -122,20 +137,26 @@ impl Action for VertexAnimationApp {
         };
         let bg_node = BufferlessFullscreenNode::new(
             &app.device,
-            app.config.format,
+            format,
             &bind_group_data,
             &bg_shader,
             None,
             1,
         );
 
+        let particle_ink = ParticleInk::new(&app, &mvp_buffer, &paper_tex, &sampler);
         let depth_tex_view = crate::create_depth_tex(&app);
 
         Self {
             app,
             bg_node,
             turning_node,
+            particle_ink,
+            mvp_buffer,
+            paper_tex,
+            sampler,
             depth_tex_view,
+            is_particle_ink_phase: true,
             animate_index: 0,
             draw_count: draw_count as u32,
         }
@@ -155,6 +176,9 @@ impl Action for VertexAnimationApp {
         }
         self.app.resize_surface();
         self.depth_tex_view = crate::create_depth_tex(&self.app);
+        self.particle_ink =
+            ParticleInk::new(&self.app, &self.mvp_buffer, &self.paper_tex, &self.sampler);
+        self.is_particle_ink_phase = true;
     }
 
     fn request_redraw(&mut self) {
@@ -162,9 +186,6 @@ impl Action for VertexAnimationApp {
     }
 
     fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
-        // instance 0 只绘制 paper, instance 1 计算 turning
-        let instance_count: u32 = 2;
-
         let output = self.app.surface.get_current_texture().unwrap();
         let frame_view = output
             .texture
@@ -175,6 +196,9 @@ impl Action for VertexAnimationApp {
             .create_command_encoder(&wgpu::CommandEncoderDescriptor {
                 label: Some("Render Encoder"),
             });
+        if self.is_particle_ink_phase {
+            self.particle_ink.cal_particles_move(&mut encoder);
+        }
         {
             let mut rpass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
                 label: None,
@@ -196,17 +220,28 @@ impl Action for VertexAnimationApp {
                 }),
             });
             self.bg_node.draw_by_pass(&mut rpass);
-            self.turning_node
-                .draw_rpass_by_offset(&mut rpass, self.animate_index, instance_count);
+
+            if self.is_particle_ink_phase {
+                // 执行粒子动画
+                let is_completed = self.particle_ink.enter_frame(&mut rpass);
+                if is_completed {
+                    self.is_particle_ink_phase = false;
+                }
+            } else {
+                // 执行翻页动画
+                self.turning_node
+                    .draw_rpass_by_offset(&mut rpass, self.animate_index, 1);
+                // 循环执行动画
+                self.animate_index += 1;
+                if self.animate_index == self.draw_count {
+                    // 本次翻页动画完成，重置状态
+                    self.animate_index = 0;
+                    self.is_particle_ink_phase = true
+                }
+            }
         }
         self.app.queue.submit(iter::once(encoder.finish()));
         output.present();
-
-        // 循环播放
-        self.animate_index += 1;
-        if self.animate_index == self.draw_count {
-            self.animate_index = 0;
-        }
 
         Ok(())
     }
