@@ -2,14 +2,6 @@ struct MVPMatUniform {
     mvp: mat4x4f,
 };
 
-struct WashingUniform {
-  particle_num: vec2u,
-  // canvas pixel size
-  canvas_size: vec2f,
-  // NDC 坐标空间中，一个像素对应的大小
-  pixel_distance: vec2f,
-};
-
 @group(0) @binding(0) var<uniform> mat_uniform: MVPMatUniform;
 
 struct VertexOutput {

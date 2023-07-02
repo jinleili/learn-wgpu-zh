@@ -24,7 +24,8 @@ version = "0.24"
 default-features = false
 
 [workspace.dependencies]
-app-surface = { git = "https://github.com/jinleili/wgpu-in-app", tag = "0.2.1" }
+app-surface = { git = "https://github.com/jinleili/wgpu-in-app", rev = "31b5932" }
+# app-surface = { git = "https://github.com/jinleili/wgpu-in-app", tag = "0.2.1" }
 # app-surface = { path = "../idroid/wgpu-in-app/app-surface" }
 bytemuck = { version = "1.13", features = ["derive"] }
 cfg-if = "1"
@@ -38,16 +39,16 @@ pollster = "0.2"
 rayon = "1.4"
 tobj = "3.2"
 winit = "0.27.5"
-wgpu = { version = "0.16" }
-# wgpu = { git = "https://github.com/gfx-rs/wgpu", rev = "7c25c00f" }
+# wgpu = { version = "0.16" }
+wgpu = { git = "https://github.com/gfx-rs/wgpu", rev = "757245cd" }
 utils = { path = "code/utils" }
 
 # wasm32 dependencies
 console_error_panic_hook = "0.1.7"
 console_log = "0.2.0"
 reqwest = { version = "0.11" }
-js-sys = "0.3.61"
-wasm-bindgen = "=0.2.84"
+js-sys = "0.3.63"
+wasm-bindgen = "0.2.86"
 wasm-bindgen-futures = "0.4.34"
 web-sys = "0.3.61"
 # 必须与 wgpu 里使用的版本一致，因为 web-sys 里有类型名称的变更：

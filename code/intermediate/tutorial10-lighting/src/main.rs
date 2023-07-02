@@ -595,7 +595,7 @@ impl State {
     }
 
     fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
-        let (output, view) = self.app.get_current_frame_view();
+        let (output, view) = self.app.get_current_frame_view(None);
         let mut encoder = self
             .app
             .device

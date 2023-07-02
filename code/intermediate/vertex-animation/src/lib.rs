@@ -7,9 +7,6 @@ pub use vertex_ani_app::VertexAnimationApp;
 
 mod particle_ink;
 
-// mod hilbert_curve;
-// use hilbert_curve::HilbertCurve;
-
 #[repr(C)]
 #[derive(Clone, Copy, Debug, Pod, Zeroable)]
 struct TurningDynamicUniform {

@@ -89,21 +89,16 @@ async fn create_action_instance<A: Action + 'static>(wh_ratio: Option<f32>) -> (
             .map(|doc| {
                 match doc.get_element_by_id("wasm-example") {
                     Some(dst) => {
-                        let mut height = 420.0;
                         let rect = dst.get_bounding_client_rect();
                         let width_limit = rect.width() as u32;
-                        if width_limit > 420 {
-                            height = width_limit as f32;
-                        }
-                        height *= scale_factor;
-
-                        let width = (height
-                            * if let Some(ratio) = wh_ratio {
+                        let width = width_limit as f32 * scale_factor;
+                        let height = (width
+                            / if let Some(ratio) = wh_ratio {
                                 ratio
                             } else {
-                                1.1
+                                1.2
                             }) as u32;
-                        window.set_inner_size(PhysicalSize::new(width, height as u32));
+                        window.set_inner_size(PhysicalSize::new(width as u32, height ));
                         let _ = dst.append_child(&web_sys::Element::from(window.canvas()));
                     }
                     None => {

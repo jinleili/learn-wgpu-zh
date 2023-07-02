@@ -1,8 +1,8 @@
 use app_surface::{AppSurface, SurfaceFrame};
 use std::iter;
+use utils::framework::{run, Action};
 use wgpu::util::DeviceExt;
 use winit::{dpi::PhysicalSize, window::WindowId};
-use utils::framework::{run, Action};
 
 #[repr(C)]
 #[derive(Copy, Clone, Debug, bytemuck::Pod, bytemuck::Zeroable)]
@@ -171,7 +171,7 @@ impl Action for State {
     }
 
     fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
-        let (output, view) = self.app.get_current_frame_view();
+        let (output, view) = self.app.get_current_frame_view(None);
 
         let mut encoder = self
             .app
