@@ -26,7 +26,7 @@ default-features = false
 [workspace.dependencies]
 app-surface = { git = "https://github.com/jinleili/wgpu-in-app", tag = "0.2.1" }
 # app-surface = { path = "../idroid/wgpu-in-app/app-surface" }
-bytemuck = "1.4"
+bytemuck = { version = "1.13", features = ["derive"] }
 cfg-if = "1"
 glam = "0.22"
 env_logger = "0.9"
