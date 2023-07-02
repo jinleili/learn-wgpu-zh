@@ -25,14 +25,6 @@ struct State {
 
 impl Action for State {
     fn new(app: AppSurface) -> Self {
-        let mut app = app;
-        // 使用线性纹理格式，避免手动做 gamma 运算
-        // Bgra8Unorm 的兼容性最好，几乎是全平台支持的格式（已知 Android 上不支持此格式的 SurfaceConfiguration）
-        app.sdq
-            .update_config_format(wgpu::TextureFormat::Bgra8Unorm);
-
-        let _format = wgpu::TextureFormat::Rgba8UnormSrgb;
-
         let (tex, size) = resource::load_a_texture(&app);
         let original_tv = tex.create_view(&wgpu::TextureViewDescriptor {
             format: Some(SWAP_FORMAT),
@@ -113,7 +105,7 @@ impl Action for State {
             &original_tv,
             &sampler,
             &render_shader,
-            "fs_srgb_to_linear",
+            "fs_main", //"fs_srgb_to_linear",
             SWAP_FORMAT,
         );
         let display_node = ImageNode::new(
@@ -122,7 +114,7 @@ impl Action for State {
             &sampler,
             &render_shader,
             "fs_main",
-            app.config.format,
+            app.config.format.remove_srgb_suffix(),
         );
 
         Self {
@@ -153,11 +145,11 @@ impl Action for State {
     }
 
     fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
-        let output = self.app.surface.get_current_texture().unwrap();
-        // 此处与其它示例不同，使用了非 sRGB 格式的纹理视图
-        let view = output
-            .texture
-            .create_view(&wgpu::TextureViewDescriptor::default());
+        // 此处与其它示例不同，主动使用了非 sRGB 格式的纹理视图
+        // 使用 remove_srgb_suffix 之后的线性纹理格式，避免手动做 gamma 运算
+        let (output, view) = self
+            .app
+            .get_current_frame_view(Some(self.app.config.format.remove_srgb_suffix()));
 
         let mut encoder = self
             .app
