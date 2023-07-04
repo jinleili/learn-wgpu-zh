@@ -14,5 +14,6 @@ export default {
     app.component("JoinWeiChatGroup", JoinWeiChatGroup);
     app.component("WasmExample", WasmExample);
     app.component("WebGPUExample", WebGPUExample);
+    app.component("WasmFullScreen", WasmFullScreen);
   },
 };

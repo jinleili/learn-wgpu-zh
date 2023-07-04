@@ -75,7 +75,7 @@ export default {
         },
 
         async loadSimuverse() {
-            import(`https://jinleili.github.io/simuverse/${this.wasmName}.js`).then(module => {
+            import( /* @vite-ignore */ `https://jinleili.github.io/simuverse/${this.wasmName}.js`).then(module => {
                 this.hideLoading();
                 module.default();
             }).catch(error => {
