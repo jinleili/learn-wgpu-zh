@@ -19,7 +19,10 @@ pub trait Action {
 }
 
 #[cfg(not(target_arch = "wasm32"))]
-pub fn run<A: Action + 'static>(wh_ratio: Option<f32>) {
+pub fn run<A: Action + 'static>(
+    wh_ratio: Option<f32>,
+    _html_canvas_container_id: Option<&'static str>,
+) {
     env_logger::init();
 
     let (event_loop, instance) = pollster::block_on(create_action_instance::<A>(wh_ratio));
@@ -27,14 +30,18 @@ pub fn run<A: Action + 'static>(wh_ratio: Option<f32>) {
 }
 
 #[cfg(target_arch = "wasm32")]
-pub fn run<A: Action + 'static>(wh_ratio: Option<f32>) {
+pub fn run<A: Action + 'static>(
+    wh_ratio: Option<f32>,
+    html_canvas_container_id: Option<&'static str>,
+) {
     use wasm_bindgen::prelude::*;
 
     std::panic::set_hook(Box::new(console_error_panic_hook::hook));
     console_log::init_with_level(log::Level::Warn).expect("无法初始化日志库");
 
     wasm_bindgen_futures::spawn_local(async move {
-        let (event_loop, instance) = create_action_instance::<A>(wh_ratio).await;
+        let (event_loop, instance) =
+            create_action_instance::<A>(wh_ratio, html_canvas_container_id).await;
         let run_closure =
             Closure::once_into_js(move || start_event_loop::<A>(event_loop, instance));
 
@@ -58,7 +65,10 @@ pub fn run<A: Action + 'static>(wh_ratio: Option<f32>) {
     });
 }
 
-async fn create_action_instance<A: Action + 'static>(wh_ratio: Option<f32>) -> (EventLoop<()>, A) {
+async fn create_action_instance<A: Action + 'static>(
+    wh_ratio: Option<f32>,
+    #[cfg(target_arch = "wasm32")] html_canvas_container_id: Option<&'static str>,
+) -> (EventLoop<()>, A) {
     let event_loop = EventLoop::new();
     let window = WindowBuilder::new().build(&event_loop).unwrap();
     let scale_factor = window.scale_factor() as f32;
@@ -87,7 +97,12 @@ async fn create_action_instance<A: Action + 'static>(wh_ratio: Option<f32>) -> (
         web_sys::window()
             .and_then(|win| win.document())
             .map(|doc| {
-                match doc.get_element_by_id("wasm-example") {
+                let element_id = if let Some(container_id) = html_canvas_container_id {
+                    container_id
+                } else {
+                    "wasm-example"
+                };
+                match doc.get_element_by_id(&element_id) {
                     Some(dst) => {
                         let rect = dst.get_bounding_client_rect();
                         let width_limit = rect.width() as u32;
@@ -98,7 +113,7 @@ async fn create_action_instance<A: Action + 'static>(wh_ratio: Option<f32>) -> (
                             } else {
                                 1.2
                             }) as u32;
-                        window.set_inner_size(PhysicalSize::new(width as u32, height ));
+                        window.set_inner_size(PhysicalSize::new(width as u32, height));
                         let _ = dst.append_child(&web_sys::Element::from(window.canvas()));
                     }
                     None => {

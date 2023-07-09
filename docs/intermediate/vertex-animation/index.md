@@ -1,6 +1,6 @@
 # 顶点动画
 
-## 运行代码
+## 示例：顶点网格模拟翻页动画
 
 <WebGPUExample example="vertex_animation" autoLoad="{true}"></WebGPUExample>
 

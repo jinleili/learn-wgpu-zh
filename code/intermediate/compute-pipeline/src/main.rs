@@ -182,5 +182,5 @@ impl Action for State {
 }
 
 pub fn main() {
-    run::<State>(Some(1.6));
+    run::<State>(Some(1.6), Some("compute_pipeline"));
 }

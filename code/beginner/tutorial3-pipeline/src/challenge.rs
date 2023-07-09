@@ -211,5 +211,5 @@ impl Action for State {
 }
 
 fn main() {
-    run::<State>(None);
+    run::<State>(None, None);
 }

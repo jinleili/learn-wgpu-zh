@@ -1,16 +1,16 @@
 <template>
-    <div id="wasm-example">
-         <div id="alert" style="display: none; color: #353535;margin-top: 20px;">
+    <div v-bind:id="example">
+         <div v-if="showAlert" style="color: #353535;margin-top: 20px;">
             <div style="line-height: 40px;">此浏览器版本不支持 WebGPU</div>
             <div style="font-size: 16px;color: #999999;">请使用 Chrome/Microsoft Edge 113 及以上版本，或者 Chrome/Edge Canary, FireFox Nightly 并
                 <span><a href="https://jinleili.github.io/learn-wgpu-zh/#如何开启浏览器-webgpu-试验功能" class="a">开启 WebGPU
                         实验功能</a></span>
             </div>
         </div>
-        <div class="loading" v-if="loading">
+        <div v-if="loading">
             正在加载 WASM 模块 ...
         </div>
-        <button v-if="!exampleStarted" @click="detectWebGPUThenLoad()" :disabled="loading">点击运行
+        <button class="webgpu_example_button" v-if="!exampleStarted" @click="detectWebGPUThenLoad()" :disabled="loading">点击运行
             {{ exampleName }}</button>
     </div>
 </template>
@@ -36,6 +36,7 @@ export default {
             error: "",
             loading: false,
             exampleStarted: false,
+            showAlert: false,
         };
     },
     computed: {
@@ -44,38 +45,24 @@ export default {
         }
     },
     methods: {
-         showAlert() {
-            this.hideLoading();
-            let alert = document.getElementById("alert");
-            if (alert != null) {
-                alert.style.display = "block";
-            }
-        },
-
-        hideLoading() {
-            let loading = document.getElementById("loading");
-            if (loading != null) {
-                loading.style.display = "none";
-            }
-        },
         detectWebGPUThenLoad() {
             if ('navigator' in window && 'gpu' in navigator) {
                 navigator.gpu.requestAdapter().then(adapter => {
                     // 浏览器支持 WebGPU
                     this.loadExample();
                 }).catch(error => {
-                    this.showAlert();
+                    this.showAlert = true;
                 });
             } else {
                 // 浏览器不支持 navigator.gpu
-                this.showAlert();
+                this.showAlert = true;
             }
         },
         async loadExample() {
             this.loading = true;
             this.exampleStarted = true;
             try {
-                const module = await import(`./wasm/${this.example}.js`.replace('_', '-')/* @vite-ignore */);
+                const module = await import(/* @vite-ignore */`./wasm/${this.example}.js`.replace('_', '-'));
                 module.default().then((instance) => {
                     this.loading = false;
                     this.exampleStarted = true;
@@ -98,7 +85,7 @@ export default {
             console.error(err);
             this.exampleStarted = false;
             this.loading = false;
-            this.showAlert();
+            this.showAlert = true;
         }
     },
     async mounted() {
@@ -108,21 +95,3 @@ export default {
     }
 };
 </script>
-
-<style>
-#wasm-example canvas {
-    background-color: black;
-}
-
-#wasm-example button {
-    height: 33px;
-    font-size: 14px;
-    padding: 0px 8px;
-    border: 1px solid rgba(60, 60, 60, 0.15);
-    border-radius: 8px;
-}
-
-#wasm-example button:hover {
-    border-color: #059669;
-}
-</style>

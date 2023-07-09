@@ -30,7 +30,6 @@ export default defineConfig({
   themeConfig: {
     logo: "/res/wgpu-logo.png",
     lastUpdated: true,
-    // 这些 xxText 的配置目前为何只能在线上环境才生效？
     lastUpdatedText: "上次更新",
     docFooter: {
       prev: "上一章",
@@ -117,6 +116,10 @@ function sidebarConfig() {
         { text: "更好的摄像机", link: "/intermediate/tutorial12-camera/" },
         { text: "🆕 计算管线", link: "/intermediate/compute-pipeline/" },
         { text: "🆕 顶点动画", link: "/intermediate/vertex-animation/" },
+        {
+          text: "🆕 万能动画公式",
+          link: "/intermediate/vertex-animation/universal-animation-formula.md",
+        },
         // '/intermediate/tutorial13-terrain/',
       ],
     },

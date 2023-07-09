@@ -117,10 +117,6 @@ impl<'a, T: Vertex + Pod> ViewNodeBuilder<'a, T> {
 
     pub fn build(self, device: &wgpu::Device) -> ViewNode {
         debug_assert!(
-            self.vertices_and_indices.is_some(),
-            "Vertices and indices must be provided"
-        );
-        debug_assert!(
             self.bg_data.visibilitys.len()
                 >= self.bg_data.uniforms.len()
                     + self.bg_data.samplers.len()
@@ -135,6 +131,7 @@ impl<'a, T: Vertex + Pod> ViewNodeBuilder<'a, T> {
 #[allow(dead_code)]
 pub struct ViewNode {
     pub vertex_buf: Option<BufferObj>,
+    pub vertex_count: usize,
     pub index_buf: wgpu::Buffer,
     pub index_count: usize,
     pub bg_setting: BindGroupSetting,
@@ -160,8 +157,9 @@ impl ViewNode {
         let bg_setting = BindGroupSetting::new(device, &attributes.bg_data);
 
         // Create the vertex and index buffers
-        let vi = attributes.vertices_and_indices.unwrap();
-        let vertex_buf = if std::mem::size_of_val(&vi.0[0]) > 0 {
+        let vi = attributes.vertices_and_indices.unwrap_or_default();
+        let vertex_count = vi.0.len();
+        let vertex_buf = if vertex_count > 0 {
             Some(BufferObj::create_buffer(
                 device,
                 Some(&vi.0),
@@ -258,6 +256,7 @@ impl ViewNode {
             view_width: attributes.view_size.width,
             view_height: attributes.view_size.height,
             vertex_buf,
+            vertex_count,
             index_buf,
             index_count: vi.1.len(),
             bg_setting,
@@ -325,7 +324,11 @@ impl ViewNode {
                 &[256 * offset_index as wgpu::DynamicOffset],
             );
         }
-        rpass.draw_indexed(0..self.index_count as u32, 0, 0..instance_count);
+        if self.index_count > 0 {
+            rpass.draw_indexed(0..self.index_count as u32, 0, 0..instance_count);
+        } else {
+            rpass.draw(0..self.vertex_count as u32, 0..instance_count)
+        }
     }
 
     pub fn set_rpass<'a, 'b: 'a>(&'b self, rpass: &mut wgpu::RenderPass<'a>) {

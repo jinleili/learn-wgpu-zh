@@ -1668,6 +1668,27 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "dfa686283ad6dd069f105e5ab091b04c62850d3e4cf5d67debad1933f55023df"
 
 [[package]]
+name = "hilbert-curve"
+version = "0.1.0"
+dependencies = [
+ "app-surface",
+ "bytemuck",
+ "console_error_panic_hook",
+ "console_log",
+ "env_logger 0.9.3",
+ "glam",
+ "js-sys",
+ "log",
+ "pollster",
+ "utils",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "web-sys",
+ "wgpu 0.16.0",
+ "winit 0.27.5",
+]
+
+[[package]]
 name = "hound"
 version = "3.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"

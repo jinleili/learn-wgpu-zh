@@ -219,6 +219,6 @@ workgroup_count = ((1000 + (32 -1)) / 32, (768 + (16 -1)) / 16, 1);
 
 _此示例可在桌面端及 Chrome/Edge 113+、Chrome/Edge Canary、Firefox Nightly 浏览器中运行（[如何开启浏览器 webgpu 试验功能](../../#如何开启浏览器-webgpu-试验功能))_
 
-<WasmExample example="compute_pipeline"></WasmExample>
+<WebGPUExample example="compute_pipeline"></WebGPUExample>
 
 <AutoGithubLink/>
