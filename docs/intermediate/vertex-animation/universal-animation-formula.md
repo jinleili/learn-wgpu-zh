@@ -73,4 +73,4 @@ for (buf, curve) in self.vertex_buffers.iter().zip(vec![start, target].iter()) {
 
 ## 查看完整源码
 
-<AutoGithubLink customCodePath="intermediate/vertex-animation/universal-animation-formula"/>
+<AutoGithubLink customCodePath="intermediate/hilbert-curve"/>
