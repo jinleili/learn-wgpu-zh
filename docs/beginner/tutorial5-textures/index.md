@@ -432,13 +432,13 @@ const VERTICES: &[Vertex] = &[
 ```toml
 [dependencies]
 image = "0.23"
-glam = "0.22"
+glam = "0.24"
 winit = "0.27.5"
 env_logger = "0.9"
 log = "0.4"
 pollster = "0.2"
-wgpu = "0.15"
-bytemuck = { version = "1.4", features = [ "derive" ] }
+wgpu = "0.16"
+bytemuck = { version = "1.13", features = [ "derive" ] }
 anyhow = "1.0" # NEW!
 ```
 

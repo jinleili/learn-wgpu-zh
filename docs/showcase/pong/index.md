@@ -267,7 +267,7 @@ env_logger = "0.9"
 winit = "0.27.1"
 anyhow = "1.0"
 bytemuck = { version = "1.4", features = [ "derive" ] }
-glam = "0.22"
+glam = "0.24"
 pollster = "0.2"
 wgpu = { version = "0.14", features = ["spirv"]}
 wgpu_glyph = "0.17"
@@ -277,13 +277,13 @@ log = "0.4"
 instant = "0.1"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-console_error_panic_hook = "0.1.6"
+console_error_panic_hook = "0.1.7"
 console_log = "0.2.0"
 getrandom = { version = "0.2", features = ["js"] }
 rodio = { version = "0.15", default-features = false, features = ["wasm-bindgen", "wav"] }
-wasm-bindgen-futures = "0.4.20"
-wasm-bindgen = "0.2.76"
-web-sys = { version = "0.3.53", features = [
+wasm-bindgen-futures = "0.4.34"
+wasm-bindgen = "=0.2.86"
+web-sys = { version = "0.3.61", features = [
     "Document",
     "Window",
     "Element",

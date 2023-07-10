@@ -50,7 +50,7 @@ version = "0.8.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2c99f64d1e06488f620f932677e24bc6e2897582980441ae90a671415bd7ec2f"
 dependencies = [
- "cfg-if 1.0.0",
+ "cfg-if",
  "getrandom",
  "once_cell",
  "version_check",
@@ -142,7 +142,7 @@ dependencies = [
  "wasm-bindgen",
  "web-sys",
  "wgpu 0.16.0",
- "winit 0.27.5",
+ "winit",
 ]
 
 [[package]]
@@ -229,7 +229,7 @@ checksum = "0fc5b45d93ef0529756f812ca52e44c221b35341892d3dcc34132ac02f3dd2af"
 dependencies = [
  "async-lock",
  "autocfg",
- "cfg-if 1.0.0",
+ "cfg-if",
  "concurrent-queue",
  "futures-lite",
  "log",
@@ -313,7 +313,7 @@ checksum = "4319208da049c43661739c5fade2ba182f09d1dc2299b32298d3a31692b17e12"
 dependencies = [
  "addr2line",
  "cc",
- "cfg-if 1.0.0",
+ "cfg-if",
  "libc",
  "miniz_oxide",
  "object",
@@ -450,16 +450,6 @@ checksum = "89b2fd2a0dcf38d7971e2194b6b6eebab45ae01067456a7fd93d5547a61b70be"
 
 [[package]]
 name = "calloop"
-version = "0.9.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bf2eec61efe56aa1e813f5126959296933cf0700030e4314786c48779a66ab82"
-dependencies = [
- "log",
- "nix 0.22.3",
-]
-
-[[package]]
-name = "calloop"
 version = "0.10.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "52e0d00eb1ea24371a97d2da6201c6747a633dc6dc1988ef503403b4c59504a8"
@@ -510,12 +500,6 @@ dependencies = [
 
 [[package]]
 name = "cfg-if"
-version = "0.1.10"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4785bdd1c96b2a846b2bd7cc02e86b6b3dbf14e7e53446c4f54c92a361040822"
-
-[[package]]
-name = "cfg-if"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
@@ -555,7 +539,7 @@ dependencies = [
  "bitflags 1.3.2",
  "block",
  "cocoa-foundation",
- "core-foundation 0.9.3",
+ "core-foundation",
  "core-graphics 0.22.3",
  "foreign-types 0.3.2",
  "libc",
@@ -570,7 +554,7 @@ checksum = "931d3837c286f56e3c58423ce4eba12d08db2374461a785c86f672b08b5650d6"
 dependencies = [
  "bitflags 1.3.2",
  "block",
- "core-foundation 0.9.3",
+ "core-foundation",
  "core-graphics-types",
  "foreign-types 0.3.2",
  "libc",
@@ -626,7 +610,7 @@ dependencies = [
  "rayon",
  "tobj 2.0.4",
  "wgpu 0.16.0",
- "winit 0.27.5",
+ "winit",
 ]
 
 [[package]]
@@ -635,7 +619,7 @@ version = "0.1.0"
 dependencies = [
  "app-surface",
  "bytemuck",
- "cfg-if 1.0.0",
+ "cfg-if",
  "console_error_panic_hook",
  "console_log",
  "env_logger 0.9.3",
@@ -648,7 +632,7 @@ dependencies = [
  "wasm-bindgen-futures",
  "web-sys",
  "wgpu 0.16.0",
- "winit 0.27.5",
+ "winit",
 ]
 
 [[package]]
@@ -666,7 +650,7 @@ version = "0.1.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a06aeb73f470f66dcdbf7223caeebb85984942f22f1adb2a088cf9668146bbbc"
 dependencies = [
- "cfg-if 1.0.0",
+ "cfg-if",
  "wasm-bindgen",
 ]
 
@@ -688,29 +672,13 @@ checksum = "a2df960f5d869b2dd8532793fde43eb5427cceb126c929747a26823ab0eeb536"
 
 [[package]]
 name = "core-foundation"
-version = "0.7.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "57d24c7a13c43e870e37c1556b74555437870a04514f7685f5b354e090567171"
-dependencies = [
- "core-foundation-sys 0.7.0",
- "libc",
-]
-
-[[package]]
-name = "core-foundation"
 version = "0.9.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "194a7a9e6de53fa55116934067c844d9d749312f75c6f6d0980e8c252f8c2146"
 dependencies = [
- "core-foundation-sys 0.8.4",
+ "core-foundation-sys",
  "libc",
 ]
-
-[[package]]
-name = "core-foundation-sys"
-version = "0.7.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b3a71ab494c0b5b860bdc8407ae08978052417070c2ced38573a9157ad75b8ac"
 
 [[package]]
 name = "core-foundation-sys"
@@ -720,24 +688,12 @@ checksum = "e496a50fda8aacccc86d7529e2c1e0892dbd0f898a6b5645b5561b89c3210efa"
 
 [[package]]
 name = "core-graphics"
-version = "0.19.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b3889374e6ea6ab25dba90bb5d96202f61108058361f6dc72e8b03e6f8bbe923"
-dependencies = [
- "bitflags 1.3.2",
- "core-foundation 0.7.0",
- "foreign-types 0.3.2",
- "libc",
-]
-
-[[package]]
-name = "core-graphics"
 version = "0.22.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2581bbab3b8ffc6fcbd550bf46c355135d16e9ff2a6ea032ad6b9bf1d7efe4fb"
 dependencies = [
  "bitflags 1.3.2",
- "core-foundation 0.9.3",
+ "core-foundation",
  "core-graphics-types",
  "foreign-types 0.3.2",
  "libc",
@@ -750,7 +706,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "506752f2b58723339d41d013009be97e549860785a366e2a5e75dfbd9725b48e"
 dependencies = [
  "bitflags 1.3.2",
- "core-foundation 0.9.3",
+ "core-foundation",
  "core-graphics-types",
  "foreign-types 0.5.0",
  "libc",
@@ -763,7 +719,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2bb142d41022986c1d8ff29103a1411c8a3dfad3552f87a4f8dc50d61d4f4e33"
 dependencies = [
  "bitflags 1.3.2",
- "core-foundation 0.9.3",
+ "core-foundation",
  "libc",
 ]
 
@@ -773,23 +729,10 @@ version = "19.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "99d74ada66e07c1cefa18f8abfba765b486f250de2e4a999e5727fc0dd4b4a25"
 dependencies = [
- "core-foundation 0.9.3",
+ "core-foundation",
  "core-graphics 0.22.3",
  "foreign-types 0.3.2",
  "libc",
-]
-
-[[package]]
-name = "core-video-sys"
-version = "0.1.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "34ecad23610ad9757664d644e369246edde1803fcb43ed72876565098a5d3828"
-dependencies = [
- "cfg-if 0.1.10",
- "core-foundation-sys 0.7.0",
- "core-graphics 0.19.2",
- "libc",
- "objc",
 ]
 
 [[package]]
@@ -818,7 +761,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "74117836a5124f3629e4b474eed03e479abaf98988b4bb317e29f08cfe0e4116"
 dependencies = [
  "alsa",
- "core-foundation-sys 0.8.4",
+ "core-foundation-sys",
  "coreaudio-rs",
  "jni",
  "js-sys",
@@ -843,7 +786,7 @@ version = "1.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b540bd8bc810d3885c6ea91e2018302f68baba2129ab3e88f32389ee9370880d"
 dependencies = [
- "cfg-if 1.0.0",
+ "cfg-if",
 ]
 
 [[package]]
@@ -852,7 +795,7 @@ version = "0.5.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a33c2bf77f2df06183c3aa30d1e96c0695a313d4f9c453cc3762a6db39f99200"
 dependencies = [
- "cfg-if 1.0.0",
+ "cfg-if",
  "crossbeam-utils",
 ]
 
@@ -862,7 +805,7 @@ version = "0.8.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ce6fd6f855243022dcecf8702fef0c297d4338e226845fe067f6341ad9fa0cef"
 dependencies = [
- "cfg-if 1.0.0",
+ "cfg-if",
  "crossbeam-epoch",
  "crossbeam-utils",
 ]
@@ -874,7 +817,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ae211234986c545741a7dc064309f67ee1e5ad243d0e48335adc0484d960bcc7"
 dependencies = [
  "autocfg",
- "cfg-if 1.0.0",
+ "cfg-if",
  "crossbeam-utils",
  "memoffset 0.9.0",
  "scopeguard",
@@ -886,7 +829,7 @@ version = "0.8.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5a22b2d63d4d1dc0b7f1b6b2747dd0088008a9be28b6ddf0b1e7d335e3037294"
 dependencies = [
- "cfg-if 1.0.0",
+ "cfg-if",
 ]
 
 [[package]]
@@ -896,8 +839,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "21fd3add36ea31aba1520aa5288714dd63be506106753226d0eb387a93bc9c45"
 dependencies = [
  "cocoa",
- "core-foundation 0.9.3",
- "core-foundation-sys 0.8.4",
+ "core-foundation",
+ "core-foundation-sys",
  "core-graphics 0.22.3",
  "core-text",
  "dwrote",
@@ -1033,7 +976,7 @@ version = "0.8.32"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "071a31f4ee85403370b58aca746f01041ede6f0da2730960ad001edc2b71b394"
 dependencies = [
- "cfg-if 1.0.0",
+ "cfg-if",
 ]
 
 [[package]]
@@ -1253,7 +1196,7 @@ dependencies = [
  "thiserror",
  "tobj 2.0.4",
  "wgpu 0.16.0",
- "winit 0.27.5",
+ "winit",
 ]
 
 [[package]]
@@ -1370,7 +1313,7 @@ version = "0.2.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "be4136b2a15dd319360be1c07d9933517ccf0be8f16bf62a3bee4f0d618df427"
 dependencies = [
- "cfg-if 1.0.0",
+ "cfg-if",
  "js-sys",
  "libc",
  "wasi",
@@ -1413,7 +1356,7 @@ dependencies = [
  "pollster",
  "tobj 3.2.5",
  "wgpu 0.16.0",
- "winit 0.27.5",
+ "winit",
 ]
 
 [[package]]
@@ -1424,9 +1367,9 @@ checksum = "b6c80984affa11d98d1b88b66ac8853f143217b399d3c74116778ff8fdb4ed2e"
 
 [[package]]
 name = "glam"
-version = "0.22.0"
+version = "0.24.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "12f597d56c1bd55a811a1be189459e8fad2bbc272616375602443bdfb37fa774"
+checksum = "42218cb640844e3872cc3c153dc975229e080a6c4733b34709ef445610550226"
 
 [[package]]
 name = "glob"
@@ -1685,7 +1628,7 @@ dependencies = [
  "wasm-bindgen-futures",
  "web-sys",
  "wgpu 0.16.0",
- "winit 0.27.5",
+ "winit",
 ]
 
 [[package]]
@@ -1844,7 +1787,7 @@ version = "0.1.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7a5bbe824c507c5da5956355e86a746d82e0e1464f65d862cc5e71da70e94b2c"
 dependencies = [
- "cfg-if 1.0.0",
+ "cfg-if",
  "js-sys",
  "wasm-bindgen",
  "web-sys",
@@ -1987,7 +1930,7 @@ version = "0.7.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b67380fd3b2fbe7527a606e18729d21c6f3951633d0500574c4dc22d2d638b9f"
 dependencies = [
- "cfg-if 1.0.0",
+ "cfg-if",
  "winapi",
 ]
 
@@ -1997,7 +1940,7 @@ version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d580318f95776505201b28cf98eb1fa5e4be3b689633ba6a3e6cd880ff22d8cb"
 dependencies = [
- "cfg-if 1.0.0",
+ "cfg-if",
  "windows-sys 0.48.0",
 ]
 
@@ -2061,15 +2004,6 @@ name = "memchr"
 version = "2.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2dffe52ecf27772e601905b7522cb4ef790d2cc203488bbd0e2fe85fcb74566d"
-
-[[package]]
-name = "memmap2"
-version = "0.3.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "00b6c2ebff6180198788f5db08d7ce3bc1d0b617176678831a7510825973e357"
-dependencies = [
- "libc",
-]
 
 [[package]]
 name = "memmap2"
@@ -2231,19 +2165,6 @@ dependencies = [
 
 [[package]]
 name = "ndk"
-version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "96d868f654c72e75f8687572699cdabe755f03effbb62542768e995d5b8d699d"
-dependencies = [
- "bitflags 1.3.2",
- "jni-sys",
- "ndk-sys 0.2.2",
- "num_enum",
- "thiserror",
-]
-
-[[package]]
-name = "ndk"
 version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2032c77e030ddee34a6787a64166008da93f6a352b629261d0fee232b8742dd4"
@@ -2274,21 +2195,6 @@ name = "ndk-context"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "27b02d87554356db9e9a873add8782d4ea6e3e58ea071a9adb9a2e8ddb884a8b"
-
-[[package]]
-name = "ndk-glue"
-version = "0.5.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c71bee8ea72d685477e28bd004cfe1bf99c754d688cd78cad139eae4089484d4"
-dependencies = [
- "lazy_static",
- "libc",
- "log",
- "ndk 0.5.0",
- "ndk-context",
- "ndk-macro",
- "ndk-sys 0.2.2",
-]
 
 [[package]]
 name = "ndk-glue"
@@ -2336,12 +2242,6 @@ dependencies = [
 
 [[package]]
 name = "ndk-sys"
-version = "0.2.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e1bcdd74c20ad5d95aacd60ef9ba40fdf77f767051040541df557b7a9b2a2121"
-
-[[package]]
-name = "ndk-sys"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6e5a6ae77c8ee183dcbbba6150e2e6b9f3f4196a7666c02a715a95692ec1fa97"
@@ -2360,26 +2260,13 @@ dependencies = [
 
 [[package]]
 name = "nix"
-version = "0.22.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e4916f159ed8e5de0082076562152a76b7a1f64a01fd9d1e0fea002c37624faf"
-dependencies = [
- "bitflags 1.3.2",
- "cc",
- "cfg-if 1.0.0",
- "libc",
- "memoffset 0.6.5",
-]
-
-[[package]]
-name = "nix"
 version = "0.23.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8f3790c00a0150112de0f4cd161e3d7fc4b2d8a5542ffc35f099a2562aecb35c"
 dependencies = [
  "bitflags 1.3.2",
  "cc",
- "cfg-if 1.0.0",
+ "cfg-if",
  "libc",
  "memoffset 0.6.5",
 ]
@@ -2391,7 +2278,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fa52e972a9a719cecb6864fb88568781eb706bac2cd1d4f04a648542dbf78069"
 dependencies = [
  "bitflags 1.3.2",
- "cfg-if 1.0.0",
+ "cfg-if",
  "libc",
  "memoffset 0.6.5",
 ]
@@ -2404,7 +2291,7 @@ checksum = "f346ff70e7dbfd675fe90590b92d59ef2de15a8779ae305ebcbfd3f0caf59be4"
 dependencies = [
  "autocfg",
  "bitflags 1.3.2",
- "cfg-if 1.0.0",
+ "cfg-if",
  "libc",
  "memoffset 0.6.5",
 ]
@@ -2575,7 +2462,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "345df152bc43501c5eb9e4654ff05f794effb78d4efe3d53abc158baddc0703d"
 dependencies = [
  "bitflags 1.3.2",
- "cfg-if 1.0.0",
+ "cfg-if",
  "foreign-types 0.3.2",
  "libc",
  "once_cell",
@@ -2663,7 +2550,7 @@ version = "0.8.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "60a2cfe6f0ad2bfc16aefa463b497d5c7a5ecd44a23efa72aa342d90177356dc"
 dependencies = [
- "cfg-if 1.0.0",
+ "cfg-if",
  "instant",
  "libc",
  "redox_syscall 0.2.16",
@@ -2677,7 +2564,7 @@ version = "0.9.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "93f00c865fe7cabf650081affecd3871070f26767e7b2070a3ffae14c654b447"
 dependencies = [
- "cfg-if 1.0.0",
+ "cfg-if",
  "libc",
  "redox_syscall 0.3.5",
  "smallvec",
@@ -2777,7 +2664,7 @@ checksum = "4b2d323e8ca7996b3e23126511a523f7e62924d93ecd5ae73b333815b0eb3dce"
 dependencies = [
  "autocfg",
  "bitflags 1.3.2",
- "cfg-if 1.0.0",
+ "cfg-if",
  "concurrent-queue",
  "libc",
  "log",
@@ -2797,7 +2684,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "bytemuck",
- "cfg-if 1.0.0",
+ "cfg-if",
  "console_error_panic_hook",
  "console_log",
  "env_logger 0.9.3",
@@ -2817,7 +2704,7 @@ dependencies = [
  "web-sys",
  "wgpu 0.13.1",
  "wgpu_glyph",
- "winit 0.26.1",
+ "winit",
 ]
 
 [[package]]
@@ -3151,7 +3038,7 @@ checksum = "61270629cc6b4d77ec1907db1033d5c2e1a404c412743621981a871dc9c12339"
 dependencies = [
  "crossfont",
  "log",
- "smithay-client-toolkit 0.16.0",
+ "smithay-client-toolkit",
  "tiny-skia",
 ]
 
@@ -3162,8 +3049,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1fc758eb7bffce5b308734e9b0c1468893cae9ff70ebf13e7090be8dcbcc83a8"
 dependencies = [
  "bitflags 1.3.2",
- "core-foundation 0.9.3",
- "core-foundation-sys 0.8.4",
+ "core-foundation",
+ "core-foundation-sys",
  "libc",
  "security-framework-sys",
 ]
@@ -3174,7 +3061,7 @@ version = "2.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f51d0c0d83bec45f16480d0ce0058397a69e48fcdc52d1dc8855fb68acbd31a7"
 dependencies = [
- "core-foundation-sys 0.8.4",
+ "core-foundation-sys",
  "libc",
 ]
 
@@ -3277,35 +3164,16 @@ checksum = "a507befe795404456341dfab10cef66ead4c041f62b8b11bbb92bffe5d0953e0"
 
 [[package]]
 name = "smithay-client-toolkit"
-version = "0.15.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8a28f16a97fa0e8ce563b2774d1e732dd5d4025d2772c5dba0a41a0f90a29da3"
-dependencies = [
- "bitflags 1.3.2",
- "calloop 0.9.3",
- "dlib",
- "lazy_static",
- "log",
- "memmap2 0.3.1",
- "nix 0.22.3",
- "pkg-config",
- "wayland-client",
- "wayland-cursor",
- "wayland-protocols",
-]
-
-[[package]]
-name = "smithay-client-toolkit"
 version = "0.16.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f307c47d32d2715eb2e0ece5589057820e0e5e70d07c247d1063e844e107f454"
 dependencies = [
  "bitflags 1.3.2",
- "calloop 0.10.6",
+ "calloop",
  "dlib",
  "lazy_static",
  "log",
- "memmap2 0.5.10",
+ "memmap2",
  "nix 0.24.3",
  "pkg-config",
  "wayland-client",
@@ -3389,7 +3257,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "31c0432476357e58790aaa47a8efb0c5138f137343f3b5f23bd36a27e3b0a6d6"
 dependencies = [
  "autocfg",
- "cfg-if 1.0.0",
+ "cfg-if",
  "fastrand",
  "redox_syscall 0.3.5",
  "rustix 0.37.22",
@@ -3432,7 +3300,7 @@ dependencies = [
  "anyhow",
  "async-std",
  "bytemuck",
- "cfg-if 1.0.0",
+ "cfg-if",
  "console_error_panic_hook",
  "console_log",
  "env_logger 0.10.0",
@@ -3450,7 +3318,7 @@ dependencies = [
  "wasm-bindgen-futures",
  "web-sys",
  "wgpu 0.16.0",
- "winit 0.27.5",
+ "winit",
 ]
 
 [[package]]
@@ -3473,7 +3341,7 @@ dependencies = [
  "arrayref",
  "arrayvec 0.5.2",
  "bytemuck",
- "cfg-if 1.0.0",
+ "cfg-if",
  "png",
  "safe_arch",
  "tiny-skia-path",
@@ -3588,7 +3456,7 @@ version = "0.1.37"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8ce8c33a8d48bd45d624a6e523445fd21ec13d3653cd51f681abf67418f54eb8"
 dependencies = [
- "cfg-if 1.0.0",
+ "cfg-if",
  "pin-project-lite",
  "tracing-core",
 ]
@@ -3618,7 +3486,7 @@ checksum = "a464a4b34948a5f67fddd2b823c62d9d92e44be75058b99939eae6c5b6960b33"
 name = "tutorial1-window"
 version = "0.1.0"
 dependencies = [
- "cfg-if 1.0.0",
+ "cfg-if",
  "console_error_panic_hook",
  "console_log",
  "env_logger 0.9.3",
@@ -3629,7 +3497,7 @@ dependencies = [
  "wasm-bindgen-futures",
  "web-sys",
  "wgpu 0.16.0",
- "winit 0.27.5",
+ "winit",
 ]
 
 [[package]]
@@ -3639,7 +3507,7 @@ dependencies = [
  "anyhow",
  "app-surface",
  "bytemuck",
- "cfg-if 1.0.0",
+ "cfg-if",
  "console_error_panic_hook",
  "console_log",
  "env_logger 0.9.3",
@@ -3656,7 +3524,7 @@ dependencies = [
  "wasm-bindgen-futures",
  "web-sys",
  "wgpu 0.16.0",
- "winit 0.27.5",
+ "winit",
 ]
 
 [[package]]
@@ -3666,7 +3534,7 @@ dependencies = [
  "anyhow",
  "app-surface",
  "bytemuck",
- "cfg-if 1.0.0",
+ "cfg-if",
  "console_error_panic_hook",
  "console_log",
  "env_logger 0.9.3",
@@ -3683,7 +3551,7 @@ dependencies = [
  "wasm-bindgen-futures",
  "web-sys",
  "wgpu 0.16.0",
- "winit 0.27.5",
+ "winit",
 ]
 
 [[package]]
@@ -3693,7 +3561,7 @@ dependencies = [
  "anyhow",
  "app-surface",
  "bytemuck",
- "cfg-if 1.0.0",
+ "cfg-if",
  "console_error_panic_hook",
  "console_log",
  "env_logger 0.9.3",
@@ -3711,7 +3579,7 @@ dependencies = [
  "wasm-bindgen-futures",
  "web-sys",
  "wgpu 0.16.0",
- "winit 0.27.5",
+ "winit",
 ]
 
 [[package]]
@@ -3721,7 +3589,7 @@ dependencies = [
  "anyhow",
  "app-surface",
  "bytemuck",
- "cfg-if 1.0.0",
+ "cfg-if",
  "console_error_panic_hook",
  "console_log",
  "env_logger 0.9.3",
@@ -3738,14 +3606,14 @@ dependencies = [
  "wasm-bindgen-futures",
  "web-sys",
  "wgpu 0.16.0",
- "winit 0.27.5",
+ "winit",
 ]
 
 [[package]]
 name = "tutorial2-surface"
 version = "0.1.0"
 dependencies = [
- "cfg-if 1.0.0",
+ "cfg-if",
  "console_error_panic_hook",
  "console_log",
  "env_logger 0.9.3",
@@ -3756,7 +3624,7 @@ dependencies = [
  "wasm-bindgen-futures",
  "web-sys",
  "wgpu 0.16.0",
- "winit 0.27.5",
+ "winit",
 ]
 
 [[package]]
@@ -3764,7 +3632,7 @@ name = "tutorial3-pipeline"
 version = "0.1.0"
 dependencies = [
  "app-surface",
- "cfg-if 1.0.0",
+ "cfg-if",
  "console_error_panic_hook",
  "console_log",
  "env_logger 0.9.3",
@@ -3776,7 +3644,7 @@ dependencies = [
  "wasm-bindgen-futures",
  "web-sys",
  "wgpu 0.16.0",
- "winit 0.27.5",
+ "winit",
 ]
 
 [[package]]
@@ -3786,7 +3654,7 @@ dependencies = [
  "anyhow",
  "app-surface",
  "bytemuck",
- "cfg-if 1.0.0",
+ "cfg-if",
  "console_error_panic_hook",
  "console_log",
  "env_logger 0.9.3",
@@ -3800,7 +3668,7 @@ dependencies = [
  "wasm-bindgen-futures",
  "web-sys",
  "wgpu 0.16.0",
- "winit 0.27.5",
+ "winit",
 ]
 
 [[package]]
@@ -3810,7 +3678,7 @@ dependencies = [
  "anyhow",
  "app-surface",
  "bytemuck",
- "cfg-if 1.0.0",
+ "cfg-if",
  "console_error_panic_hook",
  "console_log",
  "env_logger 0.9.3",
@@ -3825,7 +3693,7 @@ dependencies = [
  "wasm-bindgen-futures",
  "web-sys",
  "wgpu 0.16.0",
- "winit 0.27.5",
+ "winit",
 ]
 
 [[package]]
@@ -3835,7 +3703,7 @@ dependencies = [
  "anyhow",
  "app-surface",
  "bytemuck",
- "cfg-if 1.0.0",
+ "cfg-if",
  "console_error_panic_hook",
  "console_log",
  "env_logger 0.9.3",
@@ -3851,7 +3719,7 @@ dependencies = [
  "wasm-bindgen-futures",
  "web-sys",
  "wgpu 0.16.0",
- "winit 0.27.5",
+ "winit",
 ]
 
 [[package]]
@@ -3861,7 +3729,7 @@ dependencies = [
  "anyhow",
  "app-surface",
  "bytemuck",
- "cfg-if 1.0.0",
+ "cfg-if",
  "console_error_panic_hook",
  "console_log",
  "env_logger 0.9.3",
@@ -3877,7 +3745,7 @@ dependencies = [
  "wasm-bindgen-futures",
  "web-sys",
  "wgpu 0.16.0",
- "winit 0.27.5",
+ "winit",
 ]
 
 [[package]]
@@ -3887,7 +3755,7 @@ dependencies = [
  "anyhow",
  "app-surface",
  "bytemuck",
- "cfg-if 1.0.0",
+ "cfg-if",
  "console_error_panic_hook",
  "console_log",
  "env_logger 0.9.3",
@@ -3903,7 +3771,7 @@ dependencies = [
  "wasm-bindgen-futures",
  "web-sys",
  "wgpu 0.16.0",
- "winit 0.27.5",
+ "winit",
 ]
 
 [[package]]
@@ -3913,7 +3781,7 @@ dependencies = [
  "anyhow",
  "app-surface",
  "bytemuck",
- "cfg-if 1.0.0",
+ "cfg-if",
  "console_error_panic_hook",
  "console_log",
  "env_logger 0.9.3",
@@ -3930,7 +3798,7 @@ dependencies = [
  "wasm-bindgen-futures",
  "web-sys",
  "wgpu 0.16.0",
- "winit 0.27.5",
+ "winit",
 ]
 
 [[package]]
@@ -3939,7 +3807,7 @@ version = "1.6.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "97fee6b57c6a41524a810daee9286c02d7752c4253064d0b05472833a438f675"
 dependencies = [
- "cfg-if 1.0.0",
+ "cfg-if",
  "rand",
  "static_assertions",
 ]
@@ -4000,7 +3868,7 @@ version = "0.0.0"
 dependencies = [
  "app-surface",
  "bytemuck",
- "cfg-if 1.0.0",
+ "cfg-if",
  "console_error_panic_hook",
  "console_log",
  "env_logger 0.9.3",
@@ -4015,7 +3883,7 @@ dependencies = [
  "wasm-bindgen-futures",
  "web-sys",
  "wgpu 0.16.0",
- "winit 0.27.5",
+ "winit",
 ]
 
 [[package]]
@@ -4048,7 +3916,7 @@ version = "0.1.0"
 dependencies = [
  "app-surface",
  "bytemuck",
- "cfg-if 1.0.0",
+ "cfg-if",
  "console_error_panic_hook",
  "console_log",
  "env_logger 0.9.3",
@@ -4063,7 +3931,7 @@ dependencies = [
  "wasm-bindgen-futures",
  "web-sys",
  "wgpu 0.16.0",
- "winit 0.27.5",
+ "winit",
 ]
 
 [[package]]
@@ -4129,7 +3997,7 @@ version = "0.2.86"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5bba0e8cb82ba49ff4e229459ff22a191bbe9a1cb3a341610c9c33efc27ddf73"
 dependencies = [
- "cfg-if 1.0.0",
+ "cfg-if",
  "wasm-bindgen-macro",
 ]
 
@@ -4186,7 +4054,7 @@ version = "0.4.36"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2d1985d03709c53167ce907ff394f5316aa22cb4e12761295c5dc57dacb6297e"
 dependencies = [
- "cfg-if 1.0.0",
+ "cfg-if",
  "js-sys",
  "wasm-bindgen",
  "web-sys",
@@ -4386,7 +4254,7 @@ version = "0.16.0"
 source = "git+https://github.com/gfx-rs/wgpu?rev=757245cd#757245cdfc97e4d4dce110ef1bb333787a6c25bd"
 dependencies = [
  "arrayvec 0.7.4",
- "cfg-if 1.0.0",
+ "cfg-if",
  "js-sys",
  "log",
  "naga 0.12.0",
@@ -4784,46 +4652,13 @@ checksum = "1a515f5799fe4961cb532f983ce2b23082366b898e52ffbce459c86f67c8378a"
 
 [[package]]
 name = "winit"
-version = "0.26.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9b43cc931d58b99461188607efd7acb2a093e65fc621f54cad78517a6063e73a"
-dependencies = [
- "bitflags 1.3.2",
- "cocoa",
- "core-foundation 0.9.3",
- "core-graphics 0.22.3",
- "core-video-sys",
- "dispatch",
- "instant",
- "lazy_static",
- "libc",
- "log",
- "mio",
- "ndk 0.5.0",
- "ndk-glue 0.5.2",
- "ndk-sys 0.2.2",
- "objc",
- "parking_lot 0.11.2",
- "percent-encoding",
- "raw-window-handle 0.4.3",
- "smithay-client-toolkit 0.15.4",
- "wasm-bindgen",
- "wayland-client",
- "wayland-protocols",
- "web-sys",
- "winapi",
- "x11-dl",
-]
-
-[[package]]
-name = "winit"
 version = "0.27.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bb796d6fbd86b2fd896c9471e6f04d39d750076ebe5680a3958f00f5ab97657c"
 dependencies = [
  "bitflags 1.3.2",
  "cocoa",
- "core-foundation 0.9.3",
+ "core-foundation",
  "core-graphics 0.22.3",
  "dispatch",
  "instant",
@@ -4839,7 +4674,7 @@ dependencies = [
  "raw-window-handle 0.4.3",
  "raw-window-handle 0.5.2",
  "sctk-adwaita",
- "smithay-client-toolkit 0.16.0",
+ "smithay-client-toolkit",
  "wasm-bindgen",
  "wayland-client",
  "wayland-protocols",

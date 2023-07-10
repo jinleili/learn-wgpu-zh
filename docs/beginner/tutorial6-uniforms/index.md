@@ -9,7 +9,7 @@
 ```toml
 [dependencies]
 # other deps...
-glam = "0.18"
+glam = "0.24"
 ```
 
 现在让我们开始使用此数学**包**！在 `State` 结构体上方创建**摄像机**结构体：

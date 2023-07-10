@@ -9,7 +9,7 @@
 winit = "0.27.5"
 env_logger = "0.9"
 log = "0.4"
-wgpu = "0.15"
+wgpu = "0.16"
 ```
 
 ## 使用 Rust 的新版解析器
@@ -109,11 +109,11 @@ cfg-if = "1"
 # 其他常规依赖...
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-console_error_panic_hook = "0.1.6"
+console_error_panic_hook = "0.1.7"
 console_log = "0.2.0"
-wasm-bindgen = "0.2.83"
-wasm-bindgen-futures = "0.4.30"
-web-sys = { version = "0.3.60", features = [
+wasm-bindgen = "=0.2.86"
+wasm-bindgen-futures = "0.4.34"
+web-sys = { version = "0.3.61", features = [
     "Document",
     "Window",
     "Element",
