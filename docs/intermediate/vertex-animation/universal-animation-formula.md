@@ -71,6 +71,23 @@ for (buf, curve) in self.vertex_buffers.iter().zip(vec![start, target].iter()) {
 }
 ```
 
+着色器中完成顶点位置的插值计算：
+
+```wgsl
+struct HilbertUniform {
+    // 接近目标的比例
+    near_target_ratio: f32,
+};
+@group(0) @binding(0) var<uniform> mvp_mat: MVPMatUniform;
+@group(1) @binding(0) var<uniform> hilbert: HilbertUniform;
+
+@vertex
+fn vs_main(@location(0) pos: vec3f, @location(1) target_pos: vec3f) -> @builtin(position) vec4f {
+   let new_pos = pos + (target_pos - pos) * hilbert.near_target_ratio;
+   return mvp_mat.mvp * vec4<f32>(new_pos, 1.0);
+}
+```
+
 ## 查看完整源码
 
 <AutoGithubLink customCodePath="intermediate/hilbert-curve"/>
