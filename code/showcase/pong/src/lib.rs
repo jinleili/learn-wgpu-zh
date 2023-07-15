@@ -11,10 +11,10 @@ use system::System;
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
 
-use winit::dpi::PhysicalSize;
+use winit::dpi::LogicalSize;
 use winit::event::*;
 use winit::event_loop::{ControlFlow, EventLoop};
-use winit::window::{Fullscreen, WindowBuilder};
+use winit::window::WindowBuilder;
 
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen(start))]
 pub fn start() {
@@ -28,23 +28,24 @@ pub fn start() {
     }
 
     let event_loop = EventLoop::new();
-    let monitor = event_loop.primary_monitor().unwrap();
-    let video_mode = monitor.video_modes().next();
-    let size = video_mode
-        .clone()
-        .map_or(PhysicalSize::new(800, 600), |vm| vm.size());
+    let size = LogicalSize::new(800, 600);
     let window = WindowBuilder::new()
         .with_visible(false)
         .with_title("Pong")
-        .with_fullscreen(video_mode.map(Fullscreen::Exclusive))
+        .with_inner_size(size)
         .build(&event_loop)
         .unwrap();
 
-    if window.fullscreen().is_none() {
-        window.set_inner_size(PhysicalSize::new(512, 512));
+    // winit bug: https://github.com/rust-windowing/winit/issues/2876
+    if cfg!(not(target_os = "macos")) {
+        window.set_max_inner_size(Some(size));
+        window.set_resizable(false);
     }
 
     window.set_cursor_visible(false);
+
+    // 获取物理像素大小
+    let size = window.inner_size();
 
     #[cfg(target_arch = "wasm32")]
     {
@@ -52,15 +53,20 @@ pub fn start() {
         web_sys::window()
             .and_then(|win| win.document())
             .and_then(|doc| {
-                let dst = doc.get_element_by_id("wasm-example")?;
-                let canvas = web_sys::Element::from(window.canvas());
-                dst.append_child(&canvas).ok()?;
-
-                // Request fullscreen, if denied, continue as normal
-                match canvas.request_fullscreen() {
-                    Ok(_) => {}
-                    Err(_) => (),
-                }
+                match doc.get_element_by_id("wasm-example") {
+                    Some(dst) => {
+                        let _ = dst.append_child(&web_sys::Element::from(window.canvas()));
+                    }
+                    None => {
+                        let canvas = window.canvas();
+                        canvas.style().set_css_text(
+                            &(canvas.style().css_text()
+                                + "background-color: black; display: block; margin: 20px auto;"),
+                        );
+                        doc.body()
+                            .map(|body| body.append_child(&web_sys::Element::from(canvas)));
+                    }
+                };
 
                 Some(())
             })
@@ -198,8 +204,14 @@ pub fn start() {
                 event: WindowEvent::Resized(size),
                 ..
             } => {
-                render.resize(size);
-                events.push(state::Event::Resize(size.width as f32, size.height as f32));
+                // winit bug: https://github.com/rust-windowing/winit/issues/2876
+                if cfg!(not(target_os = "macos")) {
+                    render.resize(size);
+                    events.push(state::Event::Resize(size.width as f32, size.height as f32));
+                }
+            }
+            Event::RedrawEventsCleared => {
+                window.request_redraw();
             }
             Event::RedrawRequested(window_id) if window_id == window.id() => {
                 for event in &events {
@@ -214,7 +226,7 @@ pub fn start() {
                             sound_system.queue(sound_pack.bounce());
                         }
                         state::Event::Resize(width, height) => {
-                            // TODO: their should be a system that handles this
+                            // TODO: there should be a system that handles this
                             state.player1_score.position = (width * 0.25, 20.0).into();
                             state.player2_score.position = (width * 0.75, 20.0).into();
                             state.win_text.position = (width * 0.5, height * 0.5).into();
@@ -271,7 +283,10 @@ fn process_input(
     keycode: VirtualKeyCode,
     control_flow: &mut ControlFlow,
 ) {
-    if let (VirtualKeyCode::Escape, ElementState::Pressed) = (keycode, element_state) {
-        *control_flow = ControlFlow::Exit;
+    match (keycode, element_state) {
+        (VirtualKeyCode::Escape, ElementState::Pressed) => {
+            *control_flow = ControlFlow::Exit;
+        }
+        _ => {}
     }
 }

@@ -7,7 +7,7 @@
 ```toml
 [dependencies]
 winit = "0.27.5"
-env_logger = "0.9"
+env_logger = "0.10"
 log = "0.4"
 wgpu = "0.16"
 ```

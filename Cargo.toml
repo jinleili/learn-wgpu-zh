@@ -30,7 +30,7 @@ app-surface = { git = "https://github.com/jinleili/wgpu-in-app", rev = "0dcf485"
 bytemuck = { version = "1.13", features = ["derive"] }
 cfg-if = "1"
 glam = "0.24"
-env_logger = "0.9"
+env_logger = "0.10"
 futures-intrusive = "0.4"
 instant = "0.1"
 log = "0.4"

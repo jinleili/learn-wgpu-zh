@@ -30,9 +30,9 @@ pub trait System {
     #[allow(unused_variables)]
     fn start(&mut self, state: &mut state::State) {}
     fn update_state(
-        &self,
-        input: &input::Input,
-        state: &mut state::State,
+        &self, 
+        input: &input::Input, 
+        state: &mut state::State, 
         events: &mut Vec<state::Event>,
     );
 }
@@ -95,7 +95,7 @@ I found the system approach quite nice to work with. My implementation wasn't th
 
 ## Input
 
-The `System` trait, originally had a `process_input` method. This became a problem when I was implementing allowing players to move between serves. The players would get stuck when the `game_state` switched from `Serving` to `Playing` as the inputs were getting stuck. I only called `process_input` on systems that were currently in use. Changing that would be finicky, so I decided to move all the input code into its own struct.
+The `System` trait, originally had a `process_input` method. This became a problem when I was implementing allowing players to move between serves. The players would get stuck when the `game_state` switched from `Serving` to `Playing` as the inputs were getting stuck. I only called `process_input` on systems that were currently in use.  Changing that would be finicky, so I decided to move all the input code into its own struct.
 
 ```rust
 use winit::event::{VirtualKeyCode, ElementState};
@@ -181,7 +181,7 @@ impl QuadBufferBuilder {
             let min_y = ball.position.y - ball.radius;
             let max_x = ball.position.x + ball.radius;
             let max_y = ball.position.y + ball.radius;
-
+    
             self.push_quad(min_x, min_y, max_x, max_y)
         } else {
             self
@@ -191,10 +191,10 @@ impl QuadBufferBuilder {
     pub fn push_player(self, player: &state::Player) -> Self {
         if player.visible {
             self.push_quad(
-                player.position.x - player.size.x * 0.5,
-                player.position.y - player.size.y * 0.5,
+                player.position.x - player.size.x * 0.5, 
+                player.position.y - player.size.y * 0.5, 
                 player.position.x + player.size.x * 0.5,
-                player.position.y + player.size.y * 0.5,
+                player.position.y + player.size.y * 0.5, 
             )
         } else {
             self
@@ -247,7 +247,7 @@ I used [rodio](https://docs.rs/rodio) for sound. I created a `SoundPack` class t
 pub enum Event {
     ButtonPressed,
     FocusChanged,
-    BallBounce(glam::Vec2),
+    BallBounce(cgmath::Vector2<f32>),
     Score(u32),
 }
 ```
@@ -260,16 +260,15 @@ This example works on the web, but there are a few steps that I needed to take t
 
 In order for wasm-pack to work properly I first needed to add some dependencies:
 
-```toml
-[dependencies]
+```toml[dependencies]
 cfg-if = "1"
-env_logger = "0.9"
-winit = "0.27.1"
+env_logger = "0.10"
+winit = "0.28"
 anyhow = "1.0"
-bytemuck = { version = "1.4", features = [ "derive" ] }
-glam = "0.24"
-pollster = "0.2"
-wgpu = { version = "0.14", features = ["spirv"]}
+bytemuck = { version = "1.12", features = [ "derive" ] }
+cgmath = "0.18"
+pollster = "0.3"
+wgpu = { version = "0.16", features = ["spirv"]}
 wgpu_glyph = "0.17"
 rand = "0.8"
 rodio = { version = "0.15", default-features = false, features = ["wav"] }
@@ -277,18 +276,18 @@ log = "0.4"
 instant = "0.1"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-console_error_panic_hook = "0.1.7"
-console_log = "0.2.0"
+console_error_panic_hook = "0.1.6"
+console_log = "1.0"
 getrandom = { version = "0.2", features = ["js"] }
 rodio = { version = "0.15", default-features = false, features = ["wasm-bindgen", "wav"] }
-wasm-bindgen-futures = "0.4.34"
+wasm-bindgen-futures = "0.4.20"
 wasm-bindgen = "=0.2.86"
-web-sys = { version = "0.3.61", features = [
+web-sys = { version = "0.3.53", features = [
     "Document",
     "Window",
     "Element",
 ]}
-wgpu = { version = "0.14", features = ["spirv"]}
+wgpu = { version = "0.16", features = ["spirv", "webgl"]}
 
 [build-dependencies]
 anyhow = "1.0"

@@ -21,16 +21,16 @@ pub struct State {
 }
 
 pub struct Ball {
-    pub position: glam::Vec2,
-    pub velocity: glam::Vec2,
+    pub position: cgmath::Vector2<f32>,
+    pub velocity: cgmath::Vector2<f32>,
     pub radius: f32,
     pub visible: bool,
 }
 
 #[derive(Debug)]
 pub struct Player {
-    pub position: glam::Vec2,
-    pub size: glam::Vec2,
+    pub position: cgmath::Vector2<f32>,
+    pub size: cgmath::Vector2<f32>,
     pub score: u32,
     pub visible: bool,
 }
@@ -42,7 +42,7 @@ impl Player {
         let min = self.position - radii;
         let max = self.position + radii;
 
-        let b_radii = glam::Vec2 {
+        let b_radii = cgmath::Vector2 {
             x: ball.radius,
             y: ball.radius,
         };
@@ -57,9 +57,9 @@ pub const UNBOUNDED_F32: f32 = std::f32::INFINITY;
 
 #[derive(Debug)]
 pub struct Text {
-    pub position: glam::Vec2,
-    pub bounds: glam::Vec2,
-    pub color: glam::Vec4,
+    pub position: cgmath::Vector2<f32>,
+    pub bounds: cgmath::Vector2<f32>,
+    pub color: cgmath::Vector4<f32>,
     pub text: String,
     pub size: f32,
     pub visible: bool,
@@ -86,7 +86,7 @@ impl Default for Text {
 pub enum Event {
     ButtonPressed,
     FocusChanged,
-    BallBounce(glam::Vec2),
+    BallBounce(cgmath::Vector2<f32>),
     Score(u32),
     Resize(f32, f32),
 }

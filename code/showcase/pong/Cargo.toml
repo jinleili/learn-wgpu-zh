@@ -2,45 +2,43 @@
 name = "pong"
 version = "0.1.0"
 authors = ["Ben Hansen <bhbenjaminhansen@gmail.com>"]
-edition.workspace = true
-rust-version.workspace = true
+edition = "2018"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
 
-# wgpu_glyph 还没有更新，导致 wgpu 只能继续使用 0.13
 [dependencies]
 cfg-if = "1"
-env_logger = "0.9"
-winit = "0.27"
+env_logger = "0.10"
+winit = "0.28"
 anyhow = "1.0"
-bytemuck = { version = "1.4", features = ["derive"] }
-glam.workspace = true
-pollster = "0.2"
-wgpu = { version = "0.13", features = ["spirv"] }
-wgpu_glyph = "0.17"
+bytemuck = { version = "1.12", features = [ "derive" ] }
+cgmath = "0.18"
+pollster = "0.3"
+wgpu = { version = "0.16", features = ["spirv"]}
+wgpu_glyph = "0.20"
 rand = "0.8"
-rodio = { version = "0.15", default-features = false, features = ["wav"] }
+rodio = { version = "0.16", default-features = false, features = ["wav"] }
 log = "0.4"
 instant = "0.1"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-console_error_panic_hook = "0.1.7"
-console_log = "0.2.0"
+console_error_panic_hook = "0.1.6"
+console_log = "1.0"
 getrandom = { version = "0.2", features = ["js"] }
-rodio = { version = "0.15", default-features = false, features = ["wasm-bindgen", "wav"] }
-wasm-bindgen-futures = "0.4.34"
+rodio = { version = "0.16", default-features = false, features = ["wasm-bindgen", "wav"] }
+wasm-bindgen-futures = "0.4.20"
 wasm-bindgen = "=0.2.86"
-web-sys = { version = "0.3.61", features = [
+web-sys = { version = "0.3.53", features = [
     "Document",
     "Window",
-    "Element"
-] }
-wgpu = { version = "0.13", features = ["spirv"] }
+    "Element",
+]}
+wgpu = { version = "0.16", features = ["spirv", "webgl"]}
 
 [build-dependencies]
 anyhow = "1.0"
 fs_extra = "1.2"
 glob = "0.3"
 rayon = "1.4"
-naga = { version = "0.9", features = ["glsl-in", "spv-out", "wgsl-out"] }
+naga = { version = "0.11", features = ["glsl-in", "spv-out", "wgsl-out"]}

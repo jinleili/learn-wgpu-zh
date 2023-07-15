@@ -254,7 +254,7 @@ WASM 环境中不能在异步函数里使用 `block_on`。`Future`（异步函�
 [dependencies]
 cfg-if = "1"
 winit = "0.27.5"
-env_logger = "0.9"
+env_logger = "0.10"
 log = "0.4"
 wgpu = "0.16"
 pollster = "0.2"

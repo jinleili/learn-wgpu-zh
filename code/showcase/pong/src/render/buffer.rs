@@ -7,7 +7,7 @@ pub const U32_SIZE: wgpu::BufferAddress = std::mem::size_of::<u32>() as wgpu::Bu
 #[derive(Copy, Clone)]
 pub struct Vertex {
     #[allow(dead_code)]
-    position: glam::Vec2,
+    position: cgmath::Vector2<f32>,
 }
 
 unsafe impl bytemuck::Pod for Vertex {}
@@ -81,10 +81,10 @@ impl QuadBufferBuilder {
             },
         ]);
         self.index_data.extend(&[
-            self.current_quad * 4,
+            self.current_quad * 4 + 0,
             self.current_quad * 4 + 1,
             self.current_quad * 4 + 2,
-            self.current_quad * 4,
+            self.current_quad * 4 + 0,
             self.current_quad * 4 + 2,
             self.current_quad * 4 + 3,
         ]);
