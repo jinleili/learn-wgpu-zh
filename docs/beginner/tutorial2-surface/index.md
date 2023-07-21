@@ -231,7 +231,7 @@ pub async fn run() {
 ```toml
 [dependencies]
 # 其他依赖...
-pollster = "0.2"
+pollster = "0.3"
 ```
 
 然后我们使用 pollster 提供的 `block_on` 函数来等待异步任务执行完成：
@@ -256,15 +256,15 @@ cfg-if = "1"
 winit = "0.27.5"
 env_logger = "0.10"
 log = "0.4"
-wgpu = "0.16"
-pollster = "0.2"
+wgpu = "0.17"
+pollster = "0.3"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 console_error_panic_hook = "0.1.7"
 console_log = "0.2.0"
-wasm-bindgen = "=0.2.86"
+wasm-bindgen = "0.2.87"
 wasm-bindgen-futures = "0.4.34"
-web-sys = { version = "0.3.61", features = [
+web-sys = { version = "0.3.64", features = [
     "Document",
     "Window",
     "Element",

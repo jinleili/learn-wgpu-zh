@@ -37,11 +37,12 @@ impl Action for VertexAnimationApp {
         let mut app = app;
         // 兼容 web
         let format = app.config.format.remove_srgb_suffix();
-        app.sdq
-            .update_config_format(format);
+        app.sdq.update_config_format(format);
 
-        let (p_matrix, mv_matrix) =
-            utils::matrix_helper::perspective_fullscreen_mvp((&app.config).into());
+        let (p_matrix, mv_matrix) = utils::matrix_helper::perspective_fullscreen_mvp(glam::Vec2 {
+            x: app.config.width as f32,
+            y: app.config.height as f32,
+        });
         let mvp_buffer = BufferObj::create_uniform_buffer(
             &app.device,
             &MVPMatUniform {

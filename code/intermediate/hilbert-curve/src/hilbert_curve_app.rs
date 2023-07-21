@@ -37,7 +37,10 @@ impl Action for HilbertCurveApp {
         app.sdq.update_config_format(format);
 
         // 投影
-        let (p_matrix, mv_matrix, _) = utils::matrix_helper::perspective_mvp((&app.config).into());
+        let (p_matrix, mv_matrix, _) = utils::matrix_helper::perspective_mvp(glam::Vec2 {
+            x: app.config.width as f32,
+            y: app.config.height as f32,
+        });
         let mvp_buffer = BufferObj::create_uniform_buffer(
             &app.device,
             &MVPMatUniform {

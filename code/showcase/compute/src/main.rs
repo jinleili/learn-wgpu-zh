@@ -646,7 +646,10 @@ async fn run() {
                             ..
                         } => *control_flow = ControlFlow::Exit,
                         WindowEvent::Resized(physical_size) => {
-                            state.resize(*physical_size);
+                            // winit bug: https://github.com/rust-windowing/winit/issues/2876
+                            if physical_size.width < u32::MAX && physical_size.height < u32::MAX {
+                                state.resize(*physical_size);
+                            }
                         }
                         WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
                             state.resize(**new_inner_size);

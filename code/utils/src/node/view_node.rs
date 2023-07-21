@@ -2,14 +2,14 @@ use super::{BindGroupData, BindGroupSetting};
 use crate::vertex::Vertex;
 use crate::BufferObj;
 use crate::DEPTH_FORMAT;
-use app_surface::math::{Rect, Size};
 use bytemuck::Pod;
+use glam::{Vec2 as Size, Vec4 as Rect};
 use std::ops::{Deref, DerefMut};
 use wgpu::util::DeviceExt;
 
 #[allow(dead_code)]
 pub struct NodeAttributes<'a, T: Vertex + Pod> {
-    pub view_size: Size<f32>,
+    pub view_size: Size,
     pub vertices_and_indices: Option<(Vec<T>, Vec<u32>)>,
     pub vertex_buffer_layouts: Option<Vec<wgpu::VertexBufferLayout<'a>>>,
     pub bg_data: BindGroupData<'a>,
@@ -90,7 +90,7 @@ impl<'a, T: Vertex + Pod> ViewNodeBuilder<'a, T> {
         self
     }
 
-    pub fn with_view_size(mut self, size: Size<f32>) -> Self {
+    pub fn with_view_size(mut self, size: Size) -> Self {
         self.view_size = size;
         self
     }
@@ -253,8 +253,8 @@ impl ViewNode {
         });
 
         ViewNode {
-            view_width: attributes.view_size.width,
-            view_height: attributes.view_size.height,
+            view_width: attributes.view_size.x,
+            view_height: attributes.view_size.y,
             vertex_buf,
             vertex_count,
             index_buf,

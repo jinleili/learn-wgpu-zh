@@ -5,11 +5,11 @@ authors = ["Ben Hansen <bhbenjaminhansen@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-anyhow = "1.0"
-bytemuck = { version = "1.13", features = ["derive"] }
+anyhow.workspace = true
+bytemuck = { workspace = true, features = ["derive"] }
 glam.workspace = true
-env_logger = "0.10"
-pollster = "0.2"
+env_logger.workspace = true
+pollster.workspace = true
 image = "0.24"
 log = "0.4"
 rayon = "1.4"
@@ -18,8 +18,9 @@ wgpu.workspace = true
 winit.workspace = true
 
 [build-dependencies]
-anyhow = "1.0"
-fs_extra = "1.2"
-glob = "0.3"
+anyhow.workspace = true
+fs_extra.workspace = true
+glob.workspace = true
 rayon = "1.4"
-naga = { version = "0.9", features = ["glsl-in", "spv-out", "wgsl-out"] }
+# naga 的接口有变化，用新版本得修改 build.rs
+naga = { version = "0.11", features = ["glsl-in", "spv-out", "wgsl-out"] }

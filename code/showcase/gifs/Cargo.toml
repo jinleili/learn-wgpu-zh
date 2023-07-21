@@ -6,11 +6,11 @@ edition = "2018"
 
 
 [dependencies]
-anyhow = "1.0"
+anyhow.workspace = true
 bytemuck = { version = "1.13", features = ["derive"] }
 glam.workspace = true
 env_logger = "0.10"
-pollster = "0.2"
+pollster = "0.3"
 image = "0.24.2"
 log = "0.4"
 tobj = "3.1"

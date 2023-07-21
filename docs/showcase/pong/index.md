@@ -30,9 +30,9 @@ pub trait System {
     #[allow(unused_variables)]
     fn start(&mut self, state: &mut state::State) {}
     fn update_state(
-        &self, 
-        input: &input::Input, 
-        state: &mut state::State, 
+        &self,
+        input: &input::Input,
+        state: &mut state::State,
         events: &mut Vec<state::Event>,
     );
 }
@@ -95,7 +95,7 @@ I found the system approach quite nice to work with. My implementation wasn't th
 
 ## Input
 
-The `System` trait, originally had a `process_input` method. This became a problem when I was implementing allowing players to move between serves. The players would get stuck when the `game_state` switched from `Serving` to `Playing` as the inputs were getting stuck. I only called `process_input` on systems that were currently in use.  Changing that would be finicky, so I decided to move all the input code into its own struct.
+The `System` trait, originally had a `process_input` method. This became a problem when I was implementing allowing players to move between serves. The players would get stuck when the `game_state` switched from `Serving` to `Playing` as the inputs were getting stuck. I only called `process_input` on systems that were currently in use. Changing that would be finicky, so I decided to move all the input code into its own struct.
 
 ```rust
 use winit::event::{VirtualKeyCode, ElementState};
@@ -181,7 +181,7 @@ impl QuadBufferBuilder {
             let min_y = ball.position.y - ball.radius;
             let max_x = ball.position.x + ball.radius;
             let max_y = ball.position.y + ball.radius;
-    
+
             self.push_quad(min_x, min_y, max_x, max_y)
         } else {
             self
@@ -191,10 +191,10 @@ impl QuadBufferBuilder {
     pub fn push_player(self, player: &state::Player) -> Self {
         if player.visible {
             self.push_quad(
-                player.position.x - player.size.x * 0.5, 
-                player.position.y - player.size.y * 0.5, 
+                player.position.x - player.size.x * 0.5,
+                player.position.y - player.size.y * 0.5,
                 player.position.x + player.size.x * 0.5,
-                player.position.y + player.size.y * 0.5, 
+                player.position.y + player.size.y * 0.5,
             )
         } else {
             self
@@ -260,7 +260,8 @@ This example works on the web, but there are a few steps that I needed to take t
 
 In order for wasm-pack to work properly I first needed to add some dependencies:
 
-```toml[dependencies]
+```toml
+[dependencies]
 cfg-if = "1"
 env_logger = "0.10"
 winit = "0.28"
@@ -281,8 +282,8 @@ console_log = "1.0"
 getrandom = { version = "0.2", features = ["js"] }
 rodio = { version = "0.15", default-features = false, features = ["wasm-bindgen", "wav"] }
 wasm-bindgen-futures = "0.4.20"
-wasm-bindgen = "=0.2.86"
-web-sys = { version = "0.3.53", features = [
+wasm-bindgen = "0.2.87"
+web-sys = { version = "0.3.64", features = [
     "Document",
     "Window",
     "Element",
@@ -294,7 +295,7 @@ anyhow = "1.0"
 fs_extra = "1.2"
 glob = "0.3"
 rayon = "1.4"
-naga = { version = "0.9", features = ["glsl-in", "spv-out", "wgsl-out"]}
+naga = { version = "0.11", features = ["glsl-in", "spv-out", "wgsl-out"]}
 
 ```
 

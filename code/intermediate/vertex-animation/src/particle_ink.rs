@@ -41,7 +41,13 @@ impl ParticleInk {
             depth_or_array_layers: 0,
         };
         let fovy: f32 = 45.0_f32.to_radians();
-        let factor = utils::matrix_helper::fullscreen_factor((&app.config).into(), fovy);
+        let factor = utils::matrix_helper::fullscreen_factor(
+            glam::Vec2 {
+                x: app.config.width as f32,
+                y: app.config.height as f32,
+            },
+            fovy,
+        );
 
         // 粒子的顶点数据
         let half_x = particle_point_size / 2.0 * (2.0 / w as f32 * factor.sx);

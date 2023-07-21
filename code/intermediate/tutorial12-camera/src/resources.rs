@@ -190,7 +190,7 @@ pub async fn load_model(
             // Average the tangents/bitangents
             for (i, n) in triangles_included.into_iter().enumerate() {
                 let denom = 1.0 / n as f32;
-                let mut v = &mut vertices[i];
+                let v = &mut vertices[i];
                 v.tangent = (glam::Vec3::from_array(v.tangent) * denom).into();
                 v.bitangent = (glam::Vec3::from_array(v.bitangent) * denom).into();
             }

@@ -9,13 +9,13 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 cfg-if = "1"
-env_logger = "0.10"
+env_logger.workspace = true
 winit = "0.28"
-anyhow = "1.0"
-bytemuck = { version = "1.12", features = [ "derive" ] }
+anyhow.workspace = true
+bytemuck = { workspace = true, features = ["derive"] }
 cgmath = "0.18"
 pollster = "0.3"
-wgpu = { version = "0.16", features = ["spirv"]}
+wgpu = { version = "0.16", features = ["spirv"] }
 wgpu_glyph = "0.20"
 rand = "0.8"
 rodio = { version = "0.16", default-features = false, features = ["wav"] }
@@ -23,22 +23,22 @@ log = "0.4"
 instant = "0.1"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-console_error_panic_hook = "0.1.6"
-console_log = "1.0"
+console_error_panic_hook.workspace = true
+console_log.workspace = true
 getrandom = { version = "0.2", features = ["js"] }
-rodio = { version = "0.16", default-features = false, features = ["wasm-bindgen", "wav"] }
-wasm-bindgen-futures = "0.4.20"
-wasm-bindgen = "=0.2.86"
-web-sys = { version = "0.3.53", features = [
-    "Document",
-    "Window",
-    "Element",
-]}
-wgpu = { version = "0.16", features = ["spirv", "webgl"]}
+rodio = { version = "0.16", default-features = false, features = [
+    "wasm-bindgen",
+    "wav",
+] }
+wasm-bindgen-futures.workspace = true
+wasm-bindgen.workspace = true
+web-sys = { workspace = true, features = ["Document", "Window", "Element"] }
+wgpu = { workspace = true, features = ["spirv", "webgl"] }
 
 [build-dependencies]
-anyhow = "1.0"
-fs_extra = "1.2"
-glob = "0.3"
+anyhow.workspace = true
+fs_extra.workspace = true
+glob.workspace = true
 rayon = "1.4"
-naga = { version = "0.11", features = ["glsl-in", "spv-out", "wgsl-out"]}
+# naga 的接口有变化，用新版本得修改 build.rs
+naga = { version = "0.11", features = ["glsl-in", "spv-out", "wgsl-out"] }

@@ -148,4 +148,3 @@ impl Vertex for PosNormalUvIndex {
         ]
     }
 }
-

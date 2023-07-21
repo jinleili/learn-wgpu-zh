@@ -53,10 +53,10 @@ fn getPos(v: ModelVertex) -> vec3<f32> {
     _ = (&global_3.numVertices);
     _ = (&global_3.numIndices);
     v_1 = v;
-    let _e13 = v_1.x;
-    let _e15 = v_1.y;
-    let _e17 = v_1.z;
-    return vec3<f32>(_e13, _e15, _e17);
+    let _e12 = v_1;
+    let _e14 = v_1;
+    let _e16 = v_1;
+    return vec3<f32>(_e12.x, _e14.y, _e16.z);
 }
 
 fn getUV(v_2: ModelVertex) -> vec2<f32> {
@@ -68,9 +68,9 @@ fn getUV(v_2: ModelVertex) -> vec2<f32> {
     _ = (&global_3.numVertices);
     _ = (&global_3.numIndices);
     v_3 = v_2;
-    let _e13 = v_3.uv;
-    let _e15 = v_3.uw;
-    return vec2<f32>(_e13, _e15);
+    let _e12 = v_3;
+    let _e14 = v_3;
+    return vec2<f32>(_e12.uv, _e14.uw);
 }
 
 fn getNormal(v_4: ModelVertex) -> vec3<f32> {
@@ -82,19 +82,19 @@ fn getNormal(v_4: ModelVertex) -> vec3<f32> {
     _ = (&global_3.numVertices);
     _ = (&global_3.numIndices);
     v_5 = v_4;
-    let _e13 = v_5.nx;
-    let _e15 = v_5.ny;
-    let _e17 = v_5.nz;
-    return vec3<f32>(_e13, _e15, _e17);
+    let _e12 = v_5;
+    let _e14 = v_5;
+    let _e16 = v_5;
+    return vec3<f32>(_e12.nx, _e14.ny, _e16.nz);
 }
 
 fn calcTangentBitangent(vertexIndex: u32) -> ModelVertex {
     var vertexIndex_1: u32;
     var v_6: ModelVertex;
-    var tangent: vec3<f32> = vec3<f32>(0.0, 0.0, 0.0);
-    var bitangent: vec3<f32> = vec3<f32>(0.0, 0.0, 0.0);
-    var trianglesIncluded: u32 = 0u;
-    var i: u32 = 0u;
+    var tangent: vec3<f32>;
+    var bitangent: vec3<f32>;
+    var trianglesIncluded: u32;
+    var i: u32;
     var index0_: u32;
     var index1_: u32;
     var index2_: u32;
@@ -119,10 +119,10 @@ fn calcTangentBitangent(vertexIndex: u32) -> ModelVertex {
     let _e12 = vertexIndex_1;
     let _e14 = global.srcVertices[_e12];
     v_6 = _e14;
-    _ = vec3<f32>(f32(0));
-    _ = vec3<f32>(f32(0));
-    _ = u32(0);
-    _ = u32(0);
+    tangent = vec3<f32>(f32(0));
+    bitangent = vec3<f32>(f32(0));
+    trianglesIncluded = u32(0);
+    i = u32(0);
     loop {
         let _e30 = i;
         let _e31 = global_3.numIndices;

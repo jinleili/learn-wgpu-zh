@@ -24,8 +24,8 @@ version = "0.24"
 default-features = false
 
 [workspace.dependencies]
-app-surface = { git = "https://github.com/jinleili/wgpu-in-app", rev = "0dcf485" }
-# app-surface = { git = "https://github.com/jinleili/wgpu-in-app", tag = "0.2.1" }
+app-surface = "0.3"
+# app-surface = { git = "https://github.com/jinleili/wgpu-in-app", rev = "0dcf485" }
 # app-surface = { path = "../idroid/wgpu-in-app/app-surface" }
 bytemuck = { version = "1.13", features = ["derive"] }
 cfg-if = "1"
@@ -34,30 +34,23 @@ env_logger = "0.10"
 futures-intrusive = "0.4"
 instant = "0.1"
 log = "0.4"
-naga = { version = "0.11" }
-pollster = "0.2"
+naga = { version = "0.13" }
+pollster = "0.3"
 rayon = "1.4"
 tobj = "3.2"
 winit = "0.27.5"
-# wgpu = { version = "0.16" }
-wgpu = { git = "https://github.com/gfx-rs/wgpu", rev = "757245cd" }
+wgpu = { version = "0.17" }
+# wgpu = { git = "https://github.com/gfx-rs/wgpu", rev = "757245cd" }
 utils = { path = "code/utils" }
 
 # wasm32 dependencies
 console_error_panic_hook = "0.1.7"
 console_log = "0.2.0"
 reqwest = { version = "0.11" }
-js-sys = "0.3.63"
-wasm-bindgen = "=0.2.86"
+js-sys = "0.3.64"
+wasm-bindgen = "0.2.87"
 wasm-bindgen-futures = "0.4.34"
-web-sys = "0.3.61"
-# 必须与 wgpu 里使用的版本一致，因为 web-sys 里有类型名称的变更：
-# variant or associated item not found in `GpuTextureFormat`
-# help: there is a variant with a similar name: `Depth24plusStencil8`
-# js-sys = "0.3.63"
-# wasm-bindgen = "0.2.86"
-# wasm-bindgen-futures = "0.4.36"
-# web-sys = "0.3.63"
+web-sys = "0.3.64"
 
 # build-dependencies
 anyhow = "1.0"
