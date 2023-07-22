@@ -114,7 +114,9 @@ async fn create_action_instance<A: Action + 'static>(
                                 1.2
                             }) as u32;
                         window.set_inner_size(PhysicalSize::new(width as u32, height));
-                        let _ = dst.append_child(&web_sys::Element::from(window.canvas()));
+                        let _ = dst
+                            .append_child(&web_sys::Element::from(window.canvas()))
+                            .ok();
                     }
                     None => {
                         window.set_inner_size(PhysicalSize::new(width, height));
@@ -124,7 +126,7 @@ async fn create_action_instance<A: Action + 'static>(
                                 + "background-color: black; display: block; margin: 20px auto;"),
                         );
                         doc.body()
-                            .map(|body| body.append_child(&web_sys::Element::from(canvas)));
+                            .map(|body| body.append_child(&web_sys::Element::from(canvas)).ok());
                     }
                 };
             })

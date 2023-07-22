@@ -5,5 +5,5 @@ edition.workspace = true
 rust-version.workspace = true
 
 [dependencies]
-cargo-run-wasm = "0.3.0"
+cargo-run-wasm = { version = "0.3.2" }
 fs_extra.workspace = true

@@ -33,7 +33,7 @@ rodio = { version = "0.16", default-features = false, features = [
 wasm-bindgen-futures.workspace = true
 wasm-bindgen.workspace = true
 web-sys = { workspace = true, features = ["Document", "Window", "Element"] }
-wgpu = { workspace = true, features = ["spirv", "webgl"] }
+wgpu = { version = "0.16", features = ["spirv", "webgl"] }
 
 [build-dependencies]
 anyhow.workspace = true
