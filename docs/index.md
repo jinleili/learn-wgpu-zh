@@ -39,7 +39,7 @@ WebGPU 就是一套图形接口，绝大部分概念都是各图形接口里通�
 
 ## 现在学习 wgpu 是不是为时尚早？
 
-虽然 WebGPU 1.0 要到 2023 年年中才会正式发布，但 API 目前已经稳定了，且 [Google 已经在 2023/4/6 宣布从 Chrome 113 版本开始正式支持 WebGPU](https://developer.chrome.com/blog/webgpu-release/)。
+虽然 WebGPU 1.0 要到 2023 年下半年才会正式发布，但 API 目前已经稳定了，且 [Google 已经在 2023/4/6 宣布从 Chrome 113 版本开始正式支持 WebGPU](https://developer.chrome.com/blog/webgpu-release/)。
 
 ## 如何运行示例代码
 
@@ -48,15 +48,16 @@ WebGPU 就是一套图形接口，绝大部分概念都是各图形接口里通�
 
 ```sh
 # 在桌面环境本地运行
-cargo run --bin tutorial1-window
+cargo run --bin tutorial3-pipeline
 
 # 在浏览器中运行
 # 需要先安装 Rust WebAssembly target
 rustup target add wasm32-unknown-unknown
 # 使用 WebGPU（需要使用 Chrome/Edge 113+ 或 Chrome/Edge Canary，Canary 需手动开启 WebGPU 试验功能）
-cargo run-wasm --bin tutorial1-window
+# compute-pipeline, vertex-animation 及 hilbert-curve 示例只能在桌面端与浏览器端 WebGPU 环境运行
+cargo run-wasm --bin vertex-animation
 # 使用 WebGL 2.0
-cargo run-wasm --bin tutorial1-window --features webgl
+cargo run-wasm --bin tutorial2-surface --features webgl
 ```
 
 **调试与集成** 部分的代码是 2 个独立的项目：

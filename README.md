@@ -43,7 +43,7 @@ WebGPU 就是一套图形接口，绝大部分概念都是各图形接口里通�
 
 ## 现在学习 wgpu 是不是为时尚早？
 
-虽然 WebGPU 1.0 要到 2023 年年中才会正式发布，但 API 目前已经稳定了，且 [Google 已经在 2023/4/6 宣布从 Chrome 113 版本开始正式支持 WebGPU](https://developer.chrome.com/blog/webgpu-release/)。
+虽然 WebGPU 1.0 要到 2023 年下半年才会正式发布，但 API 目前已经稳定了，且 [Google 已经在 2023/4/6 宣布从 Chrome 113 版本开始正式支持 WebGPU](https://developer.chrome.com/blog/webgpu-release/)。
 
 ## 如何运行示例代码
 
