@@ -88,3 +88,9 @@ Microsoft Edge 113+ 也已默认开启了 WebGPU 支持。如果安装的是 Can
 ## 关于译者
 
 我是一名移动端架构师, 有多年使用 OpenGL ES / WebGL, Metal 的实践经验。2018 年开始接触 WebGPU，目前正积极地参与到 [wgpu 开源项目的开发与完善](https://github.com/gfx-rs/wgpu/commits?author=jinleili)之中，并且已于两年前在 AppStore 上架了基于 wgpu 实现的毛笔书法模拟 App [字习 Pro](https://apps.apple.com/cn/app/字习-pro/id1507339788)。
+
+## 加入 wgpu 微信学习交流群
+
+<div style="text-align: left">
+    <img src="docs/public/res/wx.jpg" style="width: 312px; margin-top: 24px;">
+</div>

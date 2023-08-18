@@ -82,12 +82,10 @@ Chrome 113+ 已经默认开启了 WebGPU 支持。如果安装的是 Canary 版�
 Microsoft Edge 113+ 也已默认开启了 WebGPU 支持。如果安装的是 Canary 版，在地址栏中输入 `edge://flags` , 将 `Unsafe WebGPU Support` 设置为 `Enabled`:
 <img src="/res/edge.png" alt="Edge Canary">
 
-## 贡献与支持
-
-- 原作者接受 PR（[GitHub repo](https://github.com/sotrh/learn-wgpu)）以修复本教程的问题，如错别字、错误信息和其他不一致之处。
-- 如果想直接支持原作者，请查看 [patreon](https://www.patreon.com/sotrh)！
-- 也欢迎对此中译版本提出反馈及改进建议（[《Learn wgpu》中文版 repo](https://github.com/jinleili/learn-wgpu-zh)）
-
 ## 关于译者
 
 我是一名移动端架构师，有多年使用 OpenGL ES / WebGL, Metal 的实践经验。2018 年开始接触 WebGPU，目前正积极地参与到 [wgpu 开源项目的开发与完善](https://github.com/gfx-rs/wgpu/commits?author=jinleili)之中，并且已于两年前在 AppStore 上架了基于 wgpu 实现的毛笔书法模拟 App [字习 Pro](https://apps.apple.com/cn/app/字习-pro/id1507339788)。
+
+## 加入 wgpu 微信学习交流群
+
+<JoinWeiChatGroup />

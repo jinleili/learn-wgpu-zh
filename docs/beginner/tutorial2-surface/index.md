@@ -530,6 +530,6 @@ Some(wgpu::RenderPassColorAttachment {
 
 <AutoGithubLink/>
 
-## 加入 wgpu 微信学习群交流群
+## 加入 wgpu 微信学习交流群
 
 <JoinWeiChatGroup />

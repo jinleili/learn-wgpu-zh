@@ -1,7 +1,7 @@
 import { defineConfig } from "vitepress";
 
 export default defineConfig({
-  // https://vitepress.vuejs.org/config/app-configs
+  // https://vitepress.dev/reference/site-config
   lang: "zh-CN",
   title: "学习 wgpu",
   description: "wgpu：下一代跨平台图形接口 WebGPU 的 Rust 实现",
