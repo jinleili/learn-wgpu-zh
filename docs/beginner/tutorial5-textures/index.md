@@ -433,12 +433,12 @@ const VERTICES: &[Vertex] = &[
 [dependencies]
 image = "0.23"
 glam = "0.24"
-winit = "0.27.5"
+winit = "0.28.7"
 env_logger = "0.10"
 log = "0.4"
 pollster = "0.3"
 wgpu = "0.17"
-bytemuck = { version = "1.13", features = [ "derive" ] }
+bytemuck = { version = "1.14", features = [ "derive" ] }
 anyhow = "1.0" # NEW!
 ```
 

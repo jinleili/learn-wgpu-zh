@@ -78,7 +78,7 @@ use wgpu::util::DeviceExt;
 你应该注意到我们使用了 [bytemuck](https://docs.rs/bytemuck/1.2.0/bytemuck/) 来将 `VERTICES` 转换为 `&[u8]`。`create_buffer_init()` 函数的参数类型是 `&[u8]`，而 `bytemuck::cast_slice` 为我们实现了此类型转换。为此需在 `Cargo.toml` 中添加以下依赖项：
 
 ```toml
-bytemuck = { version = "1.13", features = [ "derive" ] }
+bytemuck = { version = "1.14", features = [ "derive" ] }
 ```
 
 我们还需要实现两个 trait 来使 `bytemuck` 工作。它们是 [bytemuck::Pod](https://docs.rs/bytemuck/1.3.0/bytemuck/trait.Pod.html) 和 [bytemuck::Zeroable](https://docs.rs/bytemuck/1.3.0/bytemuck/trait.Zeroable.html)。 `Pod` 表示 `Vertex` 是 ["Plain Old Data"](<https://zh.wikipedia.org/wiki/POD_(程序设计)>) 数据类型，因此可以被解释为 `&[u8]` 类型。`Zeroable` 表示可以对其使用 `std::mem::zeroed()`。下面修改 `Vertex` 结构体来派生这些 trait：

@@ -7,7 +7,7 @@ edition = "2018"
 
 [dependencies]
 anyhow.workspace = true
-bytemuck = { version = "1.13", features = ["derive"] }
+bytemuck = { version = "1.14", features = ["derive"] }
 glam.workspace = true
 env_logger = "0.10"
 pollster = "0.3"

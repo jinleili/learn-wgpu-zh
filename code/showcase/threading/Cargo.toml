@@ -15,7 +15,7 @@ glam.workspace = true
 env_logger.workspace = true
 pollster.workspace = true
 log = "0.4"
-rayon = "1.4"                                          # NEW!
+rayon.workspace = true
 tobj = { version = "3.2", features = ["async"] }
 wgpu.workspace = true
 winit.workspace = true

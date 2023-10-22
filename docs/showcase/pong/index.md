@@ -264,9 +264,9 @@ In order for wasm-pack to work properly I first needed to add some dependencies:
 [dependencies]
 cfg-if = "1"
 env_logger = "0.10"
-winit = "0.28"
+winit = "0.28.7"
 anyhow = "1.0"
-bytemuck = { version = "1.12", features = [ "derive" ] }
+bytemuck = { version = "1.14", features = [ "derive" ] }
 cgmath = "0.18"
 pollster = "0.3"
 wgpu = { version = "0.16", features = ["spirv"]}
@@ -292,9 +292,9 @@ wgpu = { version = "0.16", features = ["spirv", "webgl"]}
 
 [build-dependencies]
 anyhow = "1.0"
-fs_extra = "1.2"
+fs_extra = "1.3"
 glob = "0.3"
-rayon = "1.4"
+rayon = "1.8"
 naga = { version = "0.11", features = ["glsl-in", "spv-out", "wgsl-out"]}
 
 ```

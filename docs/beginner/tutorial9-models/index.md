@@ -126,7 +126,7 @@ fn main() -> Result<()> {
 ```toml
 [build-dependencies]
 anyhow = "1.0"
-fs_extra = "1.2"
+fs_extra = "1.3"
 glob = "0.3"
 ```
 

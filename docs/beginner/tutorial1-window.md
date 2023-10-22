@@ -8,7 +8,7 @@
 
 ```toml
 [dependencies]
-winit = "0.27.5"
+winit = "0.28.7"
 env_logger = "0.10"
 log = "0.4"
 wgpu = "0.17"
@@ -118,7 +118,7 @@ cfg-if = "1"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 console_error_panic_hook = "0.1.7"
-console_log = "0.2.0"
+console_log = "1.0"
 wasm-bindgen = "0.2.87"
 wasm-bindgen-futures = "0.4.34"
 web-sys = { version = "0.3.64", features = [

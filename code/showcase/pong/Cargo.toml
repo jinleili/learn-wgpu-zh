@@ -10,7 +10,7 @@ crate-type = ["cdylib", "rlib"]
 [dependencies]
 cfg-if = "1"
 env_logger.workspace = true
-winit = "0.28"
+winit = "0.28.7"
 anyhow.workspace = true
 bytemuck = { workspace = true, features = ["derive"] }
 cgmath = "0.18"
@@ -39,6 +39,6 @@ wgpu = { version = "0.16", features = ["spirv", "webgl"] }
 anyhow.workspace = true
 fs_extra.workspace = true
 glob.workspace = true
-rayon = "1.4"
+rayon.workspace = true
 # naga 的接口有变化，用新版本得修改 build.rs
 naga = { version = "0.11", features = ["glsl-in", "spv-out", "wgsl-out"] }
