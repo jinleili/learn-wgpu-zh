@@ -40,7 +40,6 @@ impl Line {
                 label: Some("hilbert shader"),
                 source: wgpu::ShaderSource::Wgsl(include_str!("../assets/hilbert.wgsl").into()),
             });
-        let mut buffers: Vec<wgpu::VertexBufferLayout> = Vec::with_capacity(4);
 
         let pipeline = app
             .device
@@ -54,7 +53,7 @@ impl Line {
                         wgpu::VertexBufferLayout {
                             array_stride: VertexFormat::Float32x3.size(),
                             step_mode: wgpu::VertexStepMode::Instance,
-                            attributes: &vec![
+                            attributes: &[
                                 wgpu::VertexAttribute {
                                     shader_location: 0,
                                     format: VertexFormat::Float32x3,
@@ -70,7 +69,7 @@ impl Line {
                         wgpu::VertexBufferLayout {
                             array_stride: VertexFormat::Float32x3.size(),
                             step_mode: wgpu::VertexStepMode::Instance,
-                            attributes: &vec![
+                            attributes: &[
                                 wgpu::VertexAttribute {
                                     shader_location: 2,
                                     format: VertexFormat::Float32x3,

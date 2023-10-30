@@ -147,7 +147,7 @@ impl Action for HilbertCurveApp {
             // 更新顶点数
             self.curve_vertex_count = target.vertices.len();
             // 填充顶点 buffer
-            for (buf, curve) in self.vertex_buffers.iter().zip(vec![start, target].iter()) {
+            for (buf, curve) in self.vertex_buffers.iter().zip([start, target].iter()) {
                 self.app
                     .queue
                     .write_buffer(buf, 0, bytemuck::cast_slice(&curve.vertices));
