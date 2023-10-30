@@ -131,7 +131,7 @@ impl ComputeNode {
         encoder: &mut wgpu::CommandEncoder,
         offsets: Option<Vec<Vec<wgpu::DynamicOffset>>>,
     ) {
-        let mut cpass = encoder.begin_compute_pass(&wgpu::ComputePassDescriptor { label: None });
+        let mut cpass = encoder.begin_compute_pass(&wgpu::ComputePassDescriptor::default());
         self.dispatch_by_offsets(&mut cpass, offsets);
     }
 

@@ -572,17 +572,18 @@ impl State {
                                     b: 0.3,
                                     a: 1.0,
                                 }),
-                                store: true,
+                                store: wgpu::StoreOp::Store,
                             },
                         })],
                         depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
                             view: &self.depth_texture.view,
                             depth_ops: Some(wgpu::Operations {
                                 load: wgpu::LoadOp::Clear(1.0),
-                                store: true,
+                                store: wgpu::StoreOp::Store,
                             }),
                             stencil_ops: None,
                         }),
+                        ..Default::default()
                     });
 
                     render_pass.set_vertex_buffer(1, self.instance_buffer.slice(..));

@@ -277,11 +277,11 @@ Self {
                             a: 1.0,
                         }
                     ),
-                    store: true,
+                    store: wgpu::StoreOp::Store
                 }
             })
         ],
-        depth_stencil_attachment: None,
+        ..Default::default()
     });
 
     // 新添加!

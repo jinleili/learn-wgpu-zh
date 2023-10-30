@@ -112,10 +112,10 @@ async fn run() {
                         b: 0.3,
                         a: 1.0,
                     }),
-                    store: true,
+                    store: wgpu::StoreOp::Store,
                 },
             })],
-            depth_stencil_attachment: None,
+            ..Default::default()
         };
         let mut render_pass = encoder.begin_render_pass(&render_pass_desc);
 

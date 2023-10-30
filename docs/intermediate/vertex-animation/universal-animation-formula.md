@@ -8,6 +8,20 @@
 
 ## 示例：Hilbert 曲线
 
+<div class="note">
+
+此示例能正常运行在桌面端及 Firefox Nightly.
+
+但 Chrome 118 上存在管线验证的 bug，导致会报如下警告而无法正常运行：
+
+```log
+Attribute offset (12) with format VertexFormat::Float32x3 (size: 12) doesn't fit in the vertex buffer stride (12).
+ - While validating attributes[1].
+ - While validating buffers[0].
+```
+
+</div>
+
 <WebGPUExample example="hilbert_curve" autoLoad="{true}"></WebGPUExample>
 
 ## 代码实现

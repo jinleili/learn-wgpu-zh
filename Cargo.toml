@@ -24,8 +24,7 @@ version = "0.24"
 default-features = false
 
 [workspace.dependencies]
-app-surface = "0.3.3"
-# app-surface = { git = "https://github.com/jinleili/wgpu-in-app", rev = "0dcf485" }
+app-surface = "0.3.5"
 bytemuck = { version = "1.14", features = ["derive"] }
 cfg-if = "1"
 glam = "0.24"
@@ -38,8 +37,7 @@ pollster = "0.3"
 rayon = "1.8"
 tobj = "3.2"
 winit = "0.28.7"
-wgpu = { version = "0.17" }
-# wgpu = { git = "https://github.com/gfx-rs/wgpu", rev = "757245cd" }
+wgpu = { version = "0.18" }
 utils = { path = "code/utils" }
 
 # wasm32 dependencies

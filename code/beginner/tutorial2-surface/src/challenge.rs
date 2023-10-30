@@ -129,10 +129,10 @@ impl State {
                     resolve_target: None,
                     ops: wgpu::Operations {
                         load: wgpu::LoadOp::Clear(self.clear_color),
-                        store: true,
+                        store: wgpu::StoreOp::Store,
                     },
                 })],
-                depth_stencil_attachment: None,
+                ..Default::default()
             });
         }
 

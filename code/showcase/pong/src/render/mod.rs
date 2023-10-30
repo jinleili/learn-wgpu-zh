@@ -174,7 +174,7 @@ impl Render {
                         resolve_target: None,
                         ops: wgpu::Operations::default(),
                     })],
-                    depth_stencil_attachment: None,
+                    ..Default::default()
                 });
 
                 if num_indices != 0 {

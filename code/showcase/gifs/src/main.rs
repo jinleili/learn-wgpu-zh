@@ -100,10 +100,10 @@ async fn run() {
                         b: c[2],
                         a: 1.0,
                     }),
-                    store: true,
+                    store: wgpu::StoreOp::Store,
                 },
             })],
-            depth_stencil_attachment: None,
+            ..Default::default()
         });
 
         rpass.set_pipeline(&render_pipeline);

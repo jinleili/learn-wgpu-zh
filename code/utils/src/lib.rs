@@ -29,6 +29,14 @@ pub struct MVPMatUniform {
     pub mvp: [[f32; 4]; 4],
 }
 
+#[repr(C)]
+#[derive(Clone, Copy, Debug, Pod, Zeroable)]
+pub struct SceneUniform {
+    pub mvp: [[f32; 4]; 4],
+    pub viewport_pixels: [f32; 2],
+    pub padding: [f32; 2],
+}
+
 #[cfg(target_arch = "wasm32")]
 pub(crate) fn application_root_dir() -> String {
     let location = web_sys::window().unwrap().location();

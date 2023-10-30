@@ -3,9 +3,11 @@
 在[与 Android App 集成](../android/)章节我们已经学习了 wgpu 与 Android App 的集成，现在来看看集成后的调试。
 
 ## Snapdragon Profiler 工具介绍
+
 [Snapdragon Profiler](https://developer.qualcomm.com/software/snapdragon-profiler) 是高通公司开发的一款可运行在 Windows、Mac 和 Linux 平台上的性能分析和帧调试工具。 它通过 USB 与**安卓设备**连接，允许开发人员分析 CPU、GPU、内存等数据，以便我们发现并修复性能瓶颈。
 
 Snapdragon Profiler 工具的功能特点：
+
 - 实时监测 GPU 性能;
 - 查看 CPU 调度和 GPU 阶段数据，了解应用程序将时间花在哪里;
 - GPU **帧**捕获;
@@ -18,6 +20,7 @@ Snapdragon Profiler 工具的功能特点：
 在运行 Snapdragon Profiler 之前需要确保系统上安装了 Android Studio 或者 AndroidSDK，并且已将 **ADB** 路径添加到系统环境变量中。
 
 ## 实时模式查看 GPU 统计数据
+
 USB 连接要调试的 Android 手机后打开 Snapdragon Profiler，点击窗口左边栏的 **Start a Session**, 此时右边出现的小弹窗里会列出当前与电脑连接的所有可调试设备，我们选中列表中的设备，勾选上弹窗左下角的 **Auto connect** 再点击右下角的 **Connect**，这样，下回再次调试同一台设备时就能自动连接到 Snapdragon Profiler 了：
 
 <img src="./connect.jpg" />
@@ -52,7 +55,7 @@ Snapdragon Profiler 里将**片上内存**称之为**图形内存**（GMEM，全
 
 <div class="note">
 
-所谓 Tiling，本质上就是管理 GPU 内存的技术。Tiling 利用**片上内存**（on-chip memory）去降低**设备内存**的访问次数，从而降低 GPU 内存带宽的消耗及访问延迟。 
+所谓 Tiling，本质上就是管理 GPU 内存的技术。Tiling 利用**片上内存**（on-chip memory）去降低**设备内存**的访问次数，从而降低 GPU 内存带宽的消耗及访问延迟。
 正确理解并利用 Tiling 架构的内存管理特性，可以有效的提高 GPU 程序的性能。
 
 </div>
@@ -65,8 +68,8 @@ Snapdragon Profiler 里将**片上内存**称之为**图形内存**（GMEM，全
 导致**片上内存**装载的最主要原因是: 对驱动程序的不恰当提示。
 应用程序代码使驱动程序认为需要**帧缓冲区**的先前内容。
 
-
 ### 检测片上内存装载
+
 在 Snapdragon Profiler 的**追踪模式**下，我们可以让**渲染阶段**（Rendering Stages） 指标突出显示其自身通道中的**片上内存装载**（GMEM Loads）。
 
 <div class="note">
@@ -82,6 +85,7 @@ GPU 应用必须在项目的 AndroidManifest.xml 文件中包含 `INTERNET` 权�
 </div>
 
 启用**追踪模式**的操作步骤：
+
 - 连接好 Android 设备后，从 `Start Page` 界面单击左边栏的 `System Trace Analysis`，此时，就创建了一个新的 `Trace` 选项卡。
 - 选择刚创建的 `Trace` 选项卡，进入一个类似于**实时**模式的视图，然后在 `Data Sources` 边栏上端的应用列表中选中要追踪的应用（如果列表中找不到，就通过列表右上角的 `Launch` 按钮去启动要追踪的应用）。
 - 在 `Data Sources` 边栏下端，选中 `Process` -> `Vulkan` -> `Rendering Stages` 项。
@@ -95,18 +99,21 @@ GPU 应用必须在项目的 AndroidManifest.xml 文件中包含 `INTERNET` 权�
 上图渲染阶段的**设置**对话框显示，这些**片上内存装载**消耗了总渲染时间的 23% 左右。
 
 我们来看看源码帧渲染中的[这条 begin_render_pass() 命令](https://github.com/jinleili/wgpu-in-app/blob/88e53957f7c80dbd8e75273c9ff48ecab958984f/src/examples/cube.rs#L356-L363)，颜色附件的片上操作使用了 Load：
+
 ```rust
 ops: wgpu::Operations {
     // load: wgpu::LoadOp::Clear(wgpu::Color::BLACK),
     load: wgpu::LoadOp::Load,
-    store: true,
-},                    
+    store: wgpu::StoreOp::Store
+},
 ```
+
 但此处实际上没有装载之前的帧缓冲区数据的必要，我们改为使用 `Clear()` 改善性能之后，就回收了之前片上内存装载消耗的性能，下图可以看到 `GMEM Load` 统计项消失了（没有发生片上内存装载时就不会显示）：
 
 <img src="./GMEM_store.jpg" />
 
 ## 帧捕获模式
+
 **帧捕获模式**允许捕获 GPU 应用程序的单一帧, 可以详细显示一个场景在 GPU 上的渲染情况。
 
 启用帧捕获模式的操作与追踪模式几乎一样，唯一不同之处就是帧捕获模式在点击 `Take Snapshot` 捕获一帧数据后会自动结束捕获：

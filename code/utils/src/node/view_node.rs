@@ -301,10 +301,10 @@ impl ViewNode {
                 resolve_target: None,
                 ops: wgpu::Operations {
                     load: load_op,
-                    store: true,
+                    store: wgpu::StoreOp::Store,
                 },
             })],
-            depth_stencil_attachment: None,
+            ..Default::default()
         });
         self.set_rpass(&mut rpass);
         self.draw_rpass_by_offset(&mut rpass, offset_index, 1);

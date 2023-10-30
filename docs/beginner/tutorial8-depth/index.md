@@ -25,7 +25,7 @@
 ```rust
 impl Texture {
     pub const DEPTH_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Depth32Float; // 1.
-    
+
     pub fn create_depth_texture(device: &wgpu::Device, config: &wgpu::SurfaceConfiguration, label: &str) -> Self {
         let size = wgpu::Extent3d { // 2.
             width: config.width,
@@ -144,10 +144,11 @@ let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
         view: &self.depth_texture.view,
         depth_ops: Some(wgpu::Operations {
             load: wgpu::LoadOp::Clear(1.0),
-            store: true,
+            store: wgpu::StoreOp::Store
         }),
         stencil_ops: None,
     }),
+    ..Default::default()
 });
 ```
 

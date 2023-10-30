@@ -413,10 +413,10 @@ let mut encoder = self.device.create_command_encoder(&wgpu::CommandEncoderDescri
                         b: 0.3,
                         a: 1.0,
                     }),
-                    store: true,
+                    store: wgpu::StoreOp::Store
                 },
             })],
-            depth_stencil_attachment: None,
+            ..Default::default()
         });
     }
 
@@ -474,7 +474,7 @@ event_loop.run(move |event, _, control_flow| {
     color_attachments: &[
         // ...
     ],
-    depth_stencil_attachment: None,
+    ..Default::default()
 }
 ```
 
@@ -499,7 +499,7 @@ Some(wgpu::RenderPassColorAttachment {
             b: 0.3,
             a: 1.0,
         }),
-        store: true,
+        store: wgpu::StoreOp::Store
     },
 })
 ```

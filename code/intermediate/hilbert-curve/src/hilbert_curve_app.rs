@@ -1,20 +1,12 @@
+use crate::{hilbert_curve::HilbertCurve, line::Line};
 use app_surface::{AppSurface, SurfaceFrame};
 use std::iter;
-use wgpu::VertexBufferLayout;
+use utils::{framework::Action, BufferObj, SceneUniform};
 use winit::{dpi::PhysicalSize, window::WindowId};
-
-use utils::{
-    framework::Action,
-    node::{BindGroupData, ViewNode, ViewNodeBuilder},
-    vertex::PosOnly,
-    BufferObj, MVPMatUniform,
-};
-
-use crate::hilbert_curve::HilbertCurve;
 
 pub struct HilbertCurveApp {
     app: AppSurface,
-    display_node: ViewNode,
+    line: Line,
     // 当前曲线与目标曲线的顶点缓冲区
     vertex_buffers: Vec<wgpu::Buffer>,
     // 当前曲线的顶点总数
@@ -36,26 +28,22 @@ impl Action for HilbertCurveApp {
         let format = app.config.format.remove_srgb_suffix();
         app.sdq.update_config_format(format);
 
-        // 投影
-        let (p_matrix, mv_matrix, _) = utils::matrix_helper::perspective_mvp(glam::Vec2 {
+        let viewport = glam::Vec2 {
             x: app.config.width as f32,
             y: app.config.height as f32,
-        });
+        };
+
+        // 投影
+        let (p_matrix, mv_matrix, _) = utils::matrix_helper::perspective_mvp(viewport);
         let mvp_buffer = BufferObj::create_uniform_buffer(
             &app.device,
-            &MVPMatUniform {
+            &SceneUniform {
                 mvp: (p_matrix * mv_matrix).to_cols_array_2d(),
+                viewport_pixels: viewport.to_array(),
+                padding: [0., 0.],
             },
-            Some("MVPMatUniform"),
+            Some("SceneUniform"),
         );
-
-        // 着色器
-        let shader = app
-            .device
-            .create_shader_module(wgpu::ShaderModuleDescriptor {
-                label: Some("hilbert shader"),
-                source: wgpu::ShaderSource::Wgsl(include_str!("../assets/hilbert.wgsl").into()),
-            });
 
         // 动作总帧总
         let draw_count = 60 * 3;
@@ -79,16 +67,6 @@ impl Action for HilbertCurveApp {
             );
         }
 
-        // 准备绑定组需要的数据
-        let bind_group_data = BindGroupData {
-            uniforms: vec![&mvp_buffer],
-            visibilitys: vec![wgpu::ShaderStages::VERTEX],
-            // 配置动态偏移缓冲区
-            dynamic_uniforms: vec![&hilbert_buf],
-            dynamic_uniform_visibilitys: vec![wgpu::ShaderStages::VERTEX],
-            ..Default::default()
-        };
-
         // buffer 大小
         let size = (4 * 4 * 3) * HilbertCurve::new(5).vertices.len() as u64;
         // 创建两个 ping-pong 顶点缓冲区
@@ -103,30 +81,11 @@ impl Action for HilbertCurveApp {
             vertex_buffers.push(buf);
         }
 
-        let layouts: Vec<VertexBufferLayout> = vec![
-            wgpu::VertexBufferLayout {
-                array_stride: 4 * 3,
-                step_mode: wgpu::VertexStepMode::Vertex,
-                attributes: &wgpu::vertex_attr_array![0 => Float32x3],
-            },
-            wgpu::VertexBufferLayout {
-                array_stride: 4 * 3,
-                step_mode: wgpu::VertexStepMode::Vertex,
-                attributes: &wgpu::vertex_attr_array![1 => Float32x3],
-            },
-        ];
-
-        let builder = ViewNodeBuilder::<PosOnly>::new(bind_group_data, &shader)
-            .with_vertex_buffer_layouts(layouts)
-            .with_use_depth_stencil(false)
-            .with_polygon_mode(wgpu::PolygonMode::Line)
-            .with_primitive_topology(wgpu::PrimitiveTopology::LineStrip)
-            .with_color_format(format);
-        let display_node = builder.build(&app.device);
+        let line = Line::new(&app, &mvp_buffer, &hilbert_buf);
 
         Self {
             app,
-            display_node,
+            line,
             vertex_buffers,
             curve_vertex_count: 0,
             animate_index: 0,
@@ -194,6 +153,9 @@ impl Action for HilbertCurveApp {
                     .write_buffer(buf, 0, bytemuck::cast_slice(&curve.vertices));
             }
         }
+        if self.curve_vertex_count == 0 {
+            return Ok(());
+        }
 
         // 动画帧绘制
         let output = self.app.surface.get_current_texture().unwrap();
@@ -214,24 +176,27 @@ impl Action for HilbertCurveApp {
                     resolve_target: None,
                     ops: wgpu::Operations {
                         load: wgpu::LoadOp::Clear(utils::unpack_u32_to_color(0xf2eaddff)),
-                        store: true,
+                        store: wgpu::StoreOp::Store,
                     },
                 })],
-                depth_stencil_attachment: None,
+                ..Default::default()
             });
-            let display_node = &self.display_node;
-            rpass.set_pipeline(&display_node.pipeline);
-            rpass.set_bind_group(0, &display_node.bg_setting.bind_group, &[]);
-            rpass.set_vertex_buffer(0, self.vertex_buffers[0].slice(..));
-            rpass.set_vertex_buffer(1, self.vertex_buffers[1].slice(..));
-            let node = &display_node.dy_uniform_bg.as_ref().unwrap();
+            rpass.set_pipeline(&self.line.pipeline);
+            rpass.set_bind_group(0, &self.line.bg_setting.bind_group, &[]);
             rpass.set_bind_group(
                 1,
-                &node.bind_group,
+                &self.line.dy_bg.bind_group,
                 &[256 * self.animate_index as wgpu::DynamicOffset],
             );
+            let instance_count = self.curve_vertex_count as u32 - 1;
 
-            rpass.draw(0..self.curve_vertex_count as u32, 0..1);
+            rpass.set_vertex_buffer(0, self.vertex_buffers[0].slice(..));
+            rpass.set_vertex_buffer(1, self.vertex_buffers[1].slice(..));
+            rpass.draw(0..6, 0..instance_count);
+
+            // rpass.set_vertex_buffer(0, self.vertex_buffers[0].slice(24..));
+            // rpass.set_vertex_buffer(1, self.vertex_buffers[1].slice(24..));
+            // rpass.draw(0..6, instance_count..instance_count * 2);
         }
         self.app.queue.submit(iter::once(encoder.finish()));
         output.present();

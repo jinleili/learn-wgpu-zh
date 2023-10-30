@@ -13,7 +13,7 @@
 ```rust
 fn save_gif(path: &str, frames: &mut Vec<Vec<u8>>, speed: i32, size: u16) -> Result<(), failure::Error> {
     use gif::{Frame, Encoder, Repeat, SetParameter};
-    
+
     let mut image = std::fs::File::create(path)?;
     let mut encoder = Encoder::new(&mut image, size, size, &[])?;
     encoder.set(Repeat::Infinite)?;
@@ -96,11 +96,11 @@ for c in &colors {
                             a: 1.0,
                         }
                     ),
-                    store: true,
+                    store: wgpu::StoreOp::Store
                 },
             }
         ],
-        depth_stencil_attachment: None,
+        ..Default::default()
     });
 
     rpass.set_pipeline(&render_pipeline);
@@ -113,7 +113,7 @@ for c in &colors {
             texture: &render_target.texture,
             mip_level: 0,
             origin: wgpu::Origin3d::ZERO,
-        }, 
+        },
         wgpu::ImageCopyBuffer {
             buffer: &output_buffer,
             layout: wgpu::ImageDataLayout {
@@ -126,14 +126,14 @@ for c in &colors {
     );
 
     queue.submit(std::iter::once(encoder.finish()));
-    
+
     // 创建一个缓冲区数据异步映射
     let buffer_slice = output_buffer.slice(..);
     let request = buffer_slice.map_async(wgpu::MapMode::Read);
     // 等待 GPU 完成上面的任务
     device.poll(wgpu::Maintain::Wait);
     let result = request.await;
-    
+
     match result {
         Ok(()) => {
             let padded_data = buffer_slice.get_mapped_range();

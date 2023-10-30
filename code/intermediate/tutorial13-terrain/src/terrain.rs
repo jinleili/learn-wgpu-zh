@@ -552,7 +552,7 @@ impl GenerateChunk for TerrainHackPipeline {
                     ops: wgpu::Operations::default(),
                 }),
             ],
-            depth_stencil_attachment: None,
+            ..Default::default()
         });
         pass.set_pipeline(&self.gen_pipeline);
         pass.set_bind_group(0, &gen_uniforms, &[]);

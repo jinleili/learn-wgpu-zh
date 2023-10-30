@@ -1,6 +1,7 @@
 mod hilbert_curve_app;
 pub use hilbert_curve_app::HilbertCurveApp;
 
+mod line;
 mod hilbert_curve;
 
 use bytemuck::{Pod, Zeroable};

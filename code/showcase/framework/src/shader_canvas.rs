@@ -85,10 +85,10 @@ impl ShaderCanvas {
                 resolve_target: None,
                 ops: wgpu::Operations {
                     load: wgpu::LoadOp::Load,
-                    store: true,
+                    store: wgpu::StoreOp::Store,
                 },
             })],
-            depth_stencil_attachment: None,
+            ..Default::default()
         });
         pass.set_bind_group(0, &self.simulation_bind_group, &[]);
         pass.set_pipeline(&self.pipeline);
@@ -233,8 +233,6 @@ impl<'a> ShaderCanvasBuilder<'a> {
                 strip_index_format: None,
                 front_face: wgpu::FrontFace::Ccw,
                 cull_mode: Some(wgpu::Face::Back),
-                // Setting this to anything other than Fill requires Features::POLYGON_MODE_LINE
-                // or Features::POLYGON_MODE_POINT
                 polygon_mode: wgpu::PolygonMode::Fill,
                 // Requires Features::DEPTH_CLIP_CONTROL
                 unclipped_depth: false,
