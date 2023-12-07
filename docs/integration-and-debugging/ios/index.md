@@ -251,9 +251,12 @@ cargo build --target aarch64-apple-ios --release
 cargo build --target aarch64-apple-ios-sim 
 # Intel 芯片的 Mac 上执行：
 cargo build --target x86_64-apple-ios
+
+# 编译成功后需复制文件libwgpu_in_app.a至项目目录下
+# cp target/${TARGET}/${LIB_FOLDER}/libwgpu_in_app.a Apple/libs/${LIB_FOLDER}/libwgpu_in_app.a
 ```
 
-打开 iOS 项目，在项目的 `General` 选项卡下找到 `Frameworks, Libraries, and Embedded Content` 栏, 导入系统的 `livresolv.tbd` 及我们刚编译的 `.a` 库，此导入只需要操作一次：
+打开 iOS 项目，在项目的 `General` 选项卡下找到 `Frameworks, Libraries, and Embedded Content` 栏, 导入系统的 `libresolv.tbd` 及我们刚编译的 `.a` 库，此导入只需要操作一次：
 
 <img src="./lib.png" />
 
