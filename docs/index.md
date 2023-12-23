@@ -68,26 +68,25 @@ cargo run-wasm --bin tutorial2-surface --features webgl
 
 [**simuverse**](https://github.com/jinleili/simuverse) 是基于 wgpu + [egui](https://github.com/emilk/egui) 的扩展示例，提供了粒子矢量场，流体场及 GPU 程序化纹理的实现。
 
-## 如何开启浏览器 WebGPU 试验功能
+## 如何开启浏览器 WebGPU 功能支持
+
+### Chrome
+
+Chrome 113+、Microsoft Edge 113+ 均已经默认开启了 WebGPU 支持。
 
 ### FireFox
 
 安装 Nightly 版本，在地址栏中输入 `about:config` , 将 `dom.webgpu.enabled` 设置为 `true`:
 <img src="/res/firefox.png" alt="FireFox Nightly">
 
-### Chrome
+### Safari
 
-Chrome 113+ 已经默认开启了 WebGPU 支持。如果安装的是 Canary 版，在地址栏中输入 `chrome://flags` , 将 `Unsafe WebGPU` 设置为 `Enabled`:
-<img src="/res/chrome.png" alt="Chrome Canary">
-
-### Microsoft Edge
-
-Microsoft Edge 113+ 也已默认开启了 WebGPU 支持。如果安装的是 Canary 版，在地址栏中输入 `edge://flags` , 将 `Unsafe WebGPU Support` 设置为 `Enabled`:
-<img src="/res/edge.png" alt="Edge Canary">
+安装 [Safari Technology Preview 185+](https://www.webkit.org/blog/14879/webgpu-now-available-for-testing-in-safari-technology-preview/)，从顶部菜单栏选择 `开发 -> 功能标志` , 搜索并勾选 `WebGPU`:
+<img src="/res/safari.png" alt="Edge Canary">
 
 ## 关于译者
 
-我是一名移动端架构师，有多年使用 OpenGL ES / WebGL, Metal 的实践经验。2018 年开始接触 WebGPU，目前正积极地参与到 [wgpu 开源项目的开发与完善](https://github.com/gfx-rs/wgpu/commits?author=jinleili)之中，并且已于两年前在 AppStore 上架了基于 wgpu 实现的毛笔书法模拟 App [字习 Pro](https://apps.apple.com/cn/app/字习-pro/id1507339788)。
+我是一名移动端架构师，有多年使用 OpenGL / WebGL, Metal 的实践经验。2018 年开始接触 WebGPU，目前正积极地参与到 [wgpu 开源项目的开发与完善](https://github.com/gfx-rs/wgpu/commits?author=jinleili)之中，并且已于两年前在 AppStore 上架了基于 wgpu 实现的毛笔书法模拟 App [字习 Pro](https://apps.apple.com/cn/app/字习-pro/id1507339788)。
 
 ## 加入 wgpu 微信学习交流群
 
