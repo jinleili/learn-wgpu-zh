@@ -17,7 +17,7 @@ exclude = [
 
 [workspace.package]
 edition = "2021"
-rust-version = "1.64"
+rust-version = "1.67"
 
 [workspace.dependencies.image]
 version = "0.24"
@@ -27,12 +27,11 @@ default-features = false
 app-surface = "0.3.5"
 bytemuck = { version = "1.14", features = ["derive"] }
 cfg-if = "1"
-glam = "0.24"
+glam = "0.25"
 env_logger = "0.10"
 futures-intrusive = "0.4"
 instant = "0.1"
 log = "0.4"
-naga = { version = "0.13" }
 pollster = "0.3"
 rayon = "1.8"
 tobj = "3.2"
