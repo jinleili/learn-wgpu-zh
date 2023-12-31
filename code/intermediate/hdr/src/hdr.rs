@@ -2,7 +2,7 @@ use wgpu::Operations;
 
 use crate::{create_render_pipeline, texture};
 
-/// Owns the render texture and controls tonemapping
+/// 执有渲染纹理并控制色调映射。
 pub struct HdrPipeline {
     pipeline: wgpu::RenderPipeline,
     bind_group: wgpu::BindGroup,
@@ -18,8 +18,7 @@ impl HdrPipeline {
         let width = config.width;
         let height = config.height;
 
-        // We could use `Rgba32Float`, but that requires some extra
-        // features to be enabled.
+        // 这是 WebGPU 标准中唯一可用于展示平面的**广色域**纹理格式
         let format = wgpu::TextureFormat::Rgba16Float;
 
         let texture = texture::Texture::create_2d_texture(

@@ -18,7 +18,8 @@ RUSTFLAGS=--cfg=web_sys_unstable_apis cargo build --no-default-features --releas
 RUSTFLAGS=--cfg=web_sys_unstable_apis cargo build --no-default-features --release --target wasm32-unknown-unknown \
 --bin compute-pipeline \
 --bin vertex-animation \
---bin hilbert-curve 
+--bin hilbert-curve \
+--bin hdr 
 
 # Generate bindings
 for i in target/wasm32-unknown-unknown/release/*.wasm;

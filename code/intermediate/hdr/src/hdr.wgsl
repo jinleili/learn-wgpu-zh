@@ -1,5 +1,5 @@
-// Maps HDR values to linear values
-// Based on http://www.oscars.org/science-technology/sci-tech-projects/aces
+// 将HDR值映射到线性值
+// 基于 http://www.oscars.org/science-technology/sci-tech-projects/aces
 fn aces_tone_map(hdr: vec3<f32>) -> vec3<f32> {
     let m1 = mat3x3(
         0.59719, 0.07600, 0.02840,
@@ -27,14 +27,13 @@ fn vs_main(
     @builtin(vertex_index) vi: u32,
 ) -> VertexOutput {
     var out: VertexOutput;
-    // Generate a triangle that covers the whole screen
+    // 生成一个能覆盖整个视口的三角形
     out.uv = vec2<f32>(
         f32((vi << 1u) & 2u),
         f32(vi & 2u),
     );
     out.clip_position = vec4<f32>(out.uv * 2.0 - 1.0, 0.0, 1.0);
-    // We need to invert the y coordinate so the image
-    // is not upside down
+    // 纹理坐标是左下角为 (0, 0), 所以需要反转 y 坐标
     out.uv.y = 1.0 - out.uv.y;
     return out;
 }

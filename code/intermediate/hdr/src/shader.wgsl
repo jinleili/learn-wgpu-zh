@@ -100,10 +100,9 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
     let object_color: vec4<f32> = textureSample(t_diffuse, s_diffuse, in.tex_coords);
     let object_normal: vec4<f32> = textureSample(t_normal, s_normal, in.tex_coords);
 
-    // NEW!
-    // Adjust the tangent and bitangent using the Gramm-Schmidt process
-    // This makes sure that they are perpedicular to each other and the
-    // normal of the surface.
+    // 新增!
+    // 使用 Gramm-Schmidt 过程调整切线和副切线 
+    // 这样可以确保它们彼此垂直，并且垂直于表面的法线
     let world_tangent = normalize(in.world_tangent - dot(in.world_tangent, in.world_normal) * in.world_normal);
     let world_bitangent = cross(world_tangent, in.world_normal);
 

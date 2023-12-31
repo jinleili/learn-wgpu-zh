@@ -7,9 +7,6 @@ use winit::{dpi::PhysicalSize, event::*, window::WindowId};
 mod framework;
 use framework::run;
 
-#[cfg(target_arch = "wasm32")]
-use wasm_bindgen::prelude::*;
-
 mod camera;
 mod hdr;
 mod model;
@@ -234,13 +231,10 @@ fn create_render_pipeline(
 
 impl State {
     async fn new(app: AppSurface) -> Self {
-        // Shader code in this tutorial assumes an Srgb surface texture. Using a different
-        // one will result all the colors comming out darker. If you want to support non
-        // Srgb surfaces, you'll need to account for that when drawing to the frame.
-        let hdr_pixel_format = wgpu::TextureFormat::Rgba16Float;
-        let mut app = app;
-        app.sdq.update_config_format(hdr_pixel_format);
-        app.resize_surface();
+        // 本教程的着色器中假定 Surface 使用 Srgb 纹理格式.
+        // let pixel_format = app.config.format.add_srgb_suffix();
+        // let mut app = app;
+        // app.sdq.update_config_format(pixel_format);
 
         let device = app.device.as_ref();
         let queue = app.queue.as_ref();
@@ -404,6 +398,8 @@ impl State {
         let hdr = hdr::HdrPipeline::new(&device, &config);
 
         let hdr_loader = resources::HdrLoader::new(&device);
+        // pure-sky 是一张 .hdr 后缀的文件，网格上加载为何报如下错误？
+        // Format error decoding Hdr: Radiance HDR signature not found
         let sky_bytes = resources::load_binary("pure-sky.hdr").await.unwrap();
         let sky_texture = hdr_loader
             .from_equirectangular_bytes(&device, &queue, &sky_bytes, 1080, Some("Sky Texture"))
@@ -721,7 +717,7 @@ impl State {
         }
 
         // NEW!
-        // Apply tonemapping
+        // 应用色调映射
         self.hdr.process(&mut encoder, &view);
 
         #[cfg(feature = "debug")]

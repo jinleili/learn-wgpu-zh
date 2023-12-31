@@ -10,11 +10,12 @@ use crate::{model, texture};
 fn format_url(file_name: &str) -> reqwest::Url {
     let window = web_sys::window().unwrap();
     let location = window.location();
-    let mut origin = location.origin().unwrap();
-    if !origin.ends_with("learn-wgpu-zh") {
-        origin = format!("{}/learn-wgpu-zh", origin);
-    }
-    let base = reqwest::Url::parse(&format!("{}/", origin,)).unwrap();
+    let base = reqwest::Url::parse(&format!(
+        "{}/{}/",
+        location.origin().unwrap(),
+        option_env!("RES_PATH").unwrap_or("res"),
+    ))
+    .unwrap();
     base.join(file_name).unwrap()
 }
 
@@ -40,6 +41,21 @@ pub async fn load_string(file_name: &str) -> anyhow::Result<String> {
 pub async fn load_binary(file_name: &str) -> anyhow::Result<Vec<u8>> {
     cfg_if! {
         if #[cfg(target_arch = "wasm32")] {
+    //          use reqwest::header::{HeaderMap, HeaderValue, CONTENT_TYPE};
+    //                 use reqwest::Client;
+
+    //                 let mut headers = HeaderMap::new();
+    //                 headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/octet-stream"));
+    // let client = Client::new();
+    //         let url = format_url(file_name);
+
+    // let data = client.get(url)
+    //     .headers(headers)
+    //     .send()
+    //     .await?.bytes()
+    //             .await?
+    //             .to_vec();
+
             let url = format_url(file_name);
             let data = reqwest::get(url)
                 .await?
@@ -190,7 +206,7 @@ pub async fn load_model(
             // Average the tangents/bitangents
             for (i, n) in triangles_included.into_iter().enumerate() {
                 let denom = 1.0 / n as f32;
-                let mut v = &mut vertices[i];
+                let v = &mut vertices[i];
                 v.tangent = (cgmath::Vector3::from(v.tangent) * denom).into();
                 v.bitangent = (cgmath::Vector3::from(v.bitangent) * denom).into();
             }
@@ -327,8 +343,7 @@ impl HdrLoader {
             dst_size,
             self.texture_format,
             1,
-            wgpu::TextureUsages::STORAGE_BINDING
-                | wgpu::TextureUsages::TEXTURE_BINDING,
+            wgpu::TextureUsages::STORAGE_BINDING | wgpu::TextureUsages::TEXTURE_BINDING,
             wgpu::FilterMode::Nearest,
             label,
         );
@@ -356,7 +371,10 @@ impl HdrLoader {
         });
 
         let mut encoder = device.create_command_encoder(&Default::default());
-        let mut pass = encoder.begin_compute_pass(&wgpu::ComputePassDescriptor { label, timestamp_writes: None });
+        let mut pass = encoder.begin_compute_pass(&wgpu::ComputePassDescriptor {
+            label,
+            timestamp_writes: None,
+        });
 
         let num_workgroups = (dst_size + 15) / 16;
         pass.set_pipeline(&self.equirect_to_cubemap);

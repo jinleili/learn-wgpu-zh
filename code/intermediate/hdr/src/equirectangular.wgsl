@@ -21,9 +21,7 @@ fn compute_equirect_to_cubemap(
     @builtin(global_invocation_id)
     gid: vec3<u32>,
 ) {
-    // If texture size is not divisible by 32 we
-    // need to make sure we don't try to write to
-    // pixels that don't exist.
+    // 如果纹理大小不能被 32 整除，需要避免尝试写入不存在的像素。
     if gid.x >= u32(textureDimensions(dst).x) {
         return;
     }
@@ -67,20 +65,21 @@ fn compute_equirect_to_cubemap(
         ),
     );
 
-    // Get texture coords relative to cubemap face
+    // 获取相对于立方体贴图面的纹理坐标
     let dst_dimensions = vec2<f32>(textureDimensions(dst));
     let cube_uv = vec2<f32>(gid.xy) / dst_dimensions * 2.0 - 1.0;
 
-    // Get spherical coordinate from cube_uv
+    // 从 cube_uv 获取球面坐标
     let face = FACES[gid.z];
     let spherical = normalize(face.forward + face.right * cube_uv.x + face.up * cube_uv.y);
 
-    // Get coordinate on the equirectangular texture
+    // 获取等距矩形纹理上的坐标
     let inv_atan = vec2(0.1591, 0.3183);
     let eq_uv = vec2(atan2(spherical.z, spherical.x), asin(spherical.y)) * inv_atan + 0.5;
     let eq_pixel = vec2<i32>(eq_uv * vec2<f32>(textureDimensions(src)));
 
-    // We use textureLoad() as textureSample() is not allowed in compute shaders
+    // 在计算着色器中需要使用 textureLoad()，
+    // 因为 textureSample()是不允许的。
     var sample = textureLoad(src, eq_pixel, 0);
 
     textureStore(dst, gid.xy, gid.z, sample);

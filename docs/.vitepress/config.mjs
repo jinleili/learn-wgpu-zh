@@ -120,6 +120,10 @@ function sidebarConfig() {
           text: "🆕 万能动画公式",
           link: "/intermediate/vertex-animation/universal-animation-formula.md",
         },
+        {
+          text: "渲染 HDR 场景",
+          link: "/intermediate/hdr/",
+        },
         // '/intermediate/tutorial13-terrain/',
       ],
     },
