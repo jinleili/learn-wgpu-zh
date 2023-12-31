@@ -14,7 +14,7 @@ pub trait Action {
     fn input(&mut self, _event: &WindowEvent) -> bool {
         false
     }
-    fn update(&mut self) {}
+    fn update(&mut self, _dt: std::time::Duration) {}
     fn render(&mut self) -> Result<(), wgpu::SurfaceError>;
 }
 
@@ -153,6 +153,7 @@ async fn create_action_instance<A: Action + 'static>(
 
 fn start_event_loop<A: Action + 'static>(event_loop: EventLoop<()>, instance: A) {
     let mut state = instance;
+    let mut last_render_time = instant::Instant::now();
     event_loop.run(move |event, _, control_flow| {
         match event {
             Event::WindowEvent {
@@ -190,7 +191,10 @@ fn start_event_loop<A: Action + 'static>(event_loop: EventLoop<()>, instance: A)
                 }
             }
             Event::RedrawRequested(window_id) if window_id == state.current_window_id() => {
-                state.update();
+                let now = instant::Instant::now();
+                let dt = now - last_render_time;
+                last_render_time = now;
+                state.update(dt);
                 match state.render() {
                     Ok(_) => {}
                     // 当展示平面的上下文丢失，就需重新配置

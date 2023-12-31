@@ -10,6 +10,7 @@ app-surface.workspace = true
 bytemuck.workspace = true
 cfg-if.workspace = true
 env_logger.workspace = true
+instant.workspace = true
 log.workspace = true
 pollster.workspace = true
 winit.workspace = true

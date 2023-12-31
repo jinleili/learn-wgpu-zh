@@ -1,0 +1,45 @@
+[package]
+name = "hdr"
+version = "0.1.0"
+authors = ["Ben Hansen (sotrh), Jinlei Li (jinleili0@outlook.com)"]
+edition.workspace = true
+
+[dependencies]
+app-surface.workspace = true
+bytemuck.workspace = true
+env_logger.workspace = true
+log.workspace = true
+pollster.workspace = true
+winit.workspace = true
+wgpu.workspace = true
+glam.workspace = true
+utils.workspace = true
+cfg-if = "1"
+anyhow = "1.0"
+cgmath = "0.18"
+tobj = { version = "3.2", features = ["async"] }
+instant = "0.1"
+image = { workspace = true, default_features = false, features = [
+    "png",
+    "jpeg",
+    "hdr",
+] }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+console_error_panic_hook.workspace = true
+console_log.workspace = true
+js-sys.workspace = true
+wasm-bindgen.workspace = true
+wasm-bindgen-futures.workspace = true
+web-sys = { workspace = true, features = [
+    "Document",
+    "Window",
+    "Element",
+    "Location",
+] }
+reqwest = { workspace = true }
+
+[build-dependencies]
+anyhow.workspace = true
+fs_extra.workspace = true
+glob.workspace = true
