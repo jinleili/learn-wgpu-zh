@@ -231,10 +231,12 @@ fn create_render_pipeline(
 
 impl State {
     async fn new(app: AppSurface) -> Self {
-        // 本教程的着色器中假定 Surface 使用 Srgb 纹理格式.
-        // let pixel_format = app.config.format.add_srgb_suffix();
-        // let mut app = app;
-        // app.sdq.update_config_format(pixel_format);
+        // 本教程的着色器中假定 Surface 使用 sRGB 纹理格式.
+        // 但在 Web 环境只支持使用 bgra8unorm, rgba8unorm, rgba16float 三种格式
+        // 所以，我们利用纹理的 view_formats 特性，在调用 surface 的 create_view 时设置 view 格式为 sRGB
+        let surface_format = app.config.format.remove_srgb_suffix();
+        let mut app = app;
+        app.sdq.update_config_format(surface_format);
 
         let device = app.device.as_ref();
         let queue = app.queue.as_ref();
@@ -654,10 +656,9 @@ impl State {
     }
 
     fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
-        let output = self.app.surface.get_current_texture()?;
-        let view = output
-            .texture
-            .create_view(&wgpu::TextureViewDescriptor::default());
+        let (output, view) = self
+            .app
+            .get_current_frame_view(Some(self.app.config.format.add_srgb_suffix()));
 
         let device = self.app.device.as_ref();
         let mut encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
