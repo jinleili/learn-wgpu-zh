@@ -36,6 +36,11 @@ fn main() {
                     res_dir = res_dir.join("beginner/tutorial9-models/res");
                     is_need_copy = true;
                 }
+                Some("hdr") => {
+                    out_dir = out_dir.join("hdr");
+                    res_dir = res_dir.join("intermediate/hdr/res");
+                    is_need_copy = true;
+                }
                 _ => {}
             }
 

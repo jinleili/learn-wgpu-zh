@@ -1182,16 +1182,6 @@ A little note on the reflection math. The `view_dir` gives us the direction to t
 
 ## 示例
 
-<div class="warn">
-
-此示例目前还只能在本地运行，浏览器端加载 hdr 资源时会报错：
-
-```sh
- Format error decoding Hdr: Radiance HDR signature not found
-```
-
-</div>
-
 <WasmExample example="hdr"></WasmExample>
 
 <AutoGithubLink/>

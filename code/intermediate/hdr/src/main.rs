@@ -348,7 +348,6 @@ impl State {
             label: Some("camera_bind_group"),
         });
 
-        // 在异步运行时环境中运行异步任务
         let obj_model =
             resources::load_model("cube.obj", &device, &queue, &texture_bind_group_layout)
                 .await
