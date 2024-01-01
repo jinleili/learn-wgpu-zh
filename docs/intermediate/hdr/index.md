@@ -994,23 +994,23 @@ impl CameraUniform {
     fn new() -> Self {
         Self {
             view_position: [0.0; 4],
-            view: cgmath::Matrix4::identity().into(),
-            view_proj: cgmath::Matrix4::identity().into(),
-            inv_proj: cgmath::Matrix4::identity().into(), // NEW!
-            inv_view: cgmath::Matrix4::identity().into(), // NEW!
+            view: glam::Mat4::IDENTITY.to_cols_array_2d(),
+            view_proj: glam::Mat4::IDENTITY.to_cols_array_2d(),
+            inv_proj: glam::Mat4::IDENTITY.to_cols_array_2d(), // NEW!
+            inv_view: glam::Mat4::IDENTITY.to_cols_array_2d(), // NEW!
         }
     }
 
     // 这里是变更
     fn update_view_proj(&mut self, camera: &camera::Camera, projection: &camera::Projection) {
-        self.view_position = camera.position.to_homogeneous().into();
+        self.view_position = camera.position.extend(1.0).into();
         let proj = projection.calc_matrix();
         let view = camera.calc_matrix();
         let view_proj = proj * view;
-        self.view = view.into();
-        self.view_proj = view_proj.into();
-        self.inv_proj = proj.invert().unwrap().into();
-        self.inv_view = view.transpose().into();
+        self.view = view.to_cols_array_2d();
+        self.view_proj = view_proj.to_cols_array_2d();
+        self.inv_proj = proj.inverse().to_cols_array_2d();
+        self.inv_view = view.transpose().to_cols_array_2d();
     }
 }
 ```
