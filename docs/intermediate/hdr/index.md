@@ -10,7 +10,7 @@
 
 ## 使用 HDR 纹理
 
-截至目前，并非所有显示器设备都支持 HDR，因此我们需要以 HDR 格式渲染场景，然后使用**色调映射** (tonemapping) 将 HDR 转换为支持的格式。
+截至目前，并非所有显示设备都支持 HDR，因此我们需要以 HDR 格式渲染场景，然后使用**色调映射** (tonemapping) 将 HDR 转换为支持的格式。
 
 <div class="note">
 
@@ -21,7 +21,8 @@
 <div class="note">
 
 **译者注：**
-wgpu 中对 HDR 的支持起始于我这几个 PR：
+
+wgpu 中对 HDR 的支持起始于我提交的这几个 PR：
 
 [Metal backend ASTC HDR formats support](https://github.com/gfx-rs/wgpu/pull/2477)
 
@@ -31,13 +32,19 @@ wgpu 中对 HDR 的支持起始于我这几个 PR：
 
 HDR 属于**广色域**（WCG，Wide Color Gamut）色彩空间的内容，但是 WebGPU 标准里目前[还没有支持 WCG](https://github.com/gpuweb/gpuweb/issues/4108), 而我试图率先在 [metal 后端引入色彩空间](https://github.com/gfx-rs/metal-rs/pull/242) 的尝试也失败了。
 
+虽然不能在 wgpu 中直接指定广色域色彩空间, 但给 `SurfaceConfiguration` 设置 `TextureFormat::Rgba16Float` 格式时，wgpu-hal 内部会开启对应图形后端的广色域支持：
+
+<img src="./edr.png" />
+
 所以英文原文中说 “wgpu doesn't allow us to use a floating point format such as ...” 的说法是不对的，原文备注里给出的 GitHub 问题链接里讨论的点我也不认为是 wgpu 需要解决的。
+
+关于如何使用 `Rgba16Float`, 可以参考我的另一个开源项目：[wgpu-in-app/src/hdr_image_view](https://github.com/jinleili/wgpu-in-app)
 
 </div>
 
 在开始之前，我们需要切换到使用 HDR 纹理进行渲染。
 
-首先，创建一个名为`hdr.rs`的文件：
+首先，创建一个名为 `hdr.rs` 的文件：
 
 ```rust
 use wgpu::Operations;
