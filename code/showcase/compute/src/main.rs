@@ -185,10 +185,10 @@ impl State {
             .request_device(
                 &wgpu::DeviceDescriptor {
                     label: None,
-                    features: wgpu::Features::empty(),
+                    required_features: wgpu::Features::empty(),
                     // WebGL doesn't support all of wgpu's features, so if
                     // we're building for the web we'll have to disable some.
-                    limits: if cfg!(target_arch = "wasm32") {
+                    required_limits: if cfg!(target_arch = "wasm32") {
                         wgpu::Limits::downlevel_webgl2_defaults()
                     } else {
                         wgpu::Limits::default()
@@ -208,6 +208,7 @@ impl State {
             present_mode: caps.present_modes[0],
             alpha_mode: wgpu::CompositeAlphaMode::Auto,
             view_formats: vec![],
+            desired_maximum_frame_latency: 2,
         };
 
         surface.configure(&device, &config);
@@ -618,7 +619,7 @@ fn main() {
 
 async fn run() {
     env_logger::init();
-    let event_loop = EventLoop::new();
+    let event_loop = EventLoop::new().unwrap();
     let title = env!("CARGO_PKG_NAME");
     let window = winit::window::WindowBuilder::new()
         .with_title(title)
@@ -626,47 +627,50 @@ async fn run() {
         .unwrap();
     let mut state = State::new(window).await; // NEW!
     let mut last_render_time = std::time::Instant::now();
-    event_loop.run(move |event, _, control_flow| {
-        *control_flow = ControlFlow::Poll;
-        match event {
-            Event::MainEventsCleared => state.window().request_redraw(),
-            Event::WindowEvent {
-                ref event,
-                window_id,
-            } if window_id == state.window().id() => {
-                if !state.input(event) {
-                    match event {
-                        WindowEvent::CloseRequested
-                        | WindowEvent::KeyboardInput {
-                            input:
-                                KeyboardInput {
-                                    state: ElementState::Pressed,
-                                    virtual_keycode: Some(VirtualKeyCode::Escape),
-                                    ..
-                                },
-                            ..
-                        } => *control_flow = ControlFlow::Exit,
-                        WindowEvent::Resized(physical_size) => {
-                            // winit bug: https://github.com/rust-windowing/winit/issues/2876
-                            if physical_size.width < u32::MAX && physical_size.height < u32::MAX {
-                                state.resize(*physical_size);
-                            }
-                        }
-                        WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
-                            state.resize(**new_inner_size);
-                        }
-                        _ => {}
+    cfg_if::cfg_if! {
+        if #[cfg(target_arch = "wasm32")] {
+            use winit::platform::web::EventLoopExtWebSys;
+            let event_loop_function = EventLoop::spawn;
+        } else {
+            let event_loop_function = EventLoop::run;
+        }
+    }
+    let _ = (event_loop_function)(
+        event_loop,
+        move |event: Event<()>, elwt: &EventLoopWindowTarget<()>| {
+            if event == Event::NewEvents(StartCause::Init) {
+                state.start();
+            }
+            if let Event::WindowEvent { event, .. } = event {
+                match event {
+                    WindowEvent::KeyboardInput {
+                        event:
+                            KeyEvent {
+                                logical_key: Key::Named(NamedKey::Escape),
+                                ..
+                            },
+                        ..
                     }
+                    | WindowEvent::CloseRequested => elwt.exit(),
+                    WindowEvent::Resized(physical_size) => {
+                        // winit bug: https://github.com/rust-windowing/winit/issues/2876
+                        if physical_size.width < u32::MAX && physical_size.height < u32::MAX {
+                            state.resize(physical_size);
+                        }
+                    }
+                    WindowEvent::RedrawRequested => {
+                        let now = std::time::Instant::now();
+                        let dt = now - last_render_time;
+                        last_render_time = now;
+                        state.update(dt);
+                        state.render();
+
+                        // 除非我们手动请求，RedrawRequested 将只会触发一次。
+                        state.window.request_redraw();
+                    }
+                    _ => {}
                 }
             }
-            Event::RedrawRequested(window_id) if window_id == state.window().id() => {
-                let now = std::time::Instant::now();
-                let dt = now - last_render_time;
-                last_render_time = now;
-                state.update(dt);
-                state.render();
-            }
-            _ => {}
-        }
-    });
+        },
+    );
 }

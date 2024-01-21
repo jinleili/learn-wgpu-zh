@@ -329,7 +329,6 @@ impl State {
             label: Some("camera_bind_group"),
         });
 
-        log::warn!("Load model");
         let obj_model = resources::load_model(
             "cube.obj",
             &app.device,

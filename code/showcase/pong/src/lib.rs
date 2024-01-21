@@ -213,7 +213,7 @@ pub fn start() {
             Event::RedrawEventsCleared => {
                 window.request_redraw();
             }
-            Event::RedrawRequested(window_id) if window_id == window.id() => {
+            WindowEvent::RedrawRequested => {
                 for event in &events {
                     match event {
                         state::Event::FocusChanged | state::Event::ButtonPressed => {

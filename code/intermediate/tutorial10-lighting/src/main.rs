@@ -546,6 +546,12 @@ impl State {
         }
     }
 
+    fn start(&mut self) {
+        //  只有在进入事件循环之后，才能真正获取到窗口大小。
+        let size = self.app.get_view().inner_size();
+        self.resize(&size);
+    }
+
     fn get_adapter_info(&self) -> wgpu::AdapterInfo {
         self.app.adapter.get_info()
     }

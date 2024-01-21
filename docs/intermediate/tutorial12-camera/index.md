@@ -340,8 +340,7 @@ fn input(&mut self, event: &WindowEvent) -> bool {
 ```rust
 fn main() {
     // ...
-    event_loop.run(move |event, _, control_flow| {
-        *control_flow = ControlFlow::Poll;
+    let _ = (event_loop_function)(event_loop, move |event: Event<()>, elwt: &EventLoopWindowTarget<()>| {
         match event {
             // ...
             // 新增!
@@ -357,22 +356,16 @@ fn main() {
                 window_id,
             } if window_id == state.app.view.id() && !state.input(event) => {
                 match event {
-                    #[cfg(not(target_arch="wasm32"))]
-                    WindowEvent::CloseRequested
-                    | WindowEvent::KeyboardInput {
-                        input:
-                            KeyboardInput {
-                                state: ElementState::Pressed,
-                                virtual_keycode: Some(VirtualKeyCode::Escape),
+                     WindowEvent::KeyboardInput {
+                        event:
+                            KeyEvent {
+                                logical_key: Key::Named(NamedKey::Escape),
                                 ..
                             },
                         ..
-                    } => *control_flow = ControlFlow::Exit,
+                    } | WindowEvent::CloseRequested => elwt.exit(),
                     WindowEvent::Resized(physical_size) => {
                         state.resize(*physical_size);
-                    }
-                    WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
-                        state.resize(**new_inner_size);
                     }
                     _ => {}
                 }
@@ -410,12 +403,12 @@ fn main() {
     // ...
     let mut state = State::new(&window).await;
     let mut last_render_time = instant::Instant::now();  // 新增!
-    event_loop.run(move |event, _, control_flow| {
+    let _ = (event_loop_function)(event_loop, move |event: Event<()>, elwt: &EventLoopWindowTarget<()>| {
         *control_flow = ControlFlow::Poll;
         match event {
             // ...
             // 更新!
-            Event::RedrawRequested(window_id) if window_id == state.app.view.id() => {
+            WindowEvent::RedrawRequested => {
                 let now = instant::Instant::now();
                 let dt = now - last_render_time;
                 last_render_time = now;

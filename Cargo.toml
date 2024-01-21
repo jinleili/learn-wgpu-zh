@@ -17,14 +17,15 @@ exclude = [
 
 [workspace.package]
 edition = "2021"
-rust-version = "1.67"
+rust-version = "1.71"
 
 [workspace.dependencies.image]
 version = "0.24"
 default-features = false
 
 [workspace.dependencies]
-app-surface = "0.3.5"
+app-surface = "0.4.1"
+# app-surface = { path = "../idroid/wgpu-in-app/app-surface" }
 bytemuck = { version = "1.14", features = ["derive"] }
 cfg-if = "1"
 glam = "0.25"
@@ -35,18 +36,19 @@ log = "0.4"
 pollster = "0.3"
 rayon = "1.8"
 tobj = "3.2"
-winit = "0.28.7"
-wgpu = { version = "0.18" }
+winit = "0.29.10"
+wgpu = { version = "0.19" }
+# wgpu = { git = "https://github.com/gfx-rs/wgpu", rev = "445fa6019b47079c9d336881dbee1c3be3ed4c38" }
 utils = { path = "code/utils" }
 
 # wasm32 dependencies
 console_error_panic_hook = "0.1.7"
 console_log = "1.0"
 reqwest = { version = "0.11" }
-js-sys = "0.3.64"
+js-sys = "0.3.67"
 wasm-bindgen = "0.2.87"
-wasm-bindgen-futures = "0.4.34"
-web-sys = "0.3.64"
+wasm-bindgen-futures = "0.4.40"
+web-sys = "0.3.67"
 
 # build-dependencies
 anyhow = "1.0"

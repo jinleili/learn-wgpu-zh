@@ -1,6 +1,7 @@
 use winit::{
     event::*,
-    event_loop::{ControlFlow, EventLoop},
+    event_loop::EventLoop,
+    keyboard::{Key, NamedKey},
     window::WindowBuilder,
 };
 
@@ -8,7 +9,7 @@ use winit::{
 use wasm_bindgen::prelude::*;
 
 fn start_event_loop() {
-    let event_loop = EventLoop::new();
+    let event_loop = EventLoop::new().unwrap();
     let window = WindowBuilder::new().build(&event_loop).unwrap();
 
     #[cfg(target_arch = "wasm32")]
@@ -21,14 +22,14 @@ fn start_event_loop() {
         web_sys::window()
             .and_then(|win| win.document())
             .map(|doc| {
+                let canvas = window.canvas().unwrap();
                 match doc.get_element_by_id("wasm-example") {
                     Some(dst) => {
-                        window.set_inner_size(PhysicalSize::new(450, 400));
-                        let _ = dst.append_child(&web_sys::Element::from(window.canvas()));
+                        let _ = window.request_inner_size(PhysicalSize::new(450, 400));
+                        let _ = dst.append_child(&web_sys::Element::from(canvas));
                     }
                     None => {
-                        window.set_inner_size(PhysicalSize::new(800, 800));
-                        let canvas = window.canvas();
+                        let _ = window.request_inner_size(PhysicalSize::new(800, 800));
                         canvas.style().set_css_text(
                             "background-color: black; display: block; margin: 20px auto;",
                         );
@@ -40,25 +41,36 @@ fn start_event_loop() {
             .expect("Couldn't append canvas to document body.");
     }
 
-    event_loop.run(move |event, _, control_flow| match event {
-        Event::WindowEvent {
-            ref event,
-            window_id,
-        } if window_id == window.id() => match event {
-            WindowEvent::CloseRequested
-            | WindowEvent::KeyboardInput {
-                input:
-                    KeyboardInput {
-                        state: ElementState::Pressed,
-                        virtual_keycode: Some(VirtualKeyCode::Escape),
+    cfg_if::cfg_if! {
+        if #[cfg(target_arch = "wasm32")] {
+            use winit::platform::web::EventLoopExtWebSys;
+            let event_loop_function = EventLoop::spawn;
+        } else {
+            let event_loop_function = EventLoop::run;
+        }
+    }
+    let _ = (event_loop_function)(
+        event_loop,
+        move |event: Event<()>, elwt: &EventLoopWindowTarget<()>| {
+            if event == Event::NewEvents(StartCause::Init) { //事件启动阶段
+            }
+
+            if let Event::WindowEvent { event, .. } = event {
+                match event {
+                    WindowEvent::KeyboardInput {
+                        event:
+                            KeyEvent {
+                                logical_key: Key::Named(NamedKey::Escape),
+                                ..
+                            },
                         ..
-                    },
-                ..
-            } => *control_flow = ControlFlow::Exit,
-            _ => {}
+                    }
+                    | WindowEvent::CloseRequested => elwt.exit(),
+                    _ => {}
+                }
+            }
         },
-        _ => {}
-    });
+    );
 }
 
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen(start))]

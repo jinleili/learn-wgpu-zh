@@ -8,10 +8,10 @@
 
 ```toml
 [dependencies]
-winit = "0.28.7"
+winit = "0.29.10"
 env_logger = "0.10"
 log = "0.4"
-wgpu = "0.17"
+wgpu = "0.19"
 ```
 
 ## 使用 Rust 的新版解析器
@@ -42,27 +42,36 @@ use winit::{
 
 pub fn run() {
     env_logger::init();
-    let event_loop = EventLoop::new();
+    let event_loop = EventLoop::new().unwrap();
     let window = WindowBuilder::new().build(&event_loop).unwrap();
 
-    event_loop.run(move |event, _, control_flow| match event {
-        Event::WindowEvent {
-            ref event,
-            window_id,
-        } if window_id == window.id() => match event {
-            WindowEvent::CloseRequested
-            | WindowEvent::KeyboardInput {
-                input:
-                    KeyboardInput {
-                        state: ElementState::Pressed,
-                        virtual_keycode: Some(VirtualKeyCode::Escape),
+    cfg_if::cfg_if! {
+        if #[cfg(target_arch = "wasm32")] {
+            use winit::platform::web::EventLoopExtWebSys;
+            let event_loop_function = EventLoop::spawn;
+        } else {
+            let event_loop_function = EventLoop::run;
+        }
+    }
+    let _ = (event_loop_function)(
+        event_loop,
+        move |event: Event<()>, elwt: &EventLoopWindowTarget<()>| {
+            if event == Event::NewEvents(StartCause::Init) {
+                state.start();
+            }
+            if let Event::WindowEvent { event, .. } = event {
+                match event {
+                    WindowEvent::KeyboardInput {
+                        event:
+                            KeyEvent {
+                                logical_key: Key::Named(NamedKey::Escape),
+                                ..
+                            },
                         ..
-                    },
-                ..
-            } => *control_flow = ControlFlow::Exit,
-            _ => {}
-        },
-        _ => {}
+                        } | WindowEvent::CloseRequested => elwt.exit(),
+                    _ => {}
+                }
+            }
     });
 }
 
@@ -209,7 +218,7 @@ pub fn run<A: Action + 'static>() {
 {
     // Winit 不允许用 CSS 调整大小，所以在 web 环境里我们必须手动设置大小。
     use winit::dpi::PhysicalSize;
-    window.set_inner_size(PhysicalSize::new(450, 400));
+    let _ = window.request_inner_size(PhysicalSize::new(450, 400));
 
     use winit::platform::web::WindowExtWebSys;
     web_sys::window()

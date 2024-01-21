@@ -129,10 +129,10 @@ let adapter = instance
 ```rust
 let (device, queue) = adapter.request_device(
     &wgpu::DeviceDescriptor {
-        features: wgpu::Features::empty(),
+        required_features: wgpu::Features::empty(),
         // WebGL 后端并不支持 wgpu 的所有功能，
         // 所以如果要以 web 为构建目标，就必须禁用一些功能。
-        limits: if cfg!(target_arch = "wasm32") {
+        required_limits: if cfg!(target_arch = "wasm32") {
             wgpu::Limits::downlevel_webgl2_defaults()
         } else {
             wgpu::Limits::default()
@@ -167,6 +167,7 @@ let config = wgpu::SurfaceConfiguration {
     present_mode: wgpu::PresentMode::Fifo,
     alpha_mode: caps.alpha_modes[0],
     view_formats: vec![],
+    desired_maximum_frame_latency: 2,
 };
 surface.configure(&device, &config);
 ```
@@ -253,10 +254,10 @@ WASM 环境中不能在异步函数里使用 `block_on`。`Future`（异步函�
 ```toml
 [dependencies]
 cfg-if = "1"
-winit = "0.28.7"
+winit = "0.29.10"
 env_logger = "0.10"
 log = "0.4"
-wgpu = "0.17"
+wgpu = "0.19"
 pollster = "0.3"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
@@ -302,10 +303,6 @@ match event {
             WindowEvent::Resized(physical_size) => {
                 state.resize(*physical_size);
             }
-            WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
-                // new_inner_size 是 &&mut 类型，因此需要解引用两次
-                state.resize(**new_inner_size);
-            }
             // ...
 }
 ```
@@ -327,28 +324,31 @@ fn input(&mut self, event: &WindowEvent) -> bool {
 
 ```rust
 // run()
-event_loop.run(move |event, _, control_flow| {
+cfg_if::cfg_if! {
+        if #[cfg(target_arch = "wasm32")] {
+            use winit::platform::web::EventLoopExtWebSys;
+            let event_loop_function = EventLoop::spawn;
+        } else {
+            let event_loop_function = EventLoop::run;
+        }
+    }
+let _ = (event_loop_function)(event_loop, move |event: Event<()>, elwt: &EventLoopWindowTarget<()>| {
     match event {
         Event::WindowEvent {
             ref event,
             window_id,
         } if window_id == window.id() => if !state.input(event) { // 更新!
             match event {
-                WindowEvent::CloseRequested
-                | WindowEvent::KeyboardInput {
-                    input:
-                        KeyboardInput {
-                            state: ElementState::Pressed,
-                            virtual_keycode: Some(VirtualKeyCode::Escape),
-                            ..
-                        },
-                    ..
-                } => *control_flow = ControlFlow::Exit,
+                WindowEvent::KeyboardInput {
+                        event:
+                            KeyEvent {
+                                logical_key: Key::Named(NamedKey::Escape),
+                                ..
+                            },
+                        ..
+                    } | WindowEvent::CloseRequested => elwt.exit(),
                 WindowEvent::Resized(physical_size) => {
                     state.resize(*physical_size);
-                }
-                WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
-                    state.resize(**new_inner_size);
                 }
                 _ => {}
             }
@@ -436,24 +436,20 @@ let mut encoder = self.device.create_command_encoder(&wgpu::CommandEncoderDescri
 
 ```rust
 // run()
-event_loop.run(move |event, _, control_flow| {
+let _ = (event_loop_function)(event_loop, move |event: Event<()>, elwt: &EventLoopWindowTarget<()>| {
     match event {
         // ...
-        Event::RedrawRequested(window_id) if window_id == window.id() => {
+        WindowEvent::RedrawRequested => {
             state.update();
             match state.render() {
                 Ok(_) => {}
                 // 当展示平面的上下文丢失，就需重新配置
                 Err(wgpu::SurfaceError::Lost) => state.resize(state.size),
-                // 系统内存不足时，程序应该退出。
-                Err(wgpu::SurfaceError::OutOfMemory) => *control_flow = ControlFlow::Exit,
                 // 所有其他错误（过期、超时等）应在下一帧解决
                 Err(e) => eprintln!("{:?}", e),
             }
-        }
-        Event::MainEventsCleared => {
             // 除非我们手动请求，RedrawRequested 将只会触发一次。
-            window.request_redraw();
+            state.request_redraw();
         }
         // ...
     }

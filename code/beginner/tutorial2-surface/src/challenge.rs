@@ -1,17 +1,19 @@
 use std::iter;
-
+use std::sync::Arc;
 use winit::{
     event::*,
-    event_loop::{ControlFlow, EventLoop},
+    event_loop::{EventLoop, EventLoopWindowTarget},
+    keyboard::{Key, NamedKey},
     window::{Window, WindowBuilder},
 };
 
 struct State {
+    window: Arc<Window>,
     #[allow(dead_code)]
     instance: wgpu::Instance,
     #[allow(dead_code)]
     adapter: wgpu::Adapter,
-    surface: wgpu::Surface,
+    surface: wgpu::Surface<'static>,
     device: wgpu::Device,
     queue: wgpu::Queue,
     config: wgpu::SurfaceConfiguration,
@@ -20,21 +22,19 @@ struct State {
 }
 
 impl State {
-    async fn new(window: &Window) -> Self {
-        let size = window.inner_size();
-
+    async fn new(window: Arc<Window>) -> Self {
         // The instance is a handle to our GPU
         // BackendBit::PRIMARY => Vulkan + Metal + DX12 + Browser WebGPU
         let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
             backends: wgpu::Backends::all(),
             ..Default::default()
         });
-        let surface = unsafe { instance.create_surface(window).unwrap() };
-
+        let surface = instance.create_surface(window.clone()).unwrap();
         let adapter = instance
             .request_adapter(&wgpu::RequestAdapterOptions {
+                power_preference: wgpu::PowerPreference::default(),
                 compatible_surface: Some(&surface),
-                ..Default::default()
+                force_fallback_adapter: false,
             })
             .await
             .unwrap();
@@ -43,35 +43,41 @@ impl State {
             .request_device(
                 &wgpu::DeviceDescriptor {
                     label: None,
-                    features: wgpu::Features::empty(),
+                    required_features: wgpu::Features::empty(),
                     // WebGL doesn't support all of wgpu's features, so if
                     // we're building for the web we'll have to disable some.
-                    limits: if cfg!(target_arch = "wasm32") {
+                    required_limits: if cfg!(target_arch = "wasm32") {
                         wgpu::Limits::downlevel_webgl2_defaults()
                     } else {
                         wgpu::Limits::default()
                     },
                 },
-                None, // Trace path
+                // Some(&std::path::Path::new("trace")), // Trace path
+                None,
             )
             .await
             .unwrap();
 
+        let size = window.inner_size();
+        let width = size.width.max(1);
+        let height = size.height.max(1);
         let caps = surface.get_capabilities(&adapter);
         let config = wgpu::SurfaceConfiguration {
             usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
             format: caps.formats[0],
-            width: size.width,
-            height: size.height,
+            width: width,
+            height: height,
             present_mode: wgpu::PresentMode::Fifo,
             alpha_mode: wgpu::CompositeAlphaMode::Auto,
             view_formats: vec![],
+            desired_maximum_frame_latency: 2,
         };
         surface.configure(&device, &config);
 
         let clear_color = wgpu::Color::BLACK;
 
         Self {
+            window,
             instance,
             adapter,
             surface,
@@ -83,27 +89,42 @@ impl State {
         }
     }
 
-    pub fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
-        if new_size.width > 0 && new_size.height > 0 {
-            self.size = new_size;
-            self.config.width = new_size.width;
-            self.config.height = new_size.height;
-            self.surface.configure(&self.device, &self.config);
-        }
+    pub fn start(&mut self) {
+        //  只有在进入事件循环之后，才有可能真正获取到窗口大小。
+        let size = self.window.inner_size();
+        self.resize(size);
     }
 
     fn input(&mut self, event: &WindowEvent) -> bool {
         match event {
-            WindowEvent::CursorMoved { position, .. } => {
-                self.clear_color = wgpu::Color {
-                    r: position.x / self.size.width as f64,
-                    g: position.y / self.size.height as f64,
-                    b: 1.0,
-                    a: 1.0,
+            WindowEvent::KeyboardInput {
+                event:
+                    KeyEvent {
+                        state,
+                        logical_key: Key::Named(NamedKey::Space),
+                        ..
+                    },
+                ..
+            } => {
+                self.clear_color = if *state == ElementState::Released {
+                    wgpu::Color::BLACK
+                } else {
+                    wgpu::Color::WHITE
                 };
                 true
             }
             _ => false,
+        }
+    }
+
+    pub fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
+        if new_size.width > 0 && new_size.height > 0 {
+            self.size = new_size;
+            self.config = self
+                .surface
+                .get_default_config(&self.adapter, new_size.width, new_size.height)
+                .unwrap();
+            self.surface.configure(&self.device, &self.config);
         }
     }
 
@@ -149,58 +170,58 @@ fn main() {
 
 async fn run() {
     env_logger::init();
-    let event_loop = EventLoop::new();
-    let window = WindowBuilder::new().build(&event_loop).unwrap();
+    let event_loop = EventLoop::new().unwrap();
+    let window = Arc::new(WindowBuilder::new().build(&event_loop).unwrap());
 
     // State::new uses async code, so we're going to wait for it to finish
-    let mut state = State::new(&window).await;
-
-    event_loop.run(move |event, _, control_flow| {
-        match event {
-            Event::WindowEvent {
-                ref event,
-                window_id,
-            } if window_id == window.id() => {
-                if !state.input(event) {
+    let mut state = State::new(window.clone()).await;
+    cfg_if::cfg_if! {
+        if #[cfg(target_arch = "wasm32")] {
+            use winit::platform::web::EventLoopExtWebSys;
+            let event_loop_function = EventLoop::spawn;
+        } else {
+            let event_loop_function = EventLoop::run;
+        }
+    }
+    let _ = (event_loop_function)(
+        event_loop,
+        move |event: Event<()>, elwt: &EventLoopWindowTarget<()>| {
+            if event == Event::NewEvents(StartCause::Init) {
+                state.start();
+            }
+            if let Event::WindowEvent { event, .. } = event {
+                if !state.input(&event) {
                     match event {
-                        WindowEvent::CloseRequested
-                        | WindowEvent::KeyboardInput {
-                            input:
-                                KeyboardInput {
-                                    state: ElementState::Pressed,
-                                    virtual_keycode: Some(VirtualKeyCode::Escape),
+                        WindowEvent::KeyboardInput {
+                            event:
+                                KeyEvent {
+                                    logical_key: Key::Named(NamedKey::Escape),
                                     ..
                                 },
                             ..
-                        } => *control_flow = ControlFlow::Exit,
-                        WindowEvent::Resized(physical_size) => {
-                            state.resize(*physical_size);
                         }
-                        WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
-                            // new_inner_size is &mut so w have to dereference it twice
-                            state.resize(**new_inner_size);
+                        | WindowEvent::CloseRequested => elwt.exit(),
+                        WindowEvent::Resized(physical_size) => {
+                            state.resize(physical_size);
+                            window.request_redraw();
+                        }
+
+                        WindowEvent::RedrawRequested => {
+                            state.update();
+                            match state.render() {
+                                Ok(_) => {}
+                                // 当展示平面的上下文丢失，就需重新配置
+                                Err(wgpu::SurfaceError::Lost) => state.resize(state.size),
+                                // 所有其他错误（过期、超时等）应在下一帧解决
+                                Err(e) => eprintln!("{e:?}"),
+                            }
+                            // 除非我们手动请求，RedrawRequested 将只会触发一次。
+                            window.request_redraw();
                         }
                         _ => {}
                     }
                 }
             }
-            Event::RedrawRequested(window_id) if window_id == window.id() => {
-                state.update();
-                match state.render() {
-                    Ok(_) => {}
-                    // 当展示平面的上下文丢失，就需重新配置
-                    Err(wgpu::SurfaceError::Lost) => state.resize(state.size),
-                    // 系统内存不足时，程序应该退出。
-                    Err(wgpu::SurfaceError::OutOfMemory) => *control_flow = ControlFlow::Exit,
-                    // 所有其他错误（过期、超时等）应在下一帧解决
-                    Err(e) => eprintln!("{e:?}"),
-                }
-            }
-            Event::MainEventsCleared => {
-                // 除非我们手动请求，RedrawRequested 将只会触发一次。
-                window.request_redraw();
-            }
-            _ => {}
-        }
-    });
+        },
+    );
 }

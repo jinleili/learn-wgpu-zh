@@ -62,7 +62,7 @@ async fn create_action_instance(wh_ratio: Option<f32>) -> (EventLoop<()>, State)
         height
     };
     if cfg!(not(target_arch = "wasm32")) {
-        window.set_inner_size(PhysicalSize::new(width, height));
+        let _ = window.request_inner_size(PhysicalSize::new(width, height));
     }
 
     #[cfg(target_arch = "wasm32")]
@@ -82,11 +82,11 @@ async fn create_action_instance(wh_ratio: Option<f32>) -> (EventLoop<()>, State)
                             } else {
                                 1.1
                             }) as u32;
-                        window.set_inner_size(PhysicalSize::new(width, height));
+                        let _ = window.request_inner_size(PhysicalSize::new(width, height));
                         let _ = dst.append_child(&web_sys::Element::from(window.canvas()));
                     }
                     None => {
-                        window.set_inner_size(PhysicalSize::new(width, height));
+                        let _ = window.request_inner_size(PhysicalSize::new(width, height));
                         let canvas = window.canvas();
                         canvas.style().set_css_text(
                             &(canvas.style().css_text()
@@ -121,72 +121,59 @@ async fn create_action_instance(wh_ratio: Option<f32>) -> (EventLoop<()>, State)
 fn start_event_loop(event_loop: EventLoop<()>, state: State) {
     let mut state = state;
     let mut last_render_time = instant::Instant::now();
-    event_loop.run(move |event, _, control_flow| {
-        match event {
-            // NEW!
-            Event::DeviceEvent {
-                event: DeviceEvent::MouseMotion { delta },
-                ..
-            } => {
-                if state.mouse_pressed {
-                    state.camera_controller.process_mouse(delta.0, delta.1)
-                }
-            }
-            Event::WindowEvent {
-                ref event,
-                window_id,
-            } if window_id == state.current_window_id() => {
-                if !state.input(event) {
-                    match event {
-                        WindowEvent::CloseRequested
-                        | WindowEvent::KeyboardInput {
-                            input:
-                                KeyboardInput {
-                                    state: ElementState::Pressed,
-                                    virtual_keycode: Some(VirtualKeyCode::Escape),
-                                    ..
-                                },
-                            ..
-                        } => *control_flow = ControlFlow::Exit,
-                        WindowEvent::Resized(physical_size) => {
-                            if physical_size.width == 0 || physical_size.height == 0 {
-                                // 处理最小化窗口的事件
-                                println!("Window minimized!");
-                            } else {
-                                state.resize(physical_size);
-                            }
-                        }
-                        WindowEvent::ScaleFactorChanged {
-                            scale_factor: _,
-                            new_inner_size,
-                        } => {
-                            state.resize(new_inner_size);
-                        }
-                        _ => {}
-                    }
-                }
-            }
-            Event::RedrawRequested(window_id) if window_id == state.current_window_id() => {
-                let now = instant::Instant::now();
-                let dt = now - last_render_time;
-                last_render_time = now;
-                state.update(dt);
-
-                match state.render() {
-                    Ok(_) => {}
-                    // 当展示平面的上下文丢失，就需重新配置
-                    Err(wgpu::SurfaceError::Lost) => eprintln!("Surface is lost"),
-                    // 系统内存不足时，程序应该退出。
-                    Err(wgpu::SurfaceError::OutOfMemory) => *control_flow = ControlFlow::Exit,
-                    // 所有其他错误（过期、超时等）应在下一帧解决
-                    Err(e) => eprintln!("{e:?}"),
-                }
-            }
-            Event::MainEventsCleared => {
-                // 除非我们手动请求，RedrawRequested 将只会触发一次。
-                state.request_redraw();
-            }
-            _ => {}
+    cfg_if::cfg_if! {
+        if #[cfg(target_arch = "wasm32")] {
+            use winit::platform::web::EventLoopExtWebSys;
+            let event_loop_function = EventLoop::spawn;
+        } else {
+            let event_loop_function = EventLoop::run;
         }
-    });
+    }
+    let _ = (event_loop_function)(
+        event_loop,
+        move |event: Event<()>, elwt: &EventLoopWindowTarget<()>| {
+            if event == Event::NewEvents(StartCause::Init) {
+                state.start();
+            }
+
+            if let Event::WindowEvent { event, .. } = event {
+                match event {
+                    WindowEvent::KeyboardInput {
+                        event:
+                            KeyEvent {
+                                logical_key: Key::Named(NamedKey::Escape),
+                                ..
+                            },
+                        ..
+                    }
+                    | WindowEvent::CloseRequested => elwt.exit(),
+                    WindowEvent::Resized(physical_size) => {
+                        if physical_size.width == 0 || physical_size.height == 0 {
+                            // 处理最小化窗口的事件
+                            println!("Window minimized!");
+                        } else {
+                            state.resize(&physical_size);
+                        }
+                    }
+                    WindowEvent::RedrawRequested => {
+                        let now = instant::Instant::now();
+                        let dt = now - last_render_time;
+                        last_render_time = now;
+                        state.update(dt);
+
+                        match state.render() {
+                            Ok(_) => {}
+                            // 当展示平面的上下文丢失，就需重新配置
+                            Err(wgpu::SurfaceError::Lost) => eprintln!("Surface is lost"),
+                            // 所有其他错误（过期、超时等）应在下一帧解决
+                            Err(e) => eprintln!("{e:?}"),
+                        }
+                        // 除非我们手动请求，RedrawRequested 将只会触发一次。
+                        state.request_redraw();
+                    }
+                    _ => {}
+                }
+            }
+        },
+    );
 }

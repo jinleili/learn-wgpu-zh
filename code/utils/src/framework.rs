@@ -1,7 +1,8 @@
 use winit::{
     dpi::PhysicalSize,
     event::*,
-    event_loop::{ControlFlow, EventLoop},
+    event_loop::{EventLoop, EventLoopWindowTarget},
+    keyboard::{Key, NamedKey},
     window::{WindowBuilder, WindowId},
 };
 
@@ -9,6 +10,7 @@ pub trait Action {
     fn new(app: app_surface::AppSurface) -> Self;
     fn get_adapter_info(&self) -> wgpu::AdapterInfo;
     fn current_window_id(&self) -> WindowId;
+    fn start(&mut self);
     fn resize(&mut self, size: &PhysicalSize<u32>);
     fn request_redraw(&mut self);
     fn input(&mut self, _event: &WindowEvent) -> bool {
@@ -69,7 +71,7 @@ async fn create_action_instance<A: Action + 'static>(
     wh_ratio: Option<f32>,
     #[cfg(target_arch = "wasm32")] html_canvas_container_id: Option<&'static str>,
 ) -> (EventLoop<()>, A) {
-    let event_loop = EventLoop::new();
+    let event_loop = EventLoop::new().unwrap();
     let window = WindowBuilder::new().build(&event_loop).unwrap();
     let scale_factor = window.scale_factor() as f32;
 
@@ -86,7 +88,7 @@ async fn create_action_instance<A: Action + 'static>(
         height
     };
     if cfg!(not(target_arch = "wasm32")) {
-        window.set_inner_size(PhysicalSize::new(width, height));
+        let _ = window.request_inner_size(PhysicalSize::new(width, height));
     }
 
     #[cfg(target_arch = "wasm32")]
@@ -102,33 +104,21 @@ async fn create_action_instance<A: Action + 'static>(
                 } else {
                     "wasm-example"
                 };
+                let canvas = window.canvas().unwrap();
                 match doc.get_element_by_id(&element_id) {
                     Some(dst) => {
-                        let rect = dst.get_bounding_client_rect();
-                        let width_limit = rect.width() as u32;
-                        let width = width_limit as f32 * scale_factor;
-                        let height = (width
-                            / if let Some(ratio) = wh_ratio {
-                                ratio
-                            } else {
-                                1.2
-                            }) as u32;
-                        window.set_inner_size(PhysicalSize::new(width as u32, height));
-                        let _ = dst
-                            .append_child(&web_sys::Element::from(window.canvas()))
-                            .ok();
+                        let _ = dst.append_child(&web_sys::Element::from(canvas)).ok();
                     }
                     None => {
-                        window.set_inner_size(PhysicalSize::new(width, height));
-                        let canvas = window.canvas();
                         canvas.style().set_css_text(
                             &(canvas.style().css_text()
-                                + "background-color: black; display: block; margin: 20px auto;"),
+                                + "background-color: black; display: block; margin: 20px auto; max-width: 800px"),
                         );
                         doc.body()
                             .map(|body| body.append_child(&web_sys::Element::from(canvas)).ok());
                     }
                 };
+                // winit 0.29 开始，通过 request_inner_size, canvas.set_width 都无法设置 canvas 的大小
             })
             .expect("Couldn't append canvas to document body.");
     };
@@ -154,62 +144,60 @@ async fn create_action_instance<A: Action + 'static>(
 fn start_event_loop<A: Action + 'static>(event_loop: EventLoop<()>, instance: A) {
     let mut state = instance;
     let mut last_render_time = instant::Instant::now();
-    event_loop.run(move |event, _, control_flow| {
-        match event {
-            Event::WindowEvent {
-                ref event,
-                window_id,
-            } if window_id == state.current_window_id() => {
-                if !state.input(event) {
+    cfg_if::cfg_if! {
+        if #[cfg(target_arch = "wasm32")] {
+            use winit::platform::web::EventLoopExtWebSys;
+            let event_loop_function = EventLoop::spawn;
+        } else {
+            let event_loop_function = EventLoop::run;
+        }
+    }
+    let _ = (event_loop_function)(
+        event_loop,
+        move |event: Event<()>, elwt: &EventLoopWindowTarget<()>| {
+            if event == Event::NewEvents(StartCause::Init) {
+                state.start();
+            }
+            if let Event::WindowEvent { event, .. } = event {
+                if !state.input(&event) {
                     match event {
-                        WindowEvent::CloseRequested
-                        | WindowEvent::KeyboardInput {
-                            input:
-                                KeyboardInput {
-                                    state: ElementState::Pressed,
-                                    virtual_keycode: Some(VirtualKeyCode::Escape),
+                        WindowEvent::KeyboardInput {
+                            event:
+                                KeyEvent {
+                                    logical_key: Key::Named(NamedKey::Escape),
                                     ..
                                 },
                             ..
-                        } => *control_flow = ControlFlow::Exit,
+                        }
+                        | WindowEvent::CloseRequested => elwt.exit(),
                         WindowEvent::Resized(physical_size) => {
                             if physical_size.width == 0 || physical_size.height == 0 {
                                 // 处理最小化窗口的事件
                                 println!("Window minimized!");
                             } else {
-                                state.resize(physical_size);
+                                state.resize(&physical_size);
                             }
                         }
-                        WindowEvent::ScaleFactorChanged {
-                            scale_factor: _,
-                            new_inner_size,
-                        } => {
-                            state.resize(new_inner_size);
+                        WindowEvent::RedrawRequested => {
+                            let now = instant::Instant::now();
+                            let _dt = now - last_render_time;
+                            last_render_time = now;
+                            state.update();
+
+                            match state.render() {
+                                Ok(_) => {}
+                                // 当展示平面的上下文丢失，就需重新配置
+                                Err(wgpu::SurfaceError::Lost) => eprintln!("Surface is lost"),
+                                // 所有其他错误（过期、超时等）应在下一帧解决
+                                Err(e) => eprintln!("SurfaceError: {e:?}"),
+                            }
+                            // 除非我们手动请求，RedrawRequested 将只会触发一次。
+                            state.request_redraw();
                         }
                         _ => {}
                     }
                 }
             }
-            Event::RedrawRequested(window_id) if window_id == state.current_window_id() => {
-                let now = instant::Instant::now();
-                let _dt = now - last_render_time;
-                last_render_time = now;
-                state.update();
-                match state.render() {
-                    Ok(_) => {}
-                    // 当展示平面的上下文丢失，就需重新配置
-                    Err(wgpu::SurfaceError::Lost) => eprintln!("Surface is lost"),
-                    // 系统内存不足时，程序应该退出。
-                    Err(wgpu::SurfaceError::OutOfMemory) => *control_flow = ControlFlow::Exit,
-                    // 所有其他错误（过期、超时等）应在下一帧解决
-                    Err(e) => eprintln!("{e:?}"),
-                }
-            }
-            Event::MainEventsCleared => {
-                // 除非我们手动请求，RedrawRequested 将只会触发一次。
-                state.request_redraw();
-            }
-            _ => {}
-        }
-    });
+        },
+    );
 }

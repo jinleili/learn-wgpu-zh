@@ -50,10 +50,10 @@ impl Display {
             .request_device(
                 &wgpu::DeviceDescriptor {
                     label: None,
-                    features: wgpu::Features::empty(),
+                    required_features: wgpu::Features::empty(),
                     // WebGL doesn't support all of wgpu's features, so if
                     // we're building for the web we'll have to disable some.
-                    limits: if cfg!(target_arch = "wasm32") {
+                    required_limits: if cfg!(target_arch = "wasm32") {
                         wgpu::Limits::downlevel_webgl2_defaults()
                     } else {
                         wgpu::Limits::default()
@@ -72,6 +72,7 @@ impl Display {
             present_mode: caps.present_modes[0],
             view_formats: vec![],
             alpha_mode: wgpu::CompositeAlphaMode::Auto,
+            desired_maximum_frame_latency: 2,
         };
         surface.configure(&device, &config);
 
@@ -206,7 +207,7 @@ pub trait Demo: 'static + Sized {
 }
 
 pub async fn run<D: Demo>() -> Result<(), Error> {
-    let event_loop = EventLoop::new();
+    let event_loop = EventLoop::new().unwrap();
     let window = WindowBuilder::new()
         .with_title(env!("CARGO_PKG_NAME"))
         .build(&event_loop)?;
@@ -216,18 +217,34 @@ pub async fn run<D: Demo>() -> Result<(), Error> {
     let mut is_resumed = true;
     let mut is_focused = true;
     let mut is_redraw_requested = true;
-
-    event_loop.run(move |event, _, control_flow| {
-        *control_flow = if is_resumed && is_focused {
-            ControlFlow::Poll
+    cfg_if::cfg_if! {
+        if #[cfg(target_arch = "wasm32")] {
+            use winit::platform::web::EventLoopExtWebSys;
+            let event_loop_function = EventLoop::spawn;
         } else {
-            ControlFlow::Wait
-        };
-
-        match event {
+            let event_loop_function = EventLoop::run;
+        }
+    }
+    let _ = (event_loop_function)(
+        event_loop,
+        move |event: Event<()>, elwt: &EventLoopWindowTarget<()>| match event {
+            Event::NewEvents(StartCause::Init) => {
+                state.start();
+            }
             Event::Resumed => is_resumed = true,
             Event::Suspended => is_resumed = false,
-            Event::RedrawRequested(wid) => {
+            Event::WindowEvent { event, .. } => match event {
+                WindowEvent::KeyboardInput {
+                    event:
+                        KeyEvent {
+                            logical_key: Key::Named(NamedKey::Escape),
+                            ..
+                        },
+                    ..
+                }
+                | WindowEvent::CloseRequested => elwt.exit(),
+            },
+            WindowEvent::RedrawRequested => {
                 if wid == display.window().id() {
                     let now = Instant::now();
                     let dt = now - last_update;
@@ -236,15 +253,8 @@ pub async fn run<D: Demo>() -> Result<(), Error> {
                     demo.update(&display, dt);
                     demo.render(&mut display);
                     is_redraw_requested = false;
-                }
-            }
-            Event::MainEventsCleared => {
-                if is_focused && is_resumed && !is_redraw_requested {
+
                     display.window().request_redraw();
-                    is_redraw_requested = true;
-                } else {
-                    // Freeze time while the demo is not in the foreground
-                    last_update = Instant::now();
                 }
             }
             Event::WindowEvent {
@@ -254,10 +264,6 @@ pub async fn run<D: Demo>() -> Result<(), Error> {
                     match event {
                         WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
                         WindowEvent::Focused(f) => is_focused = f,
-                        WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
-                            display.resize(new_inner_size.width, new_inner_size.height);
-                            demo.resize(&display);
-                        }
                         WindowEvent::Resized(new_inner_size) => {
                             display.resize(new_inner_size.width, new_inner_size.height);
                             demo.resize(&display);
@@ -267,6 +273,6 @@ pub async fn run<D: Demo>() -> Result<(), Error> {
                 }
             }
             _ => {}
-        }
-    });
+        },
+    );
 }

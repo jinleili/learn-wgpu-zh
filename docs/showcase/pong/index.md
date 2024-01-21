@@ -353,7 +353,7 @@ let window = WindowBuilder::new()
 // WASM builds don't have access to monitor information, so
 // we should specify a fallback resolution
 if window.fullscreen().is_none() {
-    window.set_inner_size(PhysicalSize::new(512, 512));
+    let _ = window.request_inner_size(PhysicalSize::new(512, 512));
 }
 ```
 

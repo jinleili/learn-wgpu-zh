@@ -4,7 +4,7 @@ on:
   push:
     branches: [ master ]
 env:
-  RUST_VERSION: 1.67
+  RUST_VERSION: 1.71
   CARGO_TERM_COLOR: always
 jobs:
   build:
@@ -16,7 +16,7 @@ jobs:
         run: rustup target add wasm32-unknown-unknown
 
       - name: Install wasm-bindgen-cli
-        run: cargo install wasm-bindgen-cli --version=0.2.87
+        run: cargo install wasm-bindgen-cli --version=0.2.90
 
       - name: Build WASM
         run: |

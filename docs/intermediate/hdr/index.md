@@ -492,8 +492,8 @@ let (device, queue) = adapter
         &wgpu::DeviceDescriptor {
             label: None,
             // 这里是变更!
-            features: wgpu::Features::all_webgpu_mask(),
-            limits: wgpu::Limits::downlevel_defaults(),
+            required_features: wgpu::Features::all_webgpu_mask(),
+            required_limits: wgpu::Limits::downlevel_defaults(),
         },
         None, // Trace path
     )
@@ -508,7 +508,7 @@ let (device, queue) = adapter
 因此，我们将从 `Cargo.toml` 中删除 WebGL 功能，就是下边这一行：
 
 ```toml
-wgpu = { version = "0.18", features = ["webgl"]}
+wgpu = { version = "0.19", features = ["webgl"]}
 ```
 
 </div>
