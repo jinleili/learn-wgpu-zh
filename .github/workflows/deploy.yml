@@ -27,9 +27,6 @@ jobs:
           npm install
           npm run just-build
 
-      - name: Copy wasm folder to dist/assets/
-        run: cp -r docs/.vitepress/components/wasm docs/.vitepress/dist/assets/
-
       - name: Deploy
         uses: JamesIves/github-pages-deploy-action@v4.4.1
         with:
