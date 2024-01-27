@@ -67,7 +67,7 @@ pub struct TerrainPipeline {
     min_max_height: glam::Vec2,
     gen_layout: wgpu::BindGroupLayout,
     gen_pipeline: wgpu::ComputePipeline,
-    render_pipeline: wgpu::RenderPipeline,
+    _render_pipeline: wgpu::RenderPipeline,
 }
 
 impl TerrainPipeline {
@@ -165,18 +165,18 @@ impl TerrainPipeline {
             min_max_height,
             gen_layout,
             gen_pipeline,
-            render_pipeline,
+            _render_pipeline: render_pipeline,
         }
     }
 
-    pub fn render<'a, 'b>(
+    pub fn render<'a>(
         &'a self,
-        render_pass: &'b mut wgpu::RenderPass<'a>,
+        render_pass: &mut wgpu::RenderPass<'a>,
         terrain: &'a Terrain,
         camera_bind_group: &'a wgpu::BindGroup,
         light_bind_group: &'a wgpu::BindGroup,
     ) {
-        render_pass.set_pipeline(&self.render_pipeline);
+        render_pass.set_pipeline(&self._render_pipeline);
         render_pass.set_bind_group(0, camera_bind_group, &[]);
         render_pass.set_bind_group(1, light_bind_group, &[]);
         for chunk in &terrain.chunks {
@@ -414,9 +414,9 @@ impl TerrainHackPipeline {
         }
     }
 
-    pub fn render<'a, 'b>(
+    pub fn render<'a>(
         &'a self,
-        render_pass: &'b mut wgpu::RenderPass<'a>,
+        render_pass: &mut wgpu::RenderPass<'a>,
         terrain: &'a Terrain,
         camera_bind_group: &'a wgpu::BindGroup,
         light_bind_group: &'a wgpu::BindGroup,

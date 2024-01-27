@@ -17,7 +17,7 @@ pub use texture::*;
 
 use anyhow::*;
 use std::sync::Arc;
-use std::time::{Duration, Instant};
+use std::time::Duration;
 use wgpu::util::{BufferInitDescriptor, DeviceExt};
 use winit::event::*;
 use winit::window::{Window, WindowBuilder};
@@ -211,17 +211,14 @@ pub trait Demo: 'static + Sized {
     fn render(&mut self, display: &mut Display);
 }
 
-pub async fn run<D: Demo>() -> Result<(), Error> {
+pub async fn run<D: Demo>() -> Result<(), anyhow::Error> {
     let event_loop = EventLoop::new().unwrap();
     let window = WindowBuilder::new()
         .with_title(env!("CARGO_PKG_NAME"))
         .build(&event_loop)?;
     let mut display = Display::new(Arc::new(window)).await?;
     let mut demo = D::init(&display)?;
-    let mut last_update = Instant::now();
-    let mut is_resumed = true;
-    let mut is_focused = true;
-    let mut is_redraw_requested = true;
+    let mut last_render_time = instant::Instant::now();
     cfg_if::cfg_if! {
         if #[cfg(target_arch = "wasm32")] {
             use winit::platform::web::EventLoopExtWebSys;
@@ -237,48 +234,39 @@ pub async fn run<D: Demo>() -> Result<(), Error> {
                 demo.start();
             }
             if let Event::WindowEvent { event, .. } = event {
-                if !demo.input(&event) {
-                    match event {
-                        WindowEvent::KeyboardInput {
-                            event:
-                                KeyEvent {
-                                    logical_key: Key::Named(NamedKey::Escape),
-                                    ..
-                                },
-                            ..
-                        }
-                        | WindowEvent::CloseRequested => elwt.exit(),
-                        WindowEvent::Resized(physical_size) => {
-                            if physical_size.width == 0 || physical_size.height == 0 {
-                                // 处理最小化窗口的事件
-                                println!("Window minimized!");
-                            } else {
-                                display.resize(physical_size.width, physical_size.height);
-                                demo.resize(&display);
-                            }
-                        }
-                        WindowEvent::RedrawRequested => {
-                            let now = instant::Instant::now();
-                            let _dt = now - last_render_time;
-                            last_render_time = now;
-                            demo.update(&display, dt);
-
-                            match demo.render(&mut display) {
-                                Ok(_) => {}
-                                // 当展示平面的上下文丢失，就需重新配置
-                                Err(wgpu::SurfaceError::Lost) => eprintln!("Surface is lost"),
-                                // 所有其他错误（过期、超时等）应在下一帧解决
-                                Err(e) => eprintln!("SurfaceError: {e:?}"),
-                            }
-                            is_redraw_requested = false;
-
-                            // 除非我们手动请求，RedrawRequested 将只会触发一次。
-                            display.window().request_redraw();
-                        }
-                        _ => {}
+                match event {
+                    WindowEvent::KeyboardInput {
+                        event:
+                            KeyEvent {
+                                logical_key: Key::Named(NamedKey::Escape),
+                                ..
+                            },
+                        ..
                     }
+                    | WindowEvent::CloseRequested => elwt.exit(),
+                    WindowEvent::Resized(physical_size) => {
+                        if physical_size.width == 0 || physical_size.height == 0 {
+                            // 处理最小化窗口的事件
+                            println!("Window minimized!");
+                        } else {
+                            display.resize(physical_size.width, physical_size.height);
+                            demo.resize(&display);
+                        }
+                    }
+                    WindowEvent::RedrawRequested => {
+                        let now = instant::Instant::now();
+                        let dt = now - last_render_time;
+                        last_render_time = now;
+                        demo.update(&display, dt);
+                        demo.render(&mut display);
+
+                        // 除非我们手动请求，RedrawRequested 将只会触发一次。
+                        display.window().request_redraw();
+                    }
+                    _ => {}
                 }
             }
         },
     );
+    Ok(())
 }

@@ -10,7 +10,7 @@ use wasm_bindgen::prelude::*;
 
 fn start_event_loop() {
     let event_loop = EventLoop::new().unwrap();
-    let window = WindowBuilder::new().build(&event_loop).unwrap();
+    let _window = WindowBuilder::new().build(&event_loop).unwrap();
 
     #[cfg(target_arch = "wasm32")]
     {
@@ -21,7 +21,7 @@ fn start_event_loop() {
         web_sys::window()
             .and_then(|win| win.document())
             .map(|doc| {
-                let canvas = window.canvas().unwrap();
+                let canvas = _window.canvas().unwrap();
                 let mut web_width = 800.0f32;
                 match doc.get_element_by_id("wasm-example") {
                     Some(dst) => {
@@ -37,8 +37,11 @@ fn start_event_loop() {
                     }
                 };
                 // winit 0.29 开始，通过 request_inner_size, canvas.set_width 都无法设置 canvas 的大小
-                let canvas = window.canvas().unwrap();
+                let canvas = _window.canvas().unwrap();
                 let web_height = web_width;
+                let scale_factor = _window.scale_factor() as f32;
+                canvas.set_width((web_width * scale_factor) as u32);
+                canvas.set_height((web_height * scale_factor) as u32);
                 canvas.style().set_css_text(
                     &(canvas.style().css_text()
                         + &format!("width: {}px; height: {}px", web_width, web_height)),

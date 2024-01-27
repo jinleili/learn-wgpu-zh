@@ -1233,11 +1233,13 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "bytemuck",
+ "cfg-if",
  "env_logger",
  "fs_extra",
  "glam",
  "glob",
  "image",
+ "instant",
  "log",
  "naga 0.9.0",
  "pollster",
