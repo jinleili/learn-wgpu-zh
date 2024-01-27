@@ -13,7 +13,7 @@ use wasm_bindgen::prelude::*;
 struct State {
     window: Arc<Window>,
     surface: wgpu::Surface<'static>,
-    adapter: wgpu::Adapter,
+    _adapter: wgpu::Adapter,
     device: wgpu::Device,
     queue: wgpu::Queue,
     config: wgpu::SurfaceConfiguration,
@@ -63,7 +63,7 @@ impl State {
         Self {
             window,
             surface,
-            adapter,
+            _adapter: adapter,
             device,
             queue,
             config,
@@ -203,24 +203,36 @@ pub async fn run() {
         // 在网页中，需要先添加 canvas 再初始化 State
         use winit::platform::web::WindowExtWebSys;
         web_sys::window()
-                .and_then(|win| win.document())
-                .map(|doc| {
-                    let canvas = window.canvas().unwrap();
-                    match doc.get_element_by_id("wasm-example") {
-                        Some(dst) => {
-                            let _ = dst.append_child(&web_sys::Element::from(canvas.clone()));
-                        }
-                        None => {
-                            canvas.style().set_css_text(
-                                "background-color: black; display: block; margin: 20px auto; max-width: 800px;",
-                            );
-                            doc.body()
-                                .map(|body| body.append_child(&web_sys::Element::from(canvas.clone())));
-                        }
-                    };
-                    // winit 0.29 开始，通过 request_inner_size, canvas.set_width 都无法设置 canvas 的大小
-                })
-                .expect("Couldn't append canvas to document body.");
+            .and_then(|win| win.document())
+            .map(|doc| {
+                let canvas = window.canvas().unwrap();
+                let mut web_width = 800.0f32;
+                let ratio = 1.0;
+                match doc.get_element_by_id("wasm-example") {
+                    Some(dst) => {
+                        web_width = dst.client_width() as f32;
+                        let _ = dst.append_child(&web_sys::Element::from(canvas));
+                    }
+                    None => {
+                        canvas.style().set_css_text(
+                            "background-color: black; display: block; margin: 20px auto;",
+                        );
+                        doc.body()
+                            .map(|body| body.append_child(&web_sys::Element::from(canvas)));
+                    }
+                };
+                // winit 0.29 开始，通过 request_inner_size, canvas.set_width 都无法设置 canvas 的大小
+                let canvas = window.canvas().unwrap();
+                let web_height = web_width / ratio;
+                let scale_factor = window.scale_factor() as f32;
+                canvas.set_width((web_width * scale_factor) as u32);
+                canvas.set_height((web_height * scale_factor) as u32);
+                canvas.style().set_css_text(
+                    &(canvas.style().css_text()
+                        + &format!("width: {}px; height: {}px", web_width, web_height)),
+                );
+            })
+            .expect("Couldn't append canvas to document body.");
 
         // 创建 State 实例
         let state = State::new(window.clone()).await;

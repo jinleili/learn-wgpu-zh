@@ -2,7 +2,8 @@ use super::State;
 use winit::{
     dpi::PhysicalSize,
     event::*,
-    event_loop::{ControlFlow, EventLoop},
+    event_loop::{EventLoop, EventLoopWindowTarget},
+    keyboard::{Key, NamedKey},
     window::WindowBuilder,
 };
 
@@ -46,7 +47,7 @@ pub fn run(wh_ratio: Option<f32>) {
 }
 
 async fn create_action_instance(wh_ratio: Option<f32>) -> (EventLoop<()>, State) {
-    let event_loop = EventLoop::new();
+    let event_loop = EventLoop::new().unwrap();
     let window = WindowBuilder::new().build(&event_loop).unwrap();
 
     // 计算一个默认显示高度
@@ -73,29 +74,36 @@ async fn create_action_instance(wh_ratio: Option<f32>) -> (EventLoop<()>, State)
         web_sys::window()
             .and_then(|win| win.document())
             .map(|doc| {
+                let canvas = window.canvas().unwrap();
+                let mut web_width = 800.0f32;
+                let ratio = if let Some(ratio) = wh_ratio {
+                    ratio
+                } else {
+                    1.0
+                };
                 match doc.get_element_by_id("wasm-example") {
                     Some(dst) => {
-                        let height = 500;
-                        let width = (height as f32
-                            * if let Some(ratio) = wh_ratio {
-                                ratio
-                            } else {
-                                1.1
-                            }) as u32;
-                        let _ = window.request_inner_size(PhysicalSize::new(width, height));
-                        let _ = dst.append_child(&web_sys::Element::from(window.canvas()));
+                        web_width = dst.client_width() as f32;
+                        let _ = dst.append_child(&web_sys::Element::from(canvas));
                     }
                     None => {
-                        let _ = window.request_inner_size(PhysicalSize::new(width, height));
-                        let canvas = window.canvas();
                         canvas.style().set_css_text(
-                            &(canvas.style().css_text()
-                                + "background-color: black; display: block; margin: 20px auto;"),
+                            "background-color: black; display: block; margin: 20px auto;",
                         );
                         doc.body()
                             .map(|body| body.append_child(&web_sys::Element::from(canvas)));
                     }
                 };
+                // winit 0.29 开始，通过 request_inner_size, canvas.set_width 都无法设置 canvas 的大小
+                let canvas = window.canvas().unwrap();
+                let web_height = web_width / ratio;
+                let scale_factor = window.scale_factor() as f32;
+                canvas.set_width((web_width * scale_factor) as u32);
+                canvas.set_height((web_height * scale_factor) as u32);
+                canvas.style().set_css_text(
+                    &(canvas.style().css_text()
+                        + &format!("width: {}px; height: {}px", web_width, web_height)),
+                );
             })
             .expect("Couldn't append canvas to document body.");
     };
@@ -132,46 +140,57 @@ fn start_event_loop(event_loop: EventLoop<()>, state: State) {
     let _ = (event_loop_function)(
         event_loop,
         move |event: Event<()>, elwt: &EventLoopWindowTarget<()>| {
-            if event == Event::NewEvents(StartCause::Init) {
-                state.start();
+            match event {
+                Event::NewEvents(StartCause::Init) => state.start(),
+                Event::DeviceEvent {
+                    event: DeviceEvent::MouseMotion { delta },
+                    ..
+                } => {
+                    if state.mouse_pressed {
+                        state.camera_controller.process_mouse(delta.0, delta.1)
+                    }
+                }
+                _ => {}
             }
 
             if let Event::WindowEvent { event, .. } = event {
-                match event {
-                    WindowEvent::KeyboardInput {
-                        event:
-                            KeyEvent {
-                                logical_key: Key::Named(NamedKey::Escape),
-                                ..
-                            },
-                        ..
-                    }
-                    | WindowEvent::CloseRequested => elwt.exit(),
-                    WindowEvent::Resized(physical_size) => {
-                        if physical_size.width == 0 || physical_size.height == 0 {
-                            // 处理最小化窗口的事件
-                            println!("Window minimized!");
-                        } else {
-                            state.resize(physical_size);
+                if !state.input(&event) {
+                    match event {
+                        WindowEvent::KeyboardInput {
+                            event:
+                                KeyEvent {
+                                    logical_key: Key::Named(NamedKey::Escape),
+                                    ..
+                                },
+                            ..
                         }
-                    }
-                    WindowEvent::RedrawRequested => {
-                        let now = instant::Instant::now();
-                        let dt = now - last_render_time;
-                        last_render_time = now;
-                        state.update(dt);
+                        | WindowEvent::CloseRequested => elwt.exit(),
+                        WindowEvent::Resized(physical_size) => {
+                            if physical_size.width == 0 || physical_size.height == 0 {
+                                // 处理最小化窗口的事件
+                                println!("Window minimized!");
+                            } else {
+                                state.resize(physical_size);
+                            }
+                        }
+                        WindowEvent::RedrawRequested => {
+                            let now = instant::Instant::now();
+                            let dt = now - last_render_time;
+                            last_render_time = now;
+                            state.update(dt);
 
-                        match state.render() {
-                            Ok(_) => {}
-                            // 当展示平面的上下文丢失，就需重新配置
-                            Err(wgpu::SurfaceError::Lost) => eprintln!("Surface is lost"),
-                            // 所有其他错误（过期、超时等）应在下一帧解决
-                            Err(e) => eprintln!("{e:?}"),
+                            match state.render() {
+                                Ok(_) => {}
+                                // 当展示平面的上下文丢失，就需重新配置
+                                Err(wgpu::SurfaceError::Lost) => eprintln!("Surface is lost"),
+                                // 所有其他错误（过期、超时等）应在下一帧解决
+                                Err(e) => eprintln!("{e:?}"),
+                            }
+                            // 除非我们手动请求，RedrawRequested 将只会触发一次。
+                            state.request_redraw();
                         }
-                        // 除非我们手动请求，RedrawRequested 将只会触发一次。
-                        state.request_redraw();
+                        _ => {}
                     }
-                    _ => {}
                 }
             }
         },

@@ -189,6 +189,7 @@ pub struct CubeTexture {
 }
 
 impl CubeTexture {
+    #[allow(clippy::too_many_arguments)]
     pub fn create_2d(
         device: &wgpu::Device,
         width: u32,

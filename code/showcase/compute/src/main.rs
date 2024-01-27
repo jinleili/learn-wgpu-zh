@@ -1,10 +1,11 @@
 use rayon::prelude::*;
-use std::{f32::consts, iter};
+use std::{f32::consts, iter, sync::Arc};
 use wgpu::util::DeviceExt;
 use winit::{
     dpi::PhysicalPosition,
     event::*,
-    event_loop::{ControlFlow, EventLoop},
+    event_loop::{EventLoop, EventLoopWindowTarget},
+    keyboard::{Key, NamedKey},
     window::Window,
 };
 
@@ -129,7 +130,7 @@ struct LightUniform {
 }
 
 struct State {
-    surface: wgpu::Surface,
+    surface: wgpu::Surface<'static>,
     device: wgpu::Device,
     queue: wgpu::Queue,
     config: wgpu::SurfaceConfiguration,
@@ -154,13 +155,11 @@ struct State {
     debug_material: model::Material,
     last_mouse_pos: PhysicalPosition<f64>,
     mouse_pressed: bool,
-    window: Window,
+    window: Arc<Window>,
 }
 
 impl State {
-    async fn new(window: Window) -> Self {
-        let size = window.inner_size();
-
+    async fn new(window: Arc<Window>) -> Self {
         // The instance is a handle to our GPU
         // BackendBit::PRIMARY => Vulkan + Metal + DX12 + Browser WebGPU
         let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
@@ -171,7 +170,7 @@ impl State {
         //
         // The surface needs to live as long as the window that created it.
         // State owns the window so this should be safe.
-        let surface = unsafe { instance.create_surface(&window).unwrap() };
+        let surface = instance.create_surface(window.clone()).unwrap();
 
         let adapter = instance
             .request_adapter(&wgpu::RequestAdapterOptions {
@@ -199,6 +198,7 @@ impl State {
             .await
             .unwrap();
 
+        let size = window.inner_size();
         let caps = surface.get_capabilities(&adapter);
         let config = wgpu::SurfaceConfiguration {
             usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
@@ -473,8 +473,10 @@ impl State {
         }
     }
 
-    pub fn window(&self) -> &Window {
-        &self.window
+    fn start(&mut self) {
+        //  只有在进入事件循环之后，才有可能真正获取到窗口大小。
+        let size = self.window.inner_size();
+        self.resize(size);
     }
 
     fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
@@ -492,14 +494,17 @@ impl State {
     fn input(&mut self, event: &WindowEvent) -> bool {
         match event {
             WindowEvent::KeyboardInput {
-                input:
-                    KeyboardInput {
-                        virtual_keycode: Some(key),
+                event:
+                    KeyEvent {
                         state,
+                        physical_key,
+                        logical_key,
                         ..
                     },
                 ..
-            } => self.camera_controller.process_keyboard(*key, *state),
+            } => self
+                .camera_controller
+                .process_keyboard(physical_key, logical_key, *state),
             WindowEvent::MouseWheel { delta, .. } => {
                 self.camera_controller.process_scroll(delta);
                 true
@@ -625,7 +630,7 @@ async fn run() {
         .with_title(title)
         .build(&event_loop)
         .unwrap();
-    let mut state = State::new(window).await; // NEW!
+    let mut state = State::new(Arc::new(window)).await; // NEW!
     let mut last_render_time = std::time::Instant::now();
     cfg_if::cfg_if! {
         if #[cfg(target_arch = "wasm32")] {
@@ -638,37 +643,48 @@ async fn run() {
     let _ = (event_loop_function)(
         event_loop,
         move |event: Event<()>, elwt: &EventLoopWindowTarget<()>| {
-            if event == Event::NewEvents(StartCause::Init) {
-                state.start();
+            match event {
+                Event::NewEvents(StartCause::Init) => state.start(),
+                Event::DeviceEvent {
+                    event: DeviceEvent::MouseMotion { delta },
+                    ..
+                } => {
+                    if state.mouse_pressed {
+                        state.camera_controller.process_mouse(delta.0, delta.1)
+                    }
+                }
+                _ => {}
             }
             if let Event::WindowEvent { event, .. } = event {
-                match event {
-                    WindowEvent::KeyboardInput {
-                        event:
-                            KeyEvent {
-                                logical_key: Key::Named(NamedKey::Escape),
-                                ..
-                            },
-                        ..
-                    }
-                    | WindowEvent::CloseRequested => elwt.exit(),
-                    WindowEvent::Resized(physical_size) => {
-                        // winit bug: https://github.com/rust-windowing/winit/issues/2876
-                        if physical_size.width < u32::MAX && physical_size.height < u32::MAX {
-                            state.resize(physical_size);
+                if !state.input(&event) {
+                    match event {
+                        WindowEvent::KeyboardInput {
+                            event:
+                                KeyEvent {
+                                    logical_key: Key::Named(NamedKey::Escape),
+                                    ..
+                                },
+                            ..
                         }
-                    }
-                    WindowEvent::RedrawRequested => {
-                        let now = std::time::Instant::now();
-                        let dt = now - last_render_time;
-                        last_render_time = now;
-                        state.update(dt);
-                        state.render();
+                        | WindowEvent::CloseRequested => elwt.exit(),
+                        WindowEvent::Resized(physical_size) => {
+                            // winit bug: https://github.com/rust-windowing/winit/issues/2876
+                            if physical_size.width < u32::MAX && physical_size.height < u32::MAX {
+                                state.resize(physical_size);
+                            }
+                        }
+                        WindowEvent::RedrawRequested => {
+                            let now = std::time::Instant::now();
+                            let dt = now - last_render_time;
+                            last_render_time = now;
+                            state.update(dt);
+                            state.render();
 
-                        // 除非我们手动请求，RedrawRequested 将只会触发一次。
-                        state.window.request_redraw();
+                            // 除非我们手动请求，RedrawRequested 将只会触发一次。
+                            state.window.request_redraw();
+                        }
+                        _ => {}
                     }
-                    _ => {}
                 }
             }
         },

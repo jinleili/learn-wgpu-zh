@@ -575,7 +575,7 @@ where
 ```rust
 // lib.rs
 impl State {
-    async fn new(window: &Window) -> Result<Self> {
+    async fn new(window: Arc<Window>) -> Result<Self> {
         // ...
         let debug_material = {
             let diffuse_bytes = include_bytes!("../res/cobble-diffuse.png");

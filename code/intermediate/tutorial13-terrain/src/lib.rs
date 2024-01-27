@@ -1,9 +1,9 @@
-use std::{f32::consts, iter};
-
+use std::{f32::consts, iter, sync::Arc};
 use wgpu::util::DeviceExt;
 use winit::{
     event::*,
-    event_loop::{ControlFlow, EventLoop},
+    event_loop::{EventLoop, EventLoopWindowTarget},
+    keyboard::{Key, NamedKey},
     window::Window,
 };
 
@@ -131,7 +131,8 @@ struct LightUniform {
 }
 
 struct State {
-    surface: wgpu::Surface,
+    window: Arc<Window>,
+    surface: wgpu::Surface<'static>,
     device: wgpu::Device,
     queue: wgpu::Queue,
     config: wgpu::SurfaceConfiguration,
@@ -220,7 +221,7 @@ fn create_render_pipeline(
 }
 
 impl State {
-    async fn new(window: &Window) -> Self {
+    async fn new(window: Arc<Window>) -> Self {
         let size = window.inner_size();
 
         // The instance is a handle to our GPU
@@ -229,7 +230,7 @@ impl State {
             backends: wgpu::Backends::all(),
             ..Default::default()
         });
-        let surface = unsafe { instance.create_surface(window).unwrap() };
+        let surface = instance.create_surface(window.clone()).unwrap();
         let adapter = instance
             .request_adapter(&wgpu::RequestAdapterOptions {
                 power_preference: wgpu::PowerPreference::default(),
@@ -554,7 +555,14 @@ impl State {
             terrain,
             terrain_pipeline,
             terrain_hack_pipeline,
+            window,
         }
+    }
+
+    fn start(&mut self) {
+        //  只有在进入事件循环之后，才有可能真正获取到窗口大小。
+        let size = self.window.inner_size();
+        self.resize(size);
     }
 
     fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
@@ -574,14 +582,17 @@ impl State {
     fn input(&mut self, event: &WindowEvent) -> bool {
         match event {
             WindowEvent::KeyboardInput {
-                input:
-                    KeyboardInput {
-                        virtual_keycode: Some(key),
+                event:
+                    KeyEvent {
                         state,
+                        physical_key,
+                        logical_key,
                         ..
                     },
                 ..
-            } => self.camera_controller.process_keyboard(*key, *state),
+            } => self
+                .camera_controller
+                .process_keyboard(physical_key, logical_key, *state),
             WindowEvent::MouseWheel { delta, .. } => {
                 self.camera_controller.process_scroll(delta);
                 true
@@ -702,11 +713,13 @@ pub async fn run() {
 
     let event_loop = EventLoop::new().unwrap();
     let title = env!("CARGO_PKG_NAME");
-    let window = winit::window::WindowBuilder::new()
-        .with_title(title)
-        .with_visible(false)
-        .build(&event_loop)
-        .unwrap();
+    let window = Arc::new(
+        winit::window::WindowBuilder::new()
+            .with_title(title)
+            .with_visible(false)
+            .build(&event_loop)
+            .unwrap(),
+    );
 
     #[cfg(target_arch = "wasm32")]
     {
@@ -717,28 +730,41 @@ pub async fn run() {
         web_sys::window()
             .and_then(|win| win.document())
             .and_then(|doc| {
+                let canvas = window.canvas().unwrap();
+                let mut web_width = 800.0f32;
+                let ratio = if let Some(ratio) = wh_ratio {
+                    ratio
+                } else {
+                    1.0
+                };
                 match doc.get_element_by_id("wasm-example") {
                     Some(dst) => {
-                        let _ = window.request_inner_size(PhysicalSize::new(450, 400));
-                        let _ = dst.append_child(&web_sys::Element::from(window.canvas()));
+                        web_width = dst.client_width() as f32;
+                        let _ = dst.append_child(&web_sys::Element::from(canvas));
                     }
                     None => {
-                        let _ = window.request_inner_size(PhysicalSize::new(800, 800));
-                        let canvas = window.canvas();
                         canvas.style().set_css_text(
                             "background-color: black; display: block; margin: 20px auto;",
                         );
-                        doc.body().and_then(|body| {
-                            Some(body.append_child(&web_sys::Element::from(canvas)))
-                        });
+                        doc.body()
+                            .map(|body| body.append_child(&web_sys::Element::from(canvas)));
                     }
                 };
+                // winit 0.29 开始，通过 request_inner_size, canvas.set_width 都无法设置 canvas 的大小
+                let canvas = window.canvas().unwrap();
+                let web_height = web_width / ratio;
+                let scale_factor = window.scale_factor() as f32;
+                canvas.set_width((web_width * scale_factor) as u32);
+                canvas.set_height((web_height * scale_factor) as u32);
+                canvas.style().set_css_text(
+                    &(canvas.style().css_text()
+                        + &format!("width: {}px; height: {}px", web_width, web_height)),
+                );
                 Some(())
             })
             .expect("Couldn't append canvas to document body.");
     }
-
-    let mut state = State::new(&window).await; // NEW!
+    let mut state = State::new(window.clone()).await; // NEW!
     window.set_visible(true);
     let mut last_render_time = instant::Instant::now();
     cfg_if::cfg_if! {
@@ -757,35 +783,37 @@ pub async fn run() {
             }
 
             if let Event::WindowEvent { event, .. } = event {
-                match event {
-                    WindowEvent::KeyboardInput {
-                        event:
-                            KeyEvent {
-                                logical_key: Key::Named(NamedKey::Escape),
-                                ..
-                            },
-                        ..
-                    }
-                    | WindowEvent::CloseRequested => elwt.exit(),
-                    WindowEvent::Resized(physical_size) => {
-                        state.resize(physical_size);
-                    }
-                    // UPDATED!
-                    WindowEvent::RedrawRequested => {
-                        let now = instant::Instant::now();
-                        let dt = now - last_render_time;
-                        last_render_time = now;
-                        state.update(dt);
-                        match state.render() {
-                            Ok(_) => {}
-                            // We're ignoring timeouts
-                            Err(wgpu::SurfaceError::Timeout) => log::warn!("Surface timeout"),
-                            // Reconfigure the surface if it's lost or outdated
-                            Err(_) => state.resize(state.size),
+                if !state.input(&event) {
+                    match event {
+                        WindowEvent::KeyboardInput {
+                            event:
+                                KeyEvent {
+                                    logical_key: Key::Named(NamedKey::Escape),
+                                    ..
+                                },
+                            ..
                         }
-                        window.request_redraw();
+                        | WindowEvent::CloseRequested => elwt.exit(),
+                        WindowEvent::Resized(physical_size) => {
+                            state.resize(physical_size);
+                        }
+                        // UPDATED!
+                        WindowEvent::RedrawRequested => {
+                            let now = instant::Instant::now();
+                            let dt = now - last_render_time;
+                            last_render_time = now;
+                            state.update(dt);
+                            match state.render() {
+                                Ok(_) => {}
+                                // We're ignoring timeouts
+                                Err(wgpu::SurfaceError::Timeout) => log::warn!("Surface timeout"),
+                                // Reconfigure the surface if it's lost or outdated
+                                Err(_) => state.resize(state.size),
+                            }
+                            window.request_redraw();
+                        }
+                        _ => {}
                     }
-                    _ => {}
                 }
             }
         },

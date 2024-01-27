@@ -1,12 +1,10 @@
 use std::iter;
 
 use app_surface::{AppSurface, SurfaceFrame};
-use winit::keyboard::PhysicalKey;
 use winit::window::WindowId;
 use winit::{
     dpi::PhysicalSize,
     event::*,
-    event_loop::{EventLoop, EventLoopWindowTarget},
     keyboard::{Key, NamedKey},
 };
 

@@ -37,7 +37,7 @@ pollster = "0.3"
 rayon = "1.8"
 tobj = "3.2"
 winit = "0.29.10"
-wgpu = { version = "0.19" }
+wgpu = { version = "0.19.1" }
 # wgpu = { git = "https://github.com/gfx-rs/wgpu", rev = "445fa6019b47079c9d336881dbee1c3be3ed4c38" }
 utils = { path = "code/utils" }
 
@@ -46,7 +46,7 @@ console_error_panic_hook = "0.1.7"
 console_log = "1.0"
 reqwest = { version = "0.11" }
 js-sys = "0.3.67"
-wasm-bindgen = "0.2.87"
+wasm-bindgen = "0.2.90"
 wasm-bindgen-futures = "0.4.40"
 web-sys = "0.3.67"
 

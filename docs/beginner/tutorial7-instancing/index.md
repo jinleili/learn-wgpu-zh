@@ -91,7 +91,7 @@ const INSTANCE_DISPLACEMENT: glam::Vec3 = glam::Vec3::new(NUM_INSTANCES_PER_ROW 
 
 ```rust
 impl State {
-    async fn new(window: &Window) -> Self {
+    async fn new(window: Arc<Window>) -> Self {
         // ...
         let instances = (0..NUM_INSTANCES_PER_ROW).flat_map(|z| {
             (0..NUM_INSTANCES_PER_ROW).map(move |x| {

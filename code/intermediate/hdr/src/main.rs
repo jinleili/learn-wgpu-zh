@@ -1,7 +1,7 @@
 use app_surface::{AppSurface, SurfaceFrame};
 use std::iter;
 use wgpu::util::DeviceExt;
-use winit::{dpi::PhysicalSize, event::*, window::WindowId};
+use winit::{dpi::PhysicalSize, event::*};
 
 mod framework;
 use framework::run;
@@ -349,7 +349,7 @@ impl State {
         });
 
         let obj_model =
-            resources::load_model("cube.obj", &device, &queue, &texture_bind_group_layout)
+            resources::load_model("cube.obj", device, queue, &texture_bind_group_layout)
                 .await
                 .unwrap();
 
@@ -390,18 +390,17 @@ impl State {
             label: None,
         });
 
-        let depth_texture =
-            texture::Texture::create_depth_texture(&device, &config, "depth_texture");
+        let depth_texture = texture::Texture::create_depth_texture(device, config, "depth_texture");
 
         // NEW!
-        let hdr = hdr::HdrPipeline::new(&device, &config);
+        let hdr = hdr::HdrPipeline::new(device, config);
 
-        let hdr_loader = resources::HdrLoader::new(&device);
+        let hdr_loader = resources::HdrLoader::new(device);
         // pure-sky 是一张 .hdr 后缀的文件，网格上加载为何报如下错误？
         // Format error decoding Hdr: Radiance HDR signature not found
         let sky_bytes = resources::load_binary("pure-sky.hdr").await.unwrap();
         let sky_texture = hdr_loader
-            .from_equirectangular_bytes(&device, &queue, &sky_bytes, 1080, Some("Sky Texture"))
+            .from_equirectangular_bytes(device, queue, &sky_bytes, 1080, Some("Sky Texture"))
             .unwrap();
 
         let environment_layout =
@@ -433,7 +432,7 @@ impl State {
             entries: &[
                 wgpu::BindGroupEntry {
                     binding: 0,
-                    resource: wgpu::BindingResource::TextureView(&sky_texture.view()),
+                    resource: wgpu::BindingResource::TextureView(sky_texture.view()),
                 },
                 wgpu::BindGroupEntry {
                     binding: 1,
@@ -460,7 +459,7 @@ impl State {
                 source: wgpu::ShaderSource::Wgsl(include_str!("shader.wgsl").into()),
             };
             create_render_pipeline(
-                &device,
+                device,
                 &render_pipeline_layout,
                 hdr.format(),
                 Some(texture::Texture::DEPTH_FORMAT),
@@ -481,7 +480,7 @@ impl State {
                 source: wgpu::ShaderSource::Wgsl(include_str!("light.wgsl").into()),
             };
             create_render_pipeline(
-                &device,
+                device,
                 &layout,
                 hdr.format(),
                 Some(texture::Texture::DEPTH_FORMAT),
@@ -500,7 +499,7 @@ impl State {
             });
             let shader = wgpu::include_wgsl!("sky.wgsl");
             create_render_pipeline(
-                &device,
+                device,
                 &layout,
                 hdr.format(),
                 Some(texture::Texture::DEPTH_FORMAT),
@@ -515,16 +514,16 @@ impl State {
             let normal_bytes = include_bytes!("../res/cobble-normal.png");
 
             let diffuse_texture = texture::Texture::from_bytes(
-                &device,
-                &queue,
+                device,
+                queue,
                 diffuse_bytes,
                 "res/alt-diffuse.png",
                 false,
             )
             .unwrap();
             let normal_texture = texture::Texture::from_bytes(
-                &device,
-                &queue,
+                device,
+                queue,
                 normal_bytes,
                 "res/alt-normal.png",
                 true,
@@ -532,7 +531,7 @@ impl State {
             .unwrap();
 
             model::Material::new(
-                &device,
+                device,
                 "alt-material",
                 diffuse_texture,
                 normal_texture,
@@ -573,11 +572,14 @@ impl State {
         }
     }
 
+    fn start(&mut self) {
+        //  只有在进入事件循环之后，才有可能真正获取到窗口大小。
+        let size = self.app.get_view().inner_size();
+        self.resize(&size);
+    }
+
     fn get_adapter_info(&self) -> wgpu::AdapterInfo {
         self.app.adapter.get_info()
-    }
-    fn current_window_id(&self) -> WindowId {
-        self.app.view.id()
     }
 
     fn resize(&mut self, new_size: &PhysicalSize<u32>) {
@@ -600,20 +602,23 @@ impl State {
     }
 
     fn request_redraw(&mut self) {
-        self.app.view.request_redraw();
+        self.app.get_view().request_redraw();
     }
 
     fn input(&mut self, event: &WindowEvent) -> bool {
         match event {
             WindowEvent::KeyboardInput {
-                input:
-                    KeyboardInput {
-                        virtual_keycode: Some(key),
+                event:
+                    KeyEvent {
                         state,
+                        physical_key,
+                        logical_key,
                         ..
                     },
                 ..
-            } => self.camera_controller.process_keyboard(*key, *state),
+            } => self
+                .camera_controller
+                .process_keyboard(physical_key, logical_key, *state),
             WindowEvent::MouseWheel { delta, .. } => {
                 self.camera_controller.process_scroll(delta);
                 true
@@ -743,5 +748,5 @@ impl State {
 }
 
 fn main() {
-    run(None);
+    run(Some(1.6));
 }

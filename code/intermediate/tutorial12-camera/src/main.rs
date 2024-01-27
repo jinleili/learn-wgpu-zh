@@ -1,9 +1,7 @@
-use std::{f32::consts, iter};
-
 use app_surface::{AppSurface, SurfaceFrame};
+use std::{f32::consts, iter};
 use wgpu::util::DeviceExt;
-use winit::{event::*, window::WindowId};
-
+use winit::event::*;
 mod framework;
 use framework::run;
 mod camera;
@@ -478,19 +476,21 @@ impl State {
         }
     }
 
+    fn start(&mut self) {
+        //  只有在进入事件循环之后，才有可能真正获取到窗口大小。
+        let size = self.app.get_view().inner_size();
+        self.resize(size);
+    }
+
     fn get_adapter_info(&self) -> wgpu::AdapterInfo {
         self.app.adapter.get_info()
     }
 
-    fn current_window_id(&self) -> WindowId {
-        self.app.view.id()
-    }
-
     fn request_redraw(&mut self) {
-        self.app.view.request_redraw();
+        self.app.get_view().request_redraw();
     }
 
-    fn resize(&mut self, new_size: &winit::dpi::PhysicalSize<u32>) {
+    fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
         // UPDATED!
         if new_size.width > 0 && new_size.height > 0 {
             self.projection.resize(new_size.width, new_size.height);
@@ -507,14 +507,17 @@ impl State {
     fn input(&mut self, event: &WindowEvent) -> bool {
         match event {
             WindowEvent::KeyboardInput {
-                input:
-                    KeyboardInput {
-                        virtual_keycode: Some(key),
+                event:
+                    KeyEvent {
                         state,
+                        physical_key,
+                        logical_key,
                         ..
                     },
                 ..
-            } => self.camera_controller.process_keyboard(*key, *state),
+            } => self
+                .camera_controller
+                .process_keyboard(physical_key, logical_key, *state),
             WindowEvent::MouseWheel { delta, .. } => {
                 self.camera_controller.process_scroll(delta);
                 true
@@ -613,5 +616,5 @@ impl State {
 }
 
 fn main() {
-    run(None);
+    run(Some(1.4));
 }

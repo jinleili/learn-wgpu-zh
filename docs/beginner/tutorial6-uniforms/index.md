@@ -53,7 +53,7 @@ struct State {
     // ...
 }
 
-async fn new(window: &Window) -> Self {
+async fn new(window: Arc<Window>) -> Self {
     // let diffuse_bind_group ...
 
     let camera = Camera {
@@ -191,7 +191,7 @@ struct State {
     camera_bind_group: wgpu::BindGroup,
 }
 
-async fn new(window: &Window) -> Self {
+async fn new(window: Arc<Window>) -> Self {
     // ...
     Self {
         // ...
@@ -283,28 +283,41 @@ impl CameraController {
     fn process_events(&mut self, event: &WindowEvent) -> bool {
         match event {
             WindowEvent::KeyboardInput {
-                input: KeyboardInput {
-                    state,
-                    virtual_keycode: Some(keycode),
-                    ..
-                },
+                event:
+                    KeyEvent {
+                        state,
+                        logical_key,
+                        physical_key,
+                        ..
+                    },
                 ..
             } => {
                 let is_pressed = *state == ElementState::Pressed;
-                match keycode {
-                    VirtualKeyCode::W | VirtualKeyCode::Up => {
+                match logical_key {
+                    Key::Named(NamedKey::Space) => {
+                        self.is_up_pressed = is_pressed;
+                        return true;
+                    }
+                    _ => {}
+                }
+                match physical_key {
+                    PhysicalKey::Code(KeyCode::ShiftLeft) => {
+                        self.is_down_pressed = is_pressed;
+                        true
+                    }
+                    PhysicalKey::Code(KeyCode::KeyW) | PhysicalKey::Code(KeyCode::ArrowUp) => {
                         self.is_forward_pressed = is_pressed;
                         true
                     }
-                    VirtualKeyCode::A | VirtualKeyCode::Left => {
+                    PhysicalKey::Code(KeyCode::KeyA) | PhysicalKey::Code(KeyCode::ArrowLeft) => {
                         self.is_left_pressed = is_pressed;
                         true
                     }
-                    VirtualKeyCode::S | VirtualKeyCode::Down => {
+                    PhysicalKey::Code(KeyCode::KeyS) | PhysicalKey::Code(KeyCode::ArrowDown) => {
                         self.is_backward_pressed = is_pressed;
                         true
                     }
-                    VirtualKeyCode::D | VirtualKeyCode::Right => {
+                    PhysicalKey::Code(KeyCode::KeyD) | PhysicalKey::Code(KeyCode::ArrowRight) => {
                         self.is_right_pressed = is_pressed;
                         true
                     }
@@ -360,7 +373,7 @@ struct State {
 }
 // ...
 impl State {
-    async fn new(window: &Window) -> Self {
+    async fn new(window: Arc<Window>) -> Self {
         // ...
         let camera_controller = CameraController::new(0.2);
         // ...

@@ -1,6 +1,6 @@
 use winit::{
     event::*,
-    event_loop::EventLoop,
+    event_loop::{EventLoop, EventLoopWindowTarget},
     keyboard::{Key, NamedKey},
     window::WindowBuilder,
 };
@@ -16,20 +16,19 @@ fn start_event_loop() {
     {
         // Winit prevents sizing with CSS, so we have to set
         // the size manually when on web.
-        use winit::dpi::PhysicalSize;
         use winit::platform::web::WindowExtWebSys;
 
         web_sys::window()
             .and_then(|win| win.document())
             .map(|doc| {
                 let canvas = window.canvas().unwrap();
+                let mut web_width = 800.0f32;
                 match doc.get_element_by_id("wasm-example") {
                     Some(dst) => {
-                        let _ = window.request_inner_size(PhysicalSize::new(450, 400));
+                        web_width = dst.client_width() as f32;
                         let _ = dst.append_child(&web_sys::Element::from(canvas));
                     }
                     None => {
-                        let _ = window.request_inner_size(PhysicalSize::new(800, 800));
                         canvas.style().set_css_text(
                             "background-color: black; display: block; margin: 20px auto;",
                         );
@@ -37,6 +36,13 @@ fn start_event_loop() {
                             .map(|body| body.append_child(&web_sys::Element::from(canvas)));
                     }
                 };
+                // winit 0.29 开始，通过 request_inner_size, canvas.set_width 都无法设置 canvas 的大小
+                let canvas = window.canvas().unwrap();
+                let web_height = web_width;
+                canvas.style().set_css_text(
+                    &(canvas.style().css_text()
+                        + &format!("width: {}px; height: {}px", web_width, web_height)),
+                );
             })
             .expect("Couldn't append canvas to document body.");
     }

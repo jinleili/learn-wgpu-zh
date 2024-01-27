@@ -16,6 +16,7 @@ rayon.workspace = true
 tobj = "2.0"
 wgpu.workspace = true
 winit.workspace = true
+cfg-if.workspace = true
 
 [build-dependencies]
 anyhow.workspace = true

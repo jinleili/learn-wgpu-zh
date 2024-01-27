@@ -1,9 +1,10 @@
 use rayon::prelude::*;
-use std::{f32::consts, iter};
+use std::{f32::consts, iter, sync::Arc};
 use wgpu::util::DeviceExt;
 use winit::{
     event::*,
-    event_loop::{ControlFlow, EventLoop},
+    event_loop::{EventLoop, EventLoopWindowTarget},
+    keyboard::{Key, NamedKey},
     window::Window,
 };
 
@@ -130,8 +131,8 @@ struct LightUniform {
 }
 
 struct State {
-    window: Window,
-    surface: wgpu::Surface,
+    window: Arc<Window>,
+    surface: wgpu::Surface<'static>,
     device: wgpu::Device,
     queue: wgpu::Queue,
     config: wgpu::SurfaceConfiguration,
@@ -218,7 +219,7 @@ fn create_render_pipeline(
 }
 
 impl State {
-    async fn new(window: Window) -> Self {
+    async fn new(window: Arc<Window>) -> Self {
         let size = window.inner_size();
 
         // The instance is a handle to our GPU
@@ -231,7 +232,7 @@ impl State {
         //
         // The surface needs to live as long as the window that created it.
         // State owns the window so this should be safe.
-        let surface = unsafe { instance.create_surface(&window).unwrap() };
+        let surface = instance.create_surface(window.clone()).unwrap();
 
         let adapter = instance
             .request_adapter(&wgpu::RequestAdapterOptions {
@@ -540,8 +541,10 @@ impl State {
         }
     }
 
-    pub fn window(&self) -> &Window {
-        &self.window
+    fn start(&mut self) {
+        //  只有在进入事件循环之后，才有可能真正获取到窗口大小。
+        let size = self.window.inner_size();
+        self.resize(size);
     }
 
     fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
@@ -559,14 +562,17 @@ impl State {
     fn input(&mut self, event: &WindowEvent) -> bool {
         match event {
             WindowEvent::KeyboardInput {
-                input:
-                    KeyboardInput {
-                        virtual_keycode: Some(key),
+                event:
+                    KeyEvent {
                         state,
+                        physical_key,
+                        logical_key,
                         ..
                     },
                 ..
-            } => self.camera_controller.process_keyboard(*key, *state),
+            } => self
+                .camera_controller
+                .process_keyboard(physical_key, logical_key, *state),
             WindowEvent::MouseWheel { delta, .. } => {
                 self.camera_controller.process_scroll(delta);
                 true
@@ -677,7 +683,7 @@ pub async fn run() {
         }
     }
 
-    let event_loop = EventLoop::new();
+    let event_loop = EventLoop::new().unwrap();
     let title = env!("CARGO_PKG_NAME");
     let window = winit::window::WindowBuilder::new()
         .with_title(title)
@@ -703,9 +709,9 @@ pub async fn run() {
             .expect("Couldn't append canvas to document body.");
     }
 
-    let mut state = State::new(window).await; // NEW!
+    let mut state = State::new(Arc::new(window)).await; // NEW!
     let mut last_render_time = instant::Instant::now();
-     cfg_if::cfg_if! {
+    cfg_if::cfg_if! {
         if #[cfg(target_arch = "wasm32")] {
             use winit::platform::web::EventLoopExtWebSys;
             let event_loop_function = EventLoop::spawn;
@@ -716,69 +722,59 @@ pub async fn run() {
     let _ = (event_loop_function)(
         event_loop,
         move |event: Event<()>, elwt: &EventLoopWindowTarget<()>| {
-            if event == Event::NewEvents(StartCause::Init) {
-                state.start();
-            } else if event == Event::DeviceEvent {
-                DeviceEvent::MouseMotion{ delta },
-                .. // We're not using device_id currently
-            } {
-if state.mouse_pressed {
-                state.camera_controller.process_mouse(delta.0, delta.1)
+            match event {
+                Event::NewEvents(StartCause::Init) => state.start(),
+                Event::DeviceEvent {
+                    event: DeviceEvent::MouseMotion { delta },
+                    ..
+                } => {
+                    if state.mouse_pressed {
+                        state.camera_controller.process_mouse(delta.0, delta.1)
+                    }
+                }
+                _ => {}
             }
-            } 
             if let Event::WindowEvent { event, .. } = event {
-                match event {
-                    WindowEvent::KeyboardInput {
-                        event:
-                            KeyEvent {
-                                logical_key: Key::Named(NamedKey::Escape),
-                                ..
-                            },
-                        ..
-                    }
-                    | WindowEvent::CloseRequested => elwt.exit(),
-        
-            // UPDATED!
-            Event::WindowEvent {
-                ref event,
-                window_id,
-            } if window_id == state.window().id() && !state.input(event) => {
-                match event {
-                    #[cfg(not(target_arch="wasm32"))]
-                    WindowEvent::CloseRequested
-                    | WindowEvent::KeyboardInput {
-                        input:
-                            KeyboardInput {
-                                state: ElementState::Pressed,
-                                virtual_keycode: Some(VirtualKeyCode::Escape),
-                                ..
-                            },
-                        ..
-                    } => *control_flow = ControlFlow::Exit,
-                    WindowEvent::Resized(physical_size) => {
-                        // winit bug: https://github.com/rust-windowing/winit/issues/2876
-                        if physical_size.width < u32::MAX && physical_size.height < u32::MAX {
-                            state.resize(*physical_size);
+                if !state.input(&event) {
+                    match event {
+                        WindowEvent::KeyboardInput {
+                            event:
+                                KeyEvent {
+                                    logical_key: Key::Named(NamedKey::Escape),
+                                    ..
+                                },
+                            ..
                         }
+                        | WindowEvent::CloseRequested => elwt.exit(),
+
+                        WindowEvent::Resized(physical_size) => {
+                            // winit bug: https://github.com/rust-windowing/winit/issues/2876
+                            if physical_size.width < u32::MAX && physical_size.height < u32::MAX {
+                                state.resize(physical_size);
+                            }
+                        }
+                        WindowEvent::RedrawRequested => {
+                            let now = instant::Instant::now();
+                            let dt = now - last_render_time;
+                            last_render_time = now;
+                            state.update(dt);
+                            match state.render() {
+                                Ok(_) => {}
+                                // Reconfigure the surface if it's lost or outdated
+                                Err(
+                                    wgpu::SurfaceError::Lost
+                                    | wgpu::SurfaceError::Outdated
+                                    | wgpu::SurfaceError::OutOfMemory,
+                                ) => state.resize(state.size),
+                                // We're ignoring timeouts
+                                Err(wgpu::SurfaceError::Timeout) => log::warn!("Surface timeout"),
+                            }
+                            state.window.request_redraw();
+                        }
+                        _ => {}
                     }
-                    _ => {}
                 }
             }
-            WindowEvent::RedrawRequested => {
-                let now = instant::Instant::now();
-                let dt = now - last_render_time;
-                last_render_time = now;
-                state.update(dt);
-                match state.render() {
-                    Ok(_) => {}
-                    // Reconfigure the surface if it's lost or outdated
-                    Err(wgpu::SurfaceError::Lost | wgpu::SurfaceError::Outdated) => state.resize(state.size),
-                    // We're ignoring timeouts
-                    Err(wgpu::SurfaceError::Timeout) => log::warn!("Surface timeout"),
-                }
-                state.window.request_redraw();
-            }
-            _ => {}
-        }
-    });
+        },
+    );
 }

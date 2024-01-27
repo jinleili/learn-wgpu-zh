@@ -1,7 +1,10 @@
 use std::f32::consts::FRAC_PI_2;
 use std::time::Duration;
 use winit::dpi::PhysicalPosition;
-use winit::event::*;
+use winit::{
+    event::*,
+    keyboard::{Key, KeyCode, NamedKey, PhysicalKey},
+};
 
 const SAFE_FRAC_PI_2: f32 = FRAC_PI_2 - 0.0001;
 
@@ -91,35 +94,40 @@ impl CameraController {
         }
     }
 
-    pub fn process_keyboard(&mut self, key: VirtualKeyCode, state: ElementState) -> bool {
+    pub fn process_keyboard(
+        &mut self,
+        physical_key: &PhysicalKey,
+        logical_key: &Key,
+        state: ElementState,
+    ) -> bool {
         let amount = if state == ElementState::Pressed {
             1.0
         } else {
             0.0
         };
-        match key {
-            VirtualKeyCode::W | VirtualKeyCode::Up => {
+        if let Key::Named(NamedKey::Space) = logical_key {
+            self.amount_up = amount;
+            return true;
+        }
+        match physical_key {
+            PhysicalKey::Code(KeyCode::ShiftLeft) => {
+                self.amount_down = amount;
+                true
+            }
+            PhysicalKey::Code(KeyCode::KeyW) | PhysicalKey::Code(KeyCode::ArrowUp) => {
                 self.amount_forward = amount;
                 true
             }
-            VirtualKeyCode::S | VirtualKeyCode::Down => {
-                self.amount_backward = amount;
-                true
-            }
-            VirtualKeyCode::A | VirtualKeyCode::Left => {
+            PhysicalKey::Code(KeyCode::KeyA) | PhysicalKey::Code(KeyCode::ArrowLeft) => {
                 self.amount_left = amount;
                 true
             }
-            VirtualKeyCode::D | VirtualKeyCode::Right => {
+            PhysicalKey::Code(KeyCode::KeyS) | PhysicalKey::Code(KeyCode::ArrowDown) => {
+                self.amount_backward = amount;
+                true
+            }
+            PhysicalKey::Code(KeyCode::KeyD) | PhysicalKey::Code(KeyCode::ArrowRight) => {
                 self.amount_right = amount;
-                true
-            }
-            VirtualKeyCode::Space => {
-                self.amount_up = amount;
-                true
-            }
-            VirtualKeyCode::LShift => {
-                self.amount_down = amount;
                 true
             }
             _ => false,

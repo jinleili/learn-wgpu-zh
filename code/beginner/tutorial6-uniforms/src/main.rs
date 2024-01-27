@@ -1,12 +1,12 @@
-use std::iter;
 use app_surface::{AppSurface, SurfaceFrame};
+use std::iter;
 use utils::framework::{run, Action};
 use wgpu::util::DeviceExt;
 use winit::{
-    window::WindowId,
     dpi::PhysicalSize,
     event::*,
     keyboard::{Key, KeyCode, NamedKey, PhysicalKey},
+    window::WindowId,
 };
 
 mod texture;
@@ -138,12 +138,9 @@ impl CameraController {
                 ..
             } => {
                 let is_pressed = *state == ElementState::Pressed;
-                match logical_key {
-                    Key::Named(NamedKey::Space) => {
-                        self.is_up_pressed = is_pressed;
-                        return true;
-                    }
-                    _ => {}
+                if let Key::Named(NamedKey::Space) = logical_key {
+                    self.is_up_pressed = is_pressed;
+                    return true;
                 }
                 match physical_key {
                     PhysicalKey::Code(KeyCode::ShiftLeft) => {
@@ -490,5 +487,5 @@ impl Action for State {
 }
 
 pub fn main() {
-    run::<State>(None, None);
+    run::<State>(Some(1.4), None);
 }

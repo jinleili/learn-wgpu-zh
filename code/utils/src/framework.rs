@@ -77,7 +77,7 @@ async fn create_action_instance<A: Action + 'static>(
 
     // 计算一个默认显示高度
     let height = (if cfg!(target_arch = "wasm32") {
-        550.0
+        500.0
     } else {
         600.0
     } * scale_factor) as u32;
@@ -105,20 +105,37 @@ async fn create_action_instance<A: Action + 'static>(
                     "wasm-example"
                 };
                 let canvas = window.canvas().unwrap();
+                let mut web_width = 800.0f32;
+                let ratio = if let Some(ratio) = wh_ratio {
+                    ratio
+                } else {
+                    1.0
+                };
+
                 match doc.get_element_by_id(&element_id) {
                     Some(dst) => {
+                        web_width = dst.client_width() as f32;
                         let _ = dst.append_child(&web_sys::Element::from(canvas)).ok();
                     }
                     None => {
                         canvas.style().set_css_text(
                             &(canvas.style().css_text()
-                                + "background-color: black; display: block; margin: 20px auto; max-width: 800px"),
+                                + "background-color: black; display: block; margin: 20px auto;"),
                         );
                         doc.body()
                             .map(|body| body.append_child(&web_sys::Element::from(canvas)).ok());
                     }
                 };
                 // winit 0.29 开始，通过 request_inner_size, canvas.set_width 都无法设置 canvas 的大小
+                let canvas = window.canvas().unwrap();
+                let web_height = web_width / ratio;
+                let scale_factor = window.scale_factor() as f32;
+                canvas.set_width((web_width * scale_factor) as u32);
+                canvas.set_height((web_height * scale_factor) as u32);
+                canvas.style().set_css_text(
+                    &(canvas.style().css_text()
+                        + &format!("width: {}px; height: {}px", web_width, web_height)),
+                );
             })
             .expect("Couldn't append canvas to document body.");
     };

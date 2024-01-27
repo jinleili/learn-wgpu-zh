@@ -140,5 +140,5 @@ impl Action for State {
 }
 
 pub fn main() {
-    run::<State>(None, None);
+    run::<State>(Some(1.4), None);
 }

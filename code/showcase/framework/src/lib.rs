@@ -16,28 +16,32 @@ pub use shader_canvas::*;
 pub use texture::*;
 
 use anyhow::*;
+use std::sync::Arc;
 use std::time::{Duration, Instant};
 use wgpu::util::{BufferInitDescriptor, DeviceExt};
 use winit::event::*;
-use winit::event_loop::{ControlFlow, EventLoop};
 use winit::window::{Window, WindowBuilder};
+use winit::{
+    event_loop::{EventLoop, EventLoopWindowTarget},
+    keyboard::{Key, NamedKey},
+};
 
 pub struct Display {
-    surface: wgpu::Surface,
-    pub window: Window,
+    surface: wgpu::Surface<'static>,
+    pub window: Arc<Window>,
     pub config: wgpu::SurfaceConfiguration,
     pub device: wgpu::Device,
     pub queue: wgpu::Queue,
 }
 
 impl Display {
-    pub async fn new(window: Window) -> Result<Self, Error> {
+    pub async fn new(window: Arc<Window>) -> Result<Self, Error> {
         let size = window.inner_size();
         let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
             backends: wgpu::Backends::all(),
             ..Default::default()
         });
-        let surface = unsafe { instance.create_surface(&window).unwrap() };
+        let surface = instance.create_surface(window.clone()).unwrap();
         let adapter = instance
             .request_adapter(&wgpu::RequestAdapterOptions {
                 power_preference: wgpu::PowerPreference::default(),
@@ -200,6 +204,7 @@ impl UniformBinding {
 
 pub trait Demo: 'static + Sized {
     fn init(display: &Display) -> Result<Self, Error>;
+    fn start(&mut self);
     fn process_mouse(&mut self, dx: f64, dy: f64);
     fn resize(&mut self, display: &Display);
     fn update(&mut self, display: &Display, dt: Duration);
@@ -211,7 +216,7 @@ pub async fn run<D: Demo>() -> Result<(), Error> {
     let window = WindowBuilder::new()
         .with_title(env!("CARGO_PKG_NAME"))
         .build(&event_loop)?;
-    let mut display = Display::new(window).await?;
+    let mut display = Display::new(Arc::new(window)).await?;
     let mut demo = D::init(&display)?;
     let mut last_update = Instant::now();
     let mut is_resumed = true;
@@ -227,52 +232,53 @@ pub async fn run<D: Demo>() -> Result<(), Error> {
     }
     let _ = (event_loop_function)(
         event_loop,
-        move |event: Event<()>, elwt: &EventLoopWindowTarget<()>| match event {
-            Event::NewEvents(StartCause::Init) => {
-                state.start();
+        move |event: Event<()>, elwt: &EventLoopWindowTarget<()>| {
+            if event == Event::NewEvents(StartCause::Init) {
+                demo.start();
             }
-            Event::Resumed => is_resumed = true,
-            Event::Suspended => is_resumed = false,
-            Event::WindowEvent { event, .. } => match event {
-                WindowEvent::KeyboardInput {
-                    event:
-                        KeyEvent {
-                            logical_key: Key::Named(NamedKey::Escape),
-                            ..
-                        },
-                    ..
-                }
-                | WindowEvent::CloseRequested => elwt.exit(),
-            },
-            WindowEvent::RedrawRequested => {
-                if wid == display.window().id() {
-                    let now = Instant::now();
-                    let dt = now - last_update;
-                    last_update = now;
-
-                    demo.update(&display, dt);
-                    demo.render(&mut display);
-                    is_redraw_requested = false;
-
-                    display.window().request_redraw();
-                }
-            }
-            Event::WindowEvent {
-                event, window_id, ..
-            } => {
-                if window_id == display.window().id() {
+            if let Event::WindowEvent { event, .. } = event {
+                if !demo.input(&event) {
                     match event {
-                        WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
-                        WindowEvent::Focused(f) => is_focused = f,
-                        WindowEvent::Resized(new_inner_size) => {
-                            display.resize(new_inner_size.width, new_inner_size.height);
-                            demo.resize(&display);
+                        WindowEvent::KeyboardInput {
+                            event:
+                                KeyEvent {
+                                    logical_key: Key::Named(NamedKey::Escape),
+                                    ..
+                                },
+                            ..
+                        }
+                        | WindowEvent::CloseRequested => elwt.exit(),
+                        WindowEvent::Resized(physical_size) => {
+                            if physical_size.width == 0 || physical_size.height == 0 {
+                                // 处理最小化窗口的事件
+                                println!("Window minimized!");
+                            } else {
+                                display.resize(physical_size.width, physical_size.height);
+                                demo.resize(&display);
+                            }
+                        }
+                        WindowEvent::RedrawRequested => {
+                            let now = instant::Instant::now();
+                            let _dt = now - last_render_time;
+                            last_render_time = now;
+                            demo.update(&display, dt);
+
+                            match demo.render(&mut display) {
+                                Ok(_) => {}
+                                // 当展示平面的上下文丢失，就需重新配置
+                                Err(wgpu::SurfaceError::Lost) => eprintln!("Surface is lost"),
+                                // 所有其他错误（过期、超时等）应在下一帧解决
+                                Err(e) => eprintln!("SurfaceError: {e:?}"),
+                            }
+                            is_redraw_requested = false;
+
+                            // 除非我们手动请求，RedrawRequested 将只会触发一次。
+                            display.window().request_redraw();
                         }
                         _ => {}
                     }
                 }
             }
-            _ => {}
         },
     );
 }

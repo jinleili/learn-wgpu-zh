@@ -292,6 +292,7 @@ impl HdrLoader {
         }
     }
 
+    #[allow(clippy::wrong_self_convention)]
     pub fn from_equirectangular_bytes(
         &self,
         device: &wgpu::Device,
@@ -328,7 +329,7 @@ impl HdrLoader {
                 origin: wgpu::Origin3d::ZERO,
                 aspect: wgpu::TextureAspect::All,
             },
-            &bytemuck::cast_slice(&pixels),
+            bytemuck::cast_slice(&pixels),
             wgpu::ImageDataLayout {
                 offset: 0,
                 bytes_per_row: Some(src.size.width * std::mem::size_of::<[f32; 4]>() as u32),

@@ -216,7 +216,6 @@ pub fn run<A: Action + 'static>() {
 ```rust
 #[cfg(target_arch = "wasm32")]
 {
-    // Winit 不允许用 CSS 调整大小，所以在 web 环境里我们必须手动设置大小。
     use winit::dpi::PhysicalSize;
     let _ = window.request_inner_size(PhysicalSize::new(450, 400));
 

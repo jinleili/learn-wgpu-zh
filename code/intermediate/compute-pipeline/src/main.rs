@@ -128,11 +128,17 @@ impl Action for State {
         }
     }
 
+    fn start(&mut self) {
+        //  只有在进入事件循环之后，才有可能真正获取到窗口大小。
+        let size = self.app.get_view().inner_size();
+        self.resize(&size);
+    }
+
     fn get_adapter_info(&self) -> wgpu::AdapterInfo {
         self.app.adapter.get_info()
     }
     fn current_window_id(&self) -> WindowId {
-        self.app.view.id()
+        self.app.get_view().id()
     }
     fn resize(&mut self, size: &PhysicalSize<u32>) {
         if self.app.config.width == size.width && self.app.config.height == size.height {
@@ -141,7 +147,7 @@ impl Action for State {
         self.app.resize_surface();
     }
     fn request_redraw(&mut self) {
-        self.app.view.request_redraw();
+        self.app.get_view().request_redraw();
     }
 
     fn render(&mut self) -> Result<(), wgpu::SurfaceError> {

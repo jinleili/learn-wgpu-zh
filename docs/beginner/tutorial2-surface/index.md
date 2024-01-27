@@ -18,7 +18,7 @@ struct State {
 
 impl State {
     // 创建某些 wgpu 类型需要使用异步代码
-    async fn new(window: &Window) -> Self {
+    async fn new(window: Arc<Window>) -> Self {
         todo!()
     }
 
@@ -72,7 +72,7 @@ pub trait Action {
 ```rust
 impl State {
     // ...
-    async fn new(window: &Window) -> Self {
+    async fn new(Arc<Window>) -> Self {
         let size = window.inner_size();
 
         // instance 变量是 GPU 实例
@@ -81,7 +81,7 @@ impl State {
             backends: wgpu::Backends::all(),
             ..Default::default()
         });
-        let surface = unsafe { instance.create_surface(window).unwrap() };
+        let surface = instance.create_surface(window.clone()).unwrap();
         let adapter = instance
             .request_adapter(&wgpu::RequestAdapterOptions {
                 compatible_surface: Some(&surface),

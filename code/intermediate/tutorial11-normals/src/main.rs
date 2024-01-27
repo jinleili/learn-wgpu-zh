@@ -2,7 +2,10 @@ use std::{f32::consts, iter};
 
 use app_surface::{AppSurface, SurfaceFrame};
 use wgpu::util::DeviceExt;
-use winit::{event::*, window::WindowId};
+use winit::{
+    event::*,
+    keyboard::{Key, KeyCode, NamedKey, PhysicalKey},
+};
 
 mod framework;
 use framework::run;
@@ -81,37 +84,38 @@ impl CameraController {
     fn process_events(&mut self, event: &WindowEvent) -> bool {
         match event {
             WindowEvent::KeyboardInput {
-                input:
-                    KeyboardInput {
+                event:
+                    KeyEvent {
                         state,
-                        virtual_keycode: Some(keycode),
+                        physical_key,
+                        logical_key,
                         ..
                     },
                 ..
             } => {
                 let is_pressed = *state == ElementState::Pressed;
-                match keycode {
-                    VirtualKeyCode::Space => {
-                        self.is_up_pressed = is_pressed;
-                        true
-                    }
-                    VirtualKeyCode::LShift => {
+                if let Key::Named(NamedKey::Space) = logical_key {
+                    self.is_up_pressed = is_pressed;
+                    return true;
+                }
+                match physical_key {
+                    PhysicalKey::Code(KeyCode::ShiftLeft) => {
                         self.is_down_pressed = is_pressed;
                         true
                     }
-                    VirtualKeyCode::W | VirtualKeyCode::Up => {
+                    PhysicalKey::Code(KeyCode::KeyW) | PhysicalKey::Code(KeyCode::ArrowUp) => {
                         self.is_forward_pressed = is_pressed;
                         true
                     }
-                    VirtualKeyCode::A | VirtualKeyCode::Left => {
+                    PhysicalKey::Code(KeyCode::KeyA) | PhysicalKey::Code(KeyCode::ArrowLeft) => {
                         self.is_left_pressed = is_pressed;
                         true
                     }
-                    VirtualKeyCode::S | VirtualKeyCode::Down => {
+                    PhysicalKey::Code(KeyCode::KeyS) | PhysicalKey::Code(KeyCode::ArrowDown) => {
                         self.is_backward_pressed = is_pressed;
                         true
                     }
-                    VirtualKeyCode::D | VirtualKeyCode::Right => {
+                    PhysicalKey::Code(KeyCode::KeyD) | PhysicalKey::Code(KeyCode::ArrowRight) => {
                         self.is_right_pressed = is_pressed;
                         true
                     }
@@ -597,16 +601,18 @@ impl State {
         }
     }
 
+    fn start(&mut self) {
+        //  只有在进入事件循环之后，才有可能真正获取到窗口大小。
+        let size = self.app.get_view().inner_size();
+        self.resize(&size);
+    }
+
     fn get_adapter_info(&self) -> wgpu::AdapterInfo {
         self.app.adapter.get_info()
     }
 
-    fn current_window_id(&self) -> WindowId {
-        self.app.view.id()
-    }
-
     fn request_redraw(&mut self) {
-        self.app.view.request_redraw();
+        self.app.get_view().request_redraw();
     }
 
     fn resize(&mut self, new_size: &winit::dpi::PhysicalSize<u32>) {
@@ -705,5 +711,5 @@ impl State {
 }
 
 fn main() {
-    run(None);
+    run(Some(1.4));
 }

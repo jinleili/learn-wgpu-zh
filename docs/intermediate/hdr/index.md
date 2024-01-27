@@ -311,7 +311,7 @@ struct State {
 }
 
 impl State {
-    pub fn new(window: Window) -> anyhow::Result<Self> {
+    pub fn new(window: Arc<Window>) -> anyhow::Result<Self> {
         // ...
         // NEW!
         let hdr = hdr::HdrPipeline::new(&device, &config);
