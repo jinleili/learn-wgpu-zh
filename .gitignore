@@ -15,6 +15,7 @@ target/
 /docs/.vitepress/components/wasm/*
 /docs/.vitepress/dist/*
 /docs/.vitepress/cache/*
+/docs/public/wasm/*
 
 /image.png
 /output*.*

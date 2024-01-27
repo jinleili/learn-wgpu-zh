@@ -62,7 +62,8 @@ export default {
             this.loading = true;
             this.exampleStarted = true;
             try {
-                const module = await import(/* @vite-ignore */`./wasm/${this.example}.js`.replace('_', '-'));
+                const url = window.location.protocol + '//' + window.location.host + '/learn-wgpu-zh'
+                const module = await import(/* @vite-ignore */`${url}/wasm/${this.example}.js`.replace('_', '-'));
                 module.default().then((instance) => {
                     this.loading = false;
                     this.exampleStarted = true;

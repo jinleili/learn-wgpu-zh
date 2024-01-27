@@ -20,7 +20,7 @@
     },
     "devDependencies": {
         "sass": "^1.63.6",
-        "vitepress": "^1.0.0-rc.32",
+        "vitepress": "^1.0.0-rc.40",
         "vue": "^3.3.4"
     }
 }
