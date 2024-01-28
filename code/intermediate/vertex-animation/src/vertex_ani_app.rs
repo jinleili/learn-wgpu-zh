@@ -19,12 +19,12 @@ pub struct VertexAnimationApp {
     // 翻页动画节点
     turning_node: ViewNode,
     // 粒子动画节点
-    particle_ink: ParticleInk,
+    particle_ink: Option<ParticleInk>,
     mvp_buffer: BufferObj,
     paper_tex: AnyTexture,
     sampler: Sampler,
     // 深度纹理（视图）
-    depth_tex_view: wgpu::TextureView,
+    depth_tex_view: Option<wgpu::TextureView>,
     // 当前是否为粒子动画阶段
     is_particle_ink_phase: bool,
     // 当前动画帧的索引，用于设置缓冲区的动态偏移
@@ -101,13 +101,7 @@ impl Action for VertexAnimationApp {
         }
 
         // 平面网格
-        let w = app.config.width as f32;
-        let h = app.config.height as f32;
-        let (vertices, indices) = Plane::new(
-            (w / (app.scale_factor * 2.0)) as u32,
-            (h / (app.scale_factor * 2.0)) as u32,
-        )
-        .generate_vertices();
+        let (vertices, indices) = Plane::new(300, 300).generate_vertices();
 
         // 准备绑定组需要的数据
         let bind_group_data = BindGroupData {
@@ -150,18 +144,15 @@ impl Action for VertexAnimationApp {
             1,
         );
 
-        let particle_ink = ParticleInk::new(&app, &mvp_buffer, &paper_tex, &sampler);
-        let depth_tex_view = crate::create_depth_tex(&app);
-
         Self {
             app,
             bg_node,
             turning_node,
-            particle_ink,
+            particle_ink: None,
             mvp_buffer,
             paper_tex,
             sampler,
-            depth_tex_view,
+            depth_tex_view: None,
             is_particle_ink_phase: true,
             animate_index: 0,
             draw_count: draw_count as u32,
@@ -187,9 +178,25 @@ impl Action for VertexAnimationApp {
             return;
         }
         self.app.resize_surface();
-        self.depth_tex_view = crate::create_depth_tex(&self.app);
-        self.particle_ink =
-            ParticleInk::new(&self.app, &self.mvp_buffer, &self.paper_tex, &self.sampler);
+
+        // 更新 uniform buffer
+        let (p_matrix, mv_matrix) = utils::matrix_helper::perspective_fullscreen_mvp(glam::Vec2 {
+            x: self.app.config.width as f32,
+            y: self.app.config.height as f32,
+        });
+        let mvp_data = (p_matrix * mv_matrix).to_cols_array_2d();
+        self.app
+            .queue
+            .write_buffer(&self.mvp_buffer.buffer, 0, bytemuck::bytes_of(&mvp_data));
+
+        // 重算深度纹理与粒子节点
+        self.depth_tex_view = Some(crate::create_depth_tex(&self.app));
+        self.particle_ink = Some(ParticleInk::new(
+            &self.app,
+            &self.mvp_buffer,
+            &self.paper_tex,
+            &self.sampler,
+        ));
         self.is_particle_ink_phase = true;
     }
 
@@ -198,6 +205,10 @@ impl Action for VertexAnimationApp {
     }
 
     fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
+        if self.depth_tex_view.is_none() {
+            return Ok(());
+        }
+        let particle_ink = self.particle_ink.as_mut().unwrap();
         let output = self.app.surface.get_current_texture().unwrap();
         let frame_view = output
             .texture
@@ -209,7 +220,7 @@ impl Action for VertexAnimationApp {
                 label: Some("Render Encoder"),
             });
         if self.is_particle_ink_phase {
-            self.particle_ink.cal_particles_move(&mut encoder);
+            particle_ink.cal_particles_move(&mut encoder);
         }
         {
             let mut rpass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
@@ -223,7 +234,7 @@ impl Action for VertexAnimationApp {
                     },
                 })],
                 depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
-                    view: &self.depth_tex_view,
+                    view: self.depth_tex_view.as_ref().unwrap(),
                     depth_ops: Some(wgpu::Operations {
                         load: wgpu::LoadOp::Clear(1.0),
                         store: wgpu::StoreOp::Store,
@@ -236,7 +247,7 @@ impl Action for VertexAnimationApp {
 
             if self.is_particle_ink_phase {
                 // 执行粒子动画
-                let is_completed = self.particle_ink.enter_frame(&mut rpass);
+                let is_completed = particle_ink.enter_frame(&mut rpass);
                 if is_completed {
                     self.is_particle_ink_phase = false;
                 }

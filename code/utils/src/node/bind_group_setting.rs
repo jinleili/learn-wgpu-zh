@@ -45,7 +45,7 @@ impl BindGroupSetting {
                         read_only: buffer_obj.read_only,
                     },
                     has_dynamic_offset: buffer_obj.has_dynamic_offset,
-                    min_binding_size: wgpu::BufferSize::new(0),
+                    min_binding_size: buffer_obj.min_binding_size,
                 },
                 count: None,
             });

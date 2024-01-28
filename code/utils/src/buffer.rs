@@ -150,9 +150,6 @@ impl BufferObj {
         } else {
             bytemuck::bytes_of(item.unwrap())
         };
-        // 移除staging buffer
-        // 移动GPU通常是统一内存架构。这一内存架构下，CPU可以直接访问GPU所使用的内存
-        // if cfg!(any(target_os = "ios", target_os = "android")) {
         let buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             label,
             contents: data,
