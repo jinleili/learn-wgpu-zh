@@ -34,8 +34,16 @@ export default {
         dispatch_resize_event() {
             this.can_resize_canvas = false;
             let elem = document.getElementById("simuverse_container");
-            if (elem != null) {
-                elem.dispatchEvent(new Event("canvas_size_need_change"));
+            let canvas = elem.getElementsByTagName("canvas")[0];
+            if (canvas != null) {
+                // winit 0.29 开始，可以直接 css 来修改 canvas 大小了
+                let ratio = window.devicePixelRatio;
+                canvas.width = elem.clientWidth * ratio;
+                canvas.height = elem.clientHeight * ratio;
+                canvas.style.width = elem.clientWidth + 'px';
+                canvas.style.height = elem.clientHeight + 'px';
+                canvas.style.maxWidth = elem.clientWidth + 'px';
+                canvas.style.maxHeight = elem.clientHeight + 'px';
             }
         },
         window_resized() {
