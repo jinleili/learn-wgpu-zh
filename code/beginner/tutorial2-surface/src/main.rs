@@ -58,8 +58,13 @@ impl State {
             .await
             .unwrap();
 
-        let config = surface.get_default_config(&adapter, 1, 1).unwrap();
-        let size = window.inner_size();
+        let mut size = window.inner_size();
+        size.width = size.width.max(1);
+        size.height = size.height.max(1);
+        let config = surface
+            .get_default_config(&adapter, size.width, size.height)
+            .unwrap();
+        surface.configure(&device, &config);
         Self {
             window,
             surface,
@@ -89,6 +94,9 @@ impl State {
     fn update(&mut self) {}
 
     fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
+        if self.size.width == 0 || self.size.height == 0 {
+            return Ok(());
+        }
         let output = self.surface.get_current_texture()?;
         let view = output
             .texture
