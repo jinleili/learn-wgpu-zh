@@ -371,7 +371,9 @@ impl HdrLoader {
             ],
         });
 
-        let mut encoder = device.create_command_encoder(&Default::default());
+        let mut encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
+            label: Some("Compute Encoder"),
+        });
         let mut pass = encoder.begin_compute_pass(&wgpu::ComputePassDescriptor {
             label,
             timestamp_writes: None,

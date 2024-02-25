@@ -6,17 +6,17 @@ _翻译时采用了第一人称视角，故，除了带 🆕 标记的章节，�
 
 _另外，专有名词在一个段落中第一次出现时做了**加粗**处理，同一段落里反复出现时就不再加粗。_
 
-## WebGPU 是啥？
+## 什么是 WebGPU
 
 **WebGPU** 是由 W3C [GPU for the Web](https://www.w3.org/community/gpu/) 社区组所发布的规范，目标是允许网页代码以高性能且安全可靠的方式访问 GPU 功能。它通过借鉴 Vulkan API，并将其转换为宿主硬件上使用的各式 API（如 DirectX、Metal、Vulkan）来实现这一目标。
 
-## wgpu 又是啥？
+## wgpu 与 WebGPU 的关系
 
 [wgpu](https://github.com/gfx-rs/wgpu) 是基于 [WebGPU API 规范](https://gpuweb.github.io/gpuweb/)的、跨平台的、安全的、纯 Rust 图形 API。它是 Firefox、Servo 和 Deno 中 WebGPU 整合的核心。
 
 **wgpu** 不仅可以在 Web 环境运行，还可以在 macOS / iOS、Android、Window 和 Linux 等系统上原生运行。
 
-## 为什么要使用 Rust？
+## 为什么选择 Rust
 
 wgpu 实际上提供了 C 语言绑定 ([wgpu-native](https://github.com/gfx-rs/wgpu-native))，你可以写 C/C++ 或其他能与 C 互通的语言来使用它。尽管如此，wgpu 本身是用 Rust 实现的，它便利的 Rust 绑定能减少你使用中的阻碍。更重要的是，Rust 是一门高性能，内存和线程安全且极具生产力的现代底层语言。
 

@@ -242,7 +242,7 @@ pub fn run<A: Action + 'static>() {
 
 <div class="note">
 
-**译者注**：以下关于 `wasm-pack` 的内容来自原文。但是由于它和 WebGPU 接口都尚未稳定，译者暂时不推荐用它构建此教程中的项目。参考本教程和原作者的仓库，这里给出一个使用 `cargo build` 的简易构建过程，如有疏漏请 PR 指正。
+**译者注**：以下关于 `wasm-pack` 的内容来自原文。但是由于它和 WebGPU 接口都尚未稳定，暂时不推荐用它构建此教程中的项目。参考本教程和原作者的仓库，这里给出一个使用 `cargo build` 的简易构建过程，如有疏漏请 PR 指正。
 
 1. 如果要支持 WebGL，那么在 `Cargo.toml` 中加入以下描述来启用 cargo 的 `--features` 参数，参考 [wgpu 的运行指南](https://github.com/gfx-rs/wgpu/wiki/Running-on-the-Web-with-WebGPU-and-WebGL)：
 
@@ -260,7 +260,7 @@ cargo install -f wasm-bindgen-cli --version 0.2.84
 wasm-bindgen --no-typescript --out-dir {你的输出目录，例如 ./tutorial1_window_output} --web {wasm 所在的目录，例如 .\target\wasm32-unknown-unknown\release\tutorial1_window.wasm}
 ```
 
-4. 此时会得到一个包含 .wasm 和 .js 文件的文件夹。可以用下文的 html 引入该 .js 文件。如果直接在浏览器打开该 html 文件，可能遇到 [CORS 问题](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS)；如果正常运行，则可能出现一个警告 `Using exceptions for control flow, don't mind me. This isn't actually an error!`，忽略即可。
+4. 此时会得到一个包含 .wasm 和 .js 文件的文件夹，可以用下文的 html 引入该 .js 文件。或者，可参考此项目仓库下 `docs/.vitepress/components/WasmExample.vue` 中的实现。
 
 </div>
     
