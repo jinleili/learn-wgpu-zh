@@ -424,7 +424,7 @@ const INCLUDE: &tatic str = "///#include ";
 
 fn main() -> Result<(), Box<dyn Error>> {
     // 这一行告诉 cargo 如果 /wgsl/ 目录中的内容发生了变化，就重新运行脚本
-    println!("cargo:rerun-if-changed=/../wgsl/*");
+    println!("cargo:rerun-if-changed=/../wgsl/");
 
     // 需要预处理的着色器数组（当然，更好的方式是读取并遍历待处理文件夹）
     let shader_files = vec!["edge_detection"];

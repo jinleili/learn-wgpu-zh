@@ -5,7 +5,7 @@ use std::env;
 
 fn main() -> Result<()> {
     // This tells cargo to rerun this script if something in res/ changes.
-    println!("cargo:rerun-if-changed=res/*");
+    println!("cargo:rerun-if-changed=res/");
 
     // Prepare what to copy and how
     let mut copy_options = CopyOptions::new();

@@ -183,7 +183,7 @@ dependencies = [
  "raw-window-handle 0.6.0",
  "wasm-bindgen",
  "web-sys",
- "wgpu 0.19.1",
+ "wgpu 0.19.3",
  "winit 0.29.10",
 ]
 
@@ -766,7 +766,7 @@ dependencies = [
  "pollster",
  "rayon",
  "tobj 2.0.4",
- "wgpu 0.19.1",
+ "wgpu 0.19.3",
  "winit 0.29.10",
 ]
 
@@ -788,7 +788,7 @@ dependencies = [
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
- "wgpu 0.19.1",
+ "wgpu 0.19.3",
  "winit 0.29.10",
 ]
 
@@ -1246,7 +1246,7 @@ dependencies = [
  "rayon",
  "thiserror",
  "tobj 2.0.4",
- "wgpu 0.19.1",
+ "wgpu 0.19.3",
  "winit 0.29.10",
 ]
 
@@ -1398,7 +1398,7 @@ dependencies = [
  "log",
  "pollster",
  "tobj 3.2.5",
- "wgpu 0.19.1",
+ "wgpu 0.19.3",
  "winit 0.29.10",
 ]
 
@@ -1708,7 +1708,7 @@ dependencies = [
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
- "wgpu 0.19.1",
+ "wgpu 0.19.3",
  "winit 0.29.10",
 ]
 
@@ -1750,7 +1750,7 @@ dependencies = [
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
- "wgpu 0.19.1",
+ "wgpu 0.19.3",
  "winit 0.29.10",
 ]
 
@@ -3745,7 +3745,7 @@ dependencies = [
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
- "wgpu 0.19.1",
+ "wgpu 0.19.3",
  "winit 0.29.10",
 ]
 
@@ -3958,7 +3958,7 @@ dependencies = [
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
- "wgpu 0.19.1",
+ "wgpu 0.19.3",
  "winit 0.29.10",
 ]
 
@@ -3985,7 +3985,7 @@ dependencies = [
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
- "wgpu 0.19.1",
+ "wgpu 0.19.3",
  "winit 0.29.10",
 ]
 
@@ -4012,7 +4012,7 @@ dependencies = [
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
- "wgpu 0.19.1",
+ "wgpu 0.19.3",
  "winit 0.29.10",
 ]
 
@@ -4040,7 +4040,7 @@ dependencies = [
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
- "wgpu 0.19.1",
+ "wgpu 0.19.3",
  "winit 0.29.10",
 ]
 
@@ -4067,7 +4067,7 @@ dependencies = [
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
- "wgpu 0.19.1",
+ "wgpu 0.19.3",
  "winit 0.29.10",
 ]
 
@@ -4085,7 +4085,7 @@ dependencies = [
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
- "wgpu 0.19.1",
+ "wgpu 0.19.3",
  "winit 0.29.10",
 ]
 
@@ -4105,7 +4105,7 @@ dependencies = [
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
- "wgpu 0.19.1",
+ "wgpu 0.19.3",
  "winit 0.29.10",
 ]
 
@@ -4129,7 +4129,7 @@ dependencies = [
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
- "wgpu 0.19.1",
+ "wgpu 0.19.3",
  "winit 0.29.10",
 ]
 
@@ -4154,7 +4154,7 @@ dependencies = [
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
- "wgpu 0.19.1",
+ "wgpu 0.19.3",
  "winit 0.29.10",
 ]
 
@@ -4180,7 +4180,7 @@ dependencies = [
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
- "wgpu 0.19.1",
+ "wgpu 0.19.3",
  "winit 0.29.10",
 ]
 
@@ -4206,7 +4206,7 @@ dependencies = [
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
- "wgpu 0.19.1",
+ "wgpu 0.19.3",
  "winit 0.29.10",
 ]
 
@@ -4232,7 +4232,7 @@ dependencies = [
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
- "wgpu 0.19.1",
+ "wgpu 0.19.3",
  "winit 0.29.10",
 ]
 
@@ -4259,7 +4259,7 @@ dependencies = [
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
- "wgpu 0.19.1",
+ "wgpu 0.19.3",
  "winit 0.29.10",
 ]
 
@@ -4345,7 +4345,7 @@ dependencies = [
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
- "wgpu 0.19.1",
+ "wgpu 0.19.3",
  "winit 0.29.10",
 ]
 
@@ -4393,7 +4393,7 @@ dependencies = [
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
- "wgpu 0.19.1",
+ "wgpu 0.19.3",
  "winit 0.29.10",
 ]
 
@@ -4846,9 +4846,9 @@ dependencies = [
 
 [[package]]
 name = "wgpu"
-version = "0.19.1"
+version = "0.19.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0bfe9a310dcf2e6b85f00c46059aaeaf4184caa8e29a1ecd4b7a704c3482332d"
+checksum = "a4b1213b52478a7631d6e387543ed8f642bc02c578ef4e3b49aca2a29a7df0cb"
 dependencies = [
  "arrayvec",
  "cfg-if",
@@ -5082,7 +5082,7 @@ dependencies = [
  "futures-intrusive",
  "image",
  "pollster",
- "wgpu 0.19.1",
+ "wgpu 0.19.3",
 ]
 
 [[package]]

@@ -52,7 +52,7 @@ pub fn load_shader(src_path: PathBuf) -> anyhow::Result<()> {
 
 fn main() -> Result<()> {
     // This tells cargo to rerun this script if something in /src/ changes.
-    println!("cargo:rerun-if-changed=src/*");
+    println!("cargo:rerun-if-changed=src/");
 
     // Collect all shaders recursively within /src/
     // UDPATED!
@@ -74,7 +74,7 @@ fn main() -> Result<()> {
         .collect::<Result<Vec<_>>>()?;
 
     // This tells cargo to rerun this script if something in /res/ changes.
-    println!("cargo:rerun-if-changed=res/*");
+    println!("cargo:rerun-if-changed=res/");
 
     let out_dir = env::var("OUT_DIR")?;
     let mut copy_options = CopyOptions::new();
