@@ -9,7 +9,7 @@
 use winit::window::Window;
 
 struct State {
-    surface: wgpu::Surface,
+    surface: wgpu::Surface<'static>,
     device: wgpu::Device,
     queue: wgpu::Queue,
     config: wgpu::SurfaceConfiguration,
