@@ -56,15 +56,18 @@ impl Action for HilbertCurveApp {
             Some("动画的动态偏移缓冲区"),
         );
         // 按动态偏移量填充 uniform 缓冲区
+        let mut depth_bias = 1.0;
         for step in 0..draw_count {
             let uniform = crate::HilbertUniform {
                 near_target_ratio: step as f32 / (draw_count - 1) as f32,
+                depth_bias,
             };
             app.queue.write_buffer(
                 &hilbert_buf.buffer,
                 offset_buffer_size * (step),
                 bytemuck::bytes_of(&uniform),
             );
+            depth_bias -= 0.01;
         }
 
         // buffer 大小

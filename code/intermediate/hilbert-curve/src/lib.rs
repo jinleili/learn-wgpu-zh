@@ -11,4 +11,6 @@ use bytemuck::{Pod, Zeroable};
 pub struct HilbertUniform {
     // 接近目标的比例
     pub near_target_ratio: f32,
+    // 深度偏移
+    pub depth_bias: f32,
 }

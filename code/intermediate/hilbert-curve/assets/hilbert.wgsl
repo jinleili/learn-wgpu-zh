@@ -7,17 +7,25 @@ struct SceneUniform {
 struct HilbertUniform {
     // 接近目标的比例
     near_target_ratio: f32,
+    depth_bias: f32,
+};
+
+struct VertexOutput {
+    @builtin(position) position: vec4<f32>,
+    @location(0) @interpolate(linear) dis: f32,
 };
 
 @group(0) @binding(0) var<uniform> scene: SceneUniform;
 @group(1) @binding(0) var<uniform> hilbert: HilbertUniform;
+
+const EPSILON: f32 = 4.88e-04;
 
 @vertex
 fn vs_main(@location(0) pos0: vec3f, 
             @location(1) pos1: vec3f,
             @location(2) target_pos0: vec3f, 
             @location(3) target_pos1: vec3f,
-             @builtin(vertex_index) vertex_index: u32) -> @builtin(position) vec4f {
+             @builtin(vertex_index) vertex_index: u32) -> VertexOutput {
     
     var positions = array<vec3f, 6>(
         vec3(0., -0.5, 0.),
@@ -44,21 +52,41 @@ fn vs_main(@location(0) pos0: vec3f,
     let x_basis = normalize(screen_b - screen_a);
     let y_basis = vec2(-x_basis.y, x_basis.x);
 
-    var line_width = 2.;
+    var line_width = 7.;
     var alpha = 1.;
-
-    // Line thinness fade from https://acegikmo.com/shapes/docs/#anti-aliasing
-    if line_width > 0.0 && line_width < 1. {
-        line_width = 1.;
-    }
 
     let offset = line_width * (position.x * x_basis + position.y * y_basis);
     let screen = mix(screen_a, screen_b, position.z) + offset;
 
-    return vec4(clip.w * ((2. * screen) / resolution - 1.), 0., clip.w);
+
+    var depth: f32;
+    if hilbert.depth_bias >= 0. {
+        depth = clip.z * (1. - hilbert.depth_bias);
+    } else {
+        // depth * (clip.w / depth)^-depth_bias. So that when -depth_bias is 1.0, this is equal to clip.w
+        // and when equal to 0.0, it is exactly equal to depth.
+        // the epsilon is here to prevent the depth from exceeding clip.w when -depth_bias = 1.0
+        // clip.w represents the near plane in homogeneous clip space in bevy, having a depth
+        // of this value means nothing can be in front of this
+        // The reason this uses an exponential function is that it makes it much easier for the
+        // user to chose a value that is convenient for them
+        depth = clip.z * exp2(-hilbert.depth_bias * log2(clip.w / clip.z - EPSILON));
+    }
+
+    var output: VertexOutput;
+    output.position = vec4(clip.w * ((2. * screen) / resolution - 1.), 0., clip.w);
+    output.dis = line_width * position.y;
+
+    return output;
 }
 
 @fragment
-fn fs_main() -> @location(0) vec4f {
-    return vec4f(vec3f(0.0), 1.0);
+fn fs_main(in: VertexOutput) -> @location(0) vec4f {
+    var color = vec4f(vec3f(0.0), 1.0);
+    let d = abs(in.dis);
+    let rho = 0.15;
+    if d >= rho {
+        color.a = smoothstep(1., 0., (d - rho) / 1.5);
+    }
+    return color;
 }
