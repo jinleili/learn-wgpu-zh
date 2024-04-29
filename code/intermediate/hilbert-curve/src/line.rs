@@ -49,6 +49,7 @@ impl Line {
                 vertex: wgpu::VertexState {
                     module: &shader,
                     entry_point: "vs_main",
+                    compilation_options: Default::default(),
                     buffers: &[
                         wgpu::VertexBufferLayout {
                             array_stride: VertexFormat::Float32x3.size(),
@@ -87,6 +88,7 @@ impl Line {
                 fragment: Some(wgpu::FragmentState {
                     module: &shader,
                     entry_point: "fs_main",
+                    compilation_options: Default::default(),
                     targets: &[Some(wgpu::ColorTargetState {
                         format: app.config.format,
                         blend: Some(wgpu::BlendState::ALPHA_BLENDING),

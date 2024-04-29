@@ -263,7 +263,7 @@ In order for wasm-pack to work properly I first needed to add some dependencies:
 ```toml
 [dependencies]
 cfg-if = "1"
-env_logger = "0.10"
+env_logger = "0.11"
 winit = "0.28.7"
 anyhow = "1.0"
 bytemuck = { version = "1.14", features = [ "derive" ] }

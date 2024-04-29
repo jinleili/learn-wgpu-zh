@@ -429,11 +429,13 @@ impl Action for State {
                 vertex: wgpu::VertexState {
                     module: &shader,
                     entry_point: "vs_main",
+                    compilation_options: Default::default(),
                     buffers: &[Vertex::desc(), InstanceRaw::desc()],
                 },
                 fragment: Some(wgpu::FragmentState {
                     module: &shader,
                     entry_point: "fs_main",
+                    compilation_options: Default::default(),
                     targets: &[Some(wgpu::ColorTargetState {
                         format: app.config.format.add_srgb_suffix(),
                         blend: Some(wgpu::BlendState {

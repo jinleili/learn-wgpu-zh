@@ -67,6 +67,7 @@ impl BlurNode {
                 layout: Some(&pipeline_layout),
                 module: shader,
                 entry_point: "cs_main",
+                compilation_options: Default::default(),
                 label: None,
             });
 

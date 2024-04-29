@@ -87,7 +87,7 @@ pub async fn from_path(
         format,
     };
 
-    (any_tex, default_sampler(&app.device))
+    (any_tex, default_sampler(app.device.as_ref()))
 }
 
 fn load_from_img(

@@ -223,11 +223,13 @@ impl<'a> RenderPipelineBuilder<'a> {
             vertex: wgpu::VertexState {
                 module: &vs,
                 entry_point: "main",
+                compilation_options: Default::default(),
                 buffers: &self.vertex_buffers,
             },
             fragment: Some(wgpu::FragmentState {
                 module: &fs,
                 entry_point: "main",
+                compilation_options: Default::default(),
                 targets: &self.color_states,
             }),
             primitive: wgpu::PrimitiveState {

@@ -508,7 +508,7 @@ let (device, queue) = adapter
 因此，我们将从 `Cargo.toml` 中删除 WebGL 功能，就是下边这一行：
 
 ```toml
-wgpu = { version = "0.19", features = ["webgl"]}
+wgpu = { version = "0.20", features = ["webgl"]}
 ```
 
 </div>
@@ -564,6 +564,7 @@ impl HdrLoader {
                 layout: Some(&pipeline_layout),
                 module: &module,
                 entry_point: "compute_equirect_to_cubemap",
+                compilation_options: Default::default(),
             });
 
         Self {

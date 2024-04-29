@@ -54,11 +54,13 @@ impl ImageNode {
                 vertex: wgpu::VertexState {
                     module: shader,
                     entry_point: "vs_main",
+                    compilation_options: Default::default(),
                     buffers: &[],
                 },
                 fragment: Some(wgpu::FragmentState {
                     module: shader,
                     entry_point: fs_entry_point,
+                    compilation_options: Default::default(),
                     targets: &[Some(target.into())],
                 }),
                 primitive: wgpu::PrimitiveState::default(),

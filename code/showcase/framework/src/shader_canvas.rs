@@ -214,10 +214,12 @@ impl<'a> ShaderCanvasBuilder<'a> {
             vertex: wgpu::VertexState {
                 entry_point: "main",
                 module: &vert_module,
+                compilation_options: Default::default(),
                 buffers: &[],
             },
             fragment: Some(wgpu::FragmentState {
                 entry_point: "main",
+                compilation_options: Default::default(),
                 module: &frag_module,
                 targets: &[Some(wgpu::ColorTargetState {
                     format: display_format,

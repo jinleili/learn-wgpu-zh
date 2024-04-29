@@ -117,11 +117,13 @@ let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescrip
     vertex: wgpu::VertexState {
         module: &shader,
         entry_point: "vs_main",
+        compilation_options: Default::default(),
         buffers: &[],
     },
     fragment: Some(wgpu::FragmentState {
         module: &fs_module,
         entry_point: "main",
+        compilation_options: Default::default(),
         targets: &[Some(wgpu::ColorTargetState {
             format: texture_desc.format,
             alpha_blend: wgpu::BlendState::REPLACE,

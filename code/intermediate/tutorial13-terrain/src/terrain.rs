@@ -128,6 +128,7 @@ impl TerrainPipeline {
             layout: Some(&pipeline_layout),
             module: &shader,
             entry_point: "gen_terrain_compute",
+            compilation_options: Default::default(),
         });
 
         let render_pipeline_layout =
@@ -342,6 +343,7 @@ impl TerrainHackPipeline {
             vertex: wgpu::VertexState {
                 module: &shader,
                 entry_point: "gen_terrain_vertex",
+                compilation_options: Default::default(),
                 buffers: &[],
             },
             primitive: wgpu::PrimitiveState {
@@ -358,6 +360,7 @@ impl TerrainHackPipeline {
             fragment: Some(wgpu::FragmentState {
                 module: &shader,
                 entry_point: "gen_terrain_fragment",
+                compilation_options: Default::default(),
                 targets: &[
                     Some(wgpu::ColorTargetState {
                         format: wgpu::TextureFormat::R32Uint,

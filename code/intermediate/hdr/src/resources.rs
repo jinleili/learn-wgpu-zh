@@ -283,6 +283,7 @@ impl HdrLoader {
                 layout: Some(&pipeline_layout),
                 module: &module,
                 entry_point: "compute_equirect_to_cubemap",
+                compilation_options: Default::default(),
             });
 
         Self {
