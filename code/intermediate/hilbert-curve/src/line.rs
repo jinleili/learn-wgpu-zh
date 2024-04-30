@@ -41,6 +41,23 @@ impl Line {
                 source: wgpu::ShaderSource::Wgsl(include_str!("../assets/hilbert.wgsl").into()),
             });
 
+        let mut buffers: Vec<wgpu::VertexBufferLayout> = Vec::with_capacity(4);
+        let mut attries: Vec<Vec<wgpu::VertexAttribute>> = Vec::with_capacity(4);
+        for i in 0..4 {
+            attries.push(vec![wgpu::VertexAttribute {
+                shader_location: i,
+                format: VertexFormat::Float32x3,
+                offset: 0,
+            }]);
+        }
+
+        for i in 0..4 {
+            buffers.push(wgpu::VertexBufferLayout {
+                array_stride: VertexFormat::Float32x3.size(),
+                step_mode: wgpu::VertexStepMode::Instance,
+                attributes: &attries[i],
+            })
+        }
         let pipeline = app
             .device
             .create_render_pipeline(&wgpu::RenderPipelineDescriptor {
@@ -50,44 +67,7 @@ impl Line {
                     module: &shader,
                     entry_point: "vs_main",
                     compilation_options: Default::default(),
-                    buffers: &[
-                        wgpu::VertexBufferLayout {
-                            array_stride: VertexFormat::Float32x3.size(),
-                            step_mode: wgpu::VertexStepMode::Instance,
-                            attributes: &[wgpu::VertexAttribute {
-                                shader_location: 0,
-                                format: VertexFormat::Float32x3,
-                                offset: 0,
-                            }],
-                        },
-                        wgpu::VertexBufferLayout {
-                            array_stride: VertexFormat::Float32x3.size(),
-                            step_mode: wgpu::VertexStepMode::Instance,
-                            attributes: &[wgpu::VertexAttribute {
-                                shader_location: 1,
-                                format: VertexFormat::Float32x3,
-                                offset: 0,
-                            }],
-                        },
-                        wgpu::VertexBufferLayout {
-                            array_stride: VertexFormat::Float32x3.size(),
-                            step_mode: wgpu::VertexStepMode::Instance,
-                            attributes: &[wgpu::VertexAttribute {
-                                shader_location: 2,
-                                format: VertexFormat::Float32x3,
-                                offset: 0,
-                            }],
-                        },
-                        wgpu::VertexBufferLayout {
-                            array_stride: VertexFormat::Float32x3.size(),
-                            step_mode: wgpu::VertexStepMode::Instance,
-                            attributes: &[wgpu::VertexAttribute {
-                                shader_location: 3,
-                                format: VertexFormat::Float32x3,
-                                offset: 0,
-                            }],
-                        },
-                    ],
+                    buffers: &buffers,
                 },
                 fragment: Some(wgpu::FragmentState {
                     module: &shader,
@@ -104,6 +84,7 @@ impl Line {
                 multisample: MultisampleState::default(),
                 multiview: None,
             });
+
         Self {
             bg_setting,
             dy_bg,
