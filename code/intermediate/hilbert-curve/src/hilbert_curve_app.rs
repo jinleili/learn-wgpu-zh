@@ -6,6 +6,7 @@ use winit::{dpi::PhysicalSize, window::WindowId};
 
 pub struct HilbertCurveApp {
     app: AppSurface,
+    mvp_buffer: BufferObj,
     line: Line,
     // 当前曲线与目标曲线的顶点缓冲区
     vertex_buffers: Vec<wgpu::Buffer>,
@@ -44,7 +45,6 @@ impl Action for HilbertCurveApp {
             },
             Some("SceneUniform"),
         );
-
         // 动作总帧总
         let draw_count = 60 * 3;
         let offset_buffer_size = 256;
@@ -78,7 +78,7 @@ impl Action for HilbertCurveApp {
             let buf = app.device.create_buffer(&wgpu::BufferDescriptor {
                 size,
                 usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
-                label: None,
+                label: Some("vertex buffer"),
                 mapped_at_creation: false,
             });
             vertex_buffers.push(buf);
@@ -88,6 +88,7 @@ impl Action for HilbertCurveApp {
 
         Self {
             app,
+            mvp_buffer,
             line,
             vertex_buffers,
             curve_vertex_count: 0,
@@ -113,10 +114,28 @@ impl Action for HilbertCurveApp {
     }
 
     fn resize(&mut self, size: &PhysicalSize<u32>) {
-        if self.app.config.width == size.width && self.app.config.height == size.height {
+        let app = &mut self.app;
+        if app.config.width == size.width && app.config.height == size.height {
             return;
         }
-        self.app.resize_surface();
+        app.resize_surface();
+
+        let viewport = glam::Vec2 {
+            x: app.config.width as f32,
+            y: app.config.height as f32,
+        };
+        // 更新 uniform
+        let (p_matrix, mv_matrix, _) = utils::matrix_helper::perspective_mvp(viewport);
+        let resized_uniform = SceneUniform {
+            mvp: (p_matrix * mv_matrix).to_cols_array_2d(),
+            viewport_pixels: viewport.to_array(),
+            padding: [0., 0.],
+        };
+        app.queue.write_buffer(
+            &self.mvp_buffer.buffer,
+            0,
+            bytemuck::bytes_of(&resized_uniform),
+        );
     }
 
     fn request_redraw(&mut self) {
@@ -200,12 +219,11 @@ impl Action for HilbertCurveApp {
             let instance_count = self.curve_vertex_count as u32 - 1;
 
             rpass.set_vertex_buffer(0, self.vertex_buffers[0].slice(..));
-            rpass.set_vertex_buffer(1, self.vertex_buffers[1].slice(..));
-            rpass.draw(0..6, 0..instance_count);
+            rpass.set_vertex_buffer(1, self.vertex_buffers[0].slice(12..));
+            rpass.set_vertex_buffer(2, self.vertex_buffers[1].slice(..));
+            rpass.set_vertex_buffer(3, self.vertex_buffers[1].slice(12..));
 
-            // rpass.set_vertex_buffer(0, self.vertex_buffers[0].slice(24..));
-            // rpass.set_vertex_buffer(1, self.vertex_buffers[1].slice(24..));
-            // rpass.draw(0..6, instance_count..instance_count * 2);
+            rpass.draw(0..6, 0..instance_count);
         }
         self.app.queue.submit(iter::once(encoder.finish()));
         output.present();

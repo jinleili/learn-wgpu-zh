@@ -54,34 +54,38 @@ impl Line {
                         wgpu::VertexBufferLayout {
                             array_stride: VertexFormat::Float32x3.size(),
                             step_mode: wgpu::VertexStepMode::Instance,
-                            attributes: &[
-                                wgpu::VertexAttribute {
-                                    shader_location: 0,
-                                    format: VertexFormat::Float32x3,
-                                    offset: 0,
-                                },
-                                wgpu::VertexAttribute {
-                                    shader_location: 1,
-                                    format: VertexFormat::Float32x3,
-                                    offset: VertexFormat::Float32x3.size(),
-                                },
-                            ],
+                            attributes: &[wgpu::VertexAttribute {
+                                shader_location: 0,
+                                format: VertexFormat::Float32x3,
+                                offset: 0,
+                            }],
                         },
                         wgpu::VertexBufferLayout {
                             array_stride: VertexFormat::Float32x3.size(),
                             step_mode: wgpu::VertexStepMode::Instance,
-                            attributes: &[
-                                wgpu::VertexAttribute {
-                                    shader_location: 2,
-                                    format: VertexFormat::Float32x3,
-                                    offset: 0,
-                                },
-                                wgpu::VertexAttribute {
-                                    shader_location: 3,
-                                    format: VertexFormat::Float32x3,
-                                    offset: VertexFormat::Float32x3.size(),
-                                },
-                            ],
+                            attributes: &[wgpu::VertexAttribute {
+                                shader_location: 1,
+                                format: VertexFormat::Float32x3,
+                                offset: 0,
+                            }],
+                        },
+                        wgpu::VertexBufferLayout {
+                            array_stride: VertexFormat::Float32x3.size(),
+                            step_mode: wgpu::VertexStepMode::Instance,
+                            attributes: &[wgpu::VertexAttribute {
+                                shader_location: 2,
+                                format: VertexFormat::Float32x3,
+                                offset: 0,
+                            }],
+                        },
+                        wgpu::VertexBufferLayout {
+                            array_stride: VertexFormat::Float32x3.size(),
+                            step_mode: wgpu::VertexStepMode::Instance,
+                            attributes: &[wgpu::VertexAttribute {
+                                shader_location: 3,
+                                format: VertexFormat::Float32x3,
+                                offset: 0,
+                            }],
                         },
                     ],
                 },
@@ -100,7 +104,6 @@ impl Line {
                 multisample: MultisampleState::default(),
                 multiview: None,
             });
-
         Self {
             bg_setting,
             dy_bg,
