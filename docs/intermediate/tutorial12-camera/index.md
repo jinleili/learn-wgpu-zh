@@ -239,8 +239,19 @@ mod camera; // 新增!
 
 ```rust
 
+struct CameraUniform {
+    view_position: [f32; 4],
+    view_proj: [[f32; 4]; 4],
+}
+
 impl CameraUniform {
-    // ...
+
+    fn new() -> Self {
+        Self {
+            view_position: [0.0; 4],
+            view_proj: glam::Mat4::IDENTITY.to_cols_array_2d(),
+        }
+    }
 
     // 更新!
     fn update_view_proj(&mut self, camera: &camera::Camera, projection: &camera::Projection) {
