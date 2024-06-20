@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use std::ops::Range;
 
 use crate::texture;
@@ -54,6 +56,7 @@ impl Vertex for ModelVertex {
     }
 }
 
+#[allow(dead_code)]
 pub struct Material {
     pub name: String,
     pub diffuse_texture: texture::Texture,
@@ -258,6 +261,7 @@ where
     }
 }
 
+#[allow(dead_code)]
 pub trait DrawLight<'a> {
     fn draw_light_mesh(
         &mut self,

@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use anyhow::*;
 use image::GenericImageView;
 

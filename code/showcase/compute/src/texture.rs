@@ -2,6 +2,7 @@ use anyhow::*;
 use image::GenericImageView;
 use std::path::Path;
 
+#[allow(dead_code)]
 pub struct Texture {
     pub texture: wgpu::Texture,
     pub view: wgpu::TextureView,

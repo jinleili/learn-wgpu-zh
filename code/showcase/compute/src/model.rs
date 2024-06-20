@@ -64,6 +64,7 @@ impl Vertex for ModelVertex {
     }
 }
 
+#[allow(dead_code)]
 pub struct Material {
     pub name: String,
     pub diffuse_texture: texture::Texture,
@@ -111,6 +112,7 @@ impl Material {
     }
 }
 
+#[allow(dead_code)]
 pub struct Mesh {
     pub name: String,
     pub vertex_buffer: wgpu::Buffer,
@@ -383,6 +385,7 @@ impl ModelLoader {
     }
 }
 
+#[allow(dead_code)]
 pub trait DrawModel<'a> {
     fn draw_mesh(
         &mut self,
@@ -501,6 +504,7 @@ where
     }
 }
 
+#[allow(dead_code)]
 pub trait DrawLight<'a> {
     fn draw_light_mesh(
         &mut self,

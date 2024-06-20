@@ -51,11 +51,11 @@ impl Line {
             }]);
         }
 
-        for i in 0..4 {
+        for attri in attries.iter().take(4) {
             buffers.push(wgpu::VertexBufferLayout {
                 array_stride: VertexFormat::Float32x3.size(),
                 step_mode: wgpu::VertexStepMode::Instance,
-                attributes: &attries[i],
+                attributes: attri,
             })
         }
         let pipeline = app

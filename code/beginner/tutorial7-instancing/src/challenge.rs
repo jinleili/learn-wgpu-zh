@@ -354,7 +354,7 @@ impl Action for State {
                         z: z as f32,
                     } - INSTANCE_DISPLACEMENT;
 
-                    let rotation = if position.length().abs() <= std::f32::EPSILON {
+                    let rotation = if position.length().abs() <= f32::EPSILON {
                         // this is needed so an object at (0, 0, 0) won't get scaled to zero
                         // as Quaternions can effect scale if they're not create correctly
                         glam::Quat::from_rotation_z(0.0)

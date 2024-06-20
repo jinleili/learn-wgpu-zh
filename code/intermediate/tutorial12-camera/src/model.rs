@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use std::ops::Range;
 
 use crate::texture;
@@ -101,6 +103,7 @@ impl Material {
     }
 }
 
+#[allow(dead_code)]
 pub struct Mesh {
     pub name: String,
     pub vertex_buffer: wgpu::Buffer,
@@ -114,6 +117,7 @@ pub struct Model {
     pub materials: Vec<Material>,
 }
 
+#[allow(dead_code)]
 pub trait DrawModel<'a> {
     fn draw_mesh(
         &mut self,

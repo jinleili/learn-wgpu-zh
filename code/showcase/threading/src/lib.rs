@@ -352,7 +352,7 @@ impl State {
 
                     let position = glam::Vec3 { x, y: 0.0, z };
 
-                    let rotation = if position.length().abs() <= std::f32::EPSILON {
+                    let rotation = if position.length().abs() <= f32::EPSILON {
                         glam::Quat::from_axis_angle(glam::Vec3::Z, 0.0)
                     } else {
                         glam::Quat::from_axis_angle(position.normalize(), consts::FRAC_PI_4)

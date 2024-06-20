@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use glam::{Mat3, Vec2};
 
 use utils::vertex::PosOnly;

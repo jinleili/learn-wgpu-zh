@@ -97,7 +97,7 @@ impl State {
             (0..NUM_INSTANCES_PER_ROW).map(move |x| {
                 let position = glam::Vec3 { x: x as f32, y: 0.0, z: z as f32 } - INSTANCE_DISPLACEMENT;
 
-                let rotation = if position.length().abs() <= std::f32::EPSILON {
+                let rotation = if position.length().abs() <= f32::EPSILON {
                     // 这一行特殊确保在坐标 (0, 0, 0) 处的对象不会被缩放到 0
                     // 因为错误的四元数会影响到缩放
                     glam::Quat::from_axis_angle(glam::Vec3::Z, 0.0)

@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use std::mem::size_of_val;
 
 use glam::Vec3Swizzles;

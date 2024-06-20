@@ -53,7 +53,7 @@ impl Player {
     }
 }
 
-pub const UNBOUNDED_F32: f32 = std::f32::INFINITY;
+pub const UNBOUNDED_F32: f32 = f32::INFINITY;
 
 #[derive(Debug)]
 pub struct Text {
@@ -82,6 +82,7 @@ impl Default for Text {
     }
 }
 
+#[allow(dead_code)]
 #[derive(Debug, Copy, Clone)]
 pub enum Event {
     ButtonPressed,
