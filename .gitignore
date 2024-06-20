@@ -11,6 +11,7 @@ target/
 .idea/
 .temp
 .cache
+wasm/
 
 /docs/.vitepress/components/wasm/*
 /docs/.vitepress/dist/*

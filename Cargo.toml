@@ -1,9 +1,7 @@
 [workspace]
 resolver = "2"
 members = [
-    # beginner tutorials
     "code/beginner/*",
-    # intermediate tutorials
     "code/intermediate/*",
     "code/utils",
     # showcase
@@ -55,10 +53,13 @@ anyhow = "1.0"
 fs_extra = "1.3"
 glob = "0.3"
 
-[profile.release]
+[profile.wasm-release]
+inherits = "release"
+lto = "fat"
 # lto = true # VERY slightly smaller wasm
 # opt-level = 's' # 10-30% smaller wasm compared to `opt-level = 3`
 # opt-level = 1 # very slow and big wasm. Don't do this.
 opt-level = 2 # fast and small wasm, basically same as `opt-level = 's'`
 # opt-level = 3 # unecessarily large wasm for no performance gain
 # debug = true # include debug symbols, useful when profiling wasm
+panic = "abort"
