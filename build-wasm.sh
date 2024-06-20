@@ -19,7 +19,10 @@ cargo build --no-default-features --profile wasm-release --target wasm32-unknown
 --bin compute-pipeline \
 --bin vertex-animation \
 --bin hilbert-curve \
---bin hdr 
+--bin hdr
+
+# 创建 wasm 目录
+mkdir -p "docs/public/wasm"
 
 # Generate bindings
 for i in target/wasm32-unknown-unknown/wasm-release/*.wasm;
@@ -28,7 +31,7 @@ do
     # 优化 wasm 包大小
     filename=$(basename "$i");
     # Remove the .wasm extension from filename
-    name_no_extension="${filename%.wasm}"
+    name_no_extension="${filename%.wasm}";
     wasm-opt -Oz wasm/"$name_no_extension"_bg.wasm --output docs/public/wasm/"$name_no_extension"_bg.wasm;
 
     cp wasm/"$name_no_extension".js docs/public/wasm/"$name_no_extension".js
