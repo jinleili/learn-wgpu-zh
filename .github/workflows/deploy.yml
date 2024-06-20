@@ -18,6 +18,12 @@ jobs:
       - name: Install wasm-bindgen-cli
         run: cargo install wasm-bindgen-cli --version=0.2.92
 
+      - name: Download Binaryen
+        run: |
+          wget https://github.com/WebAssembly/binaryen/releases/download/version_105/binaryen-version_105-x86_64-linux.tar.gz
+          tar -xzf binaryen-version_105-x86_64-linux.tar.gz
+          sudo mv binaryen-version_105/bin/* /usr/local/bin/
+
       - name: Build WASM
         run: |
           sh build-wasm.sh
