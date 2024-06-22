@@ -1,6 +1,6 @@
 {
     "name": "learn-wgpu-zh",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "description": "学习 wgpu：下一代跨平台图形接口 WebGPU 的 Rust 实现",
     "engines": {
         "node": ">=18.0"
@@ -20,7 +20,7 @@
     },
     "devDependencies": {
         "sass": "^1.63.6",
-        "vitepress": "^1.0.0-rc.40",
-        "vue": "^3.3.4"
+        "vitepress": "^1.2.3",
+        "vue": "^3.4.27"
     }
 }
