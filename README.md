@@ -83,10 +83,10 @@ Safari 18 (macOS 15) 已经默认开启了 WebGPU 功能。
 macOS 14- 系统上，需安装 [Safari Technology Preview 185+](https://www.webkit.org/blog/14879/webgpu-now-available-for-testing-in-safari-technology-preview/)，从顶部菜单栏选择 `开发 -> 功能标志` , 搜索并勾选 `WebGPU`:
 <img src="docs/public/res/safari.png" alt="Safari Technology Preview">
 
-### FireFox
+### Firefox
 
 安装 Nightly 版本，在地址栏中输入 `about:config` , 将 `dom.webgpu.enabled` 设置为 `true`:
-<img src="docs/public/res/firefox.png" alt="FireFox Nightly">
+<img src="docs/public/res/firefox.png" alt="Firefox Nightly">
 
 ## 关于译者
 
