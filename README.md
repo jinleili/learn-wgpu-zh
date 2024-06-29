@@ -60,7 +60,7 @@ cargo run --bin tutorial1-window
 # 在浏览器中运行
 # 需要先安装 Rust WebAssembly target
 rustup target add wasm32-unknown-unknown
-# 使用 WebGPU（需要使用 Chrome/Edge 113+ 或 Chrome/Edge Canary，Canary 需手动开启 WebGPU 试验功能）
+# 使用 WebGPU（需要使用 Chrome/Edge 113+，Arc 或 Safari 18）
 cargo run-wasm --bin tutorial1-window
 # 使用 WebGL 2.0
 cargo run-wasm --bin tutorial1-window --features webgl
@@ -75,17 +75,18 @@ cargo run-wasm --bin tutorial1-window --features webgl
 
 ### Chrome
 
-Chrome 113+、Microsoft Edge 113+ 均已经默认开启了 WebGPU 支持。
+Chrome 113+、Microsoft Edge 113+ 及 Arc 浏览器均已默认支持 WebGPU 功能。
+
+### Safari
+Safari 18 (macOS 15) 已经默认开启了 WebGPU 功能。
+
+macOS 14- 系统上，需安装 [Safari Technology Preview 185+](https://www.webkit.org/blog/14879/webgpu-now-available-for-testing-in-safari-technology-preview/)，从顶部菜单栏选择 `开发 -> 功能标志` , 搜索并勾选 `WebGPU`:
+<img src="docs/public/res/safari.png" alt="Safari Technology Preview">
 
 ### FireFox
 
 安装 Nightly 版本，在地址栏中输入 `about:config` , 将 `dom.webgpu.enabled` 设置为 `true`:
 <img src="docs/public/res/firefox.png" alt="FireFox Nightly">
-
-### Safari
-
-安装 [Safari Technology Preview 185+](https://www.webkit.org/blog/14879/webgpu-now-available-for-testing-in-safari-technology-preview/)，从顶部菜单栏选择 `开发 -> 功能标志` , 搜索并勾选 `WebGPU`:
-<img src="docs/public/res/safari.png" alt="Edge Canary">
 
 ## 关于译者
 

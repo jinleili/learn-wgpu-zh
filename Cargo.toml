@@ -15,7 +15,7 @@ exclude = [
 
 [workspace.package]
 edition = "2021"
-rust-version = "1.71"
+rust-version = "1.76"
 
 [workspace.dependencies.image]
 version = "0.24"
@@ -63,3 +63,4 @@ opt-level = 2 # fast and small wasm, basically same as `opt-level = 's'`
 # opt-level = 3 # unecessarily large wasm for no performance gain
 # debug = true # include debug symbols, useful when profiling wasm
 panic = "abort"
+codegen-units = 1

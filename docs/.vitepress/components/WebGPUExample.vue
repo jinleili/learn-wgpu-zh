@@ -1,16 +1,16 @@
 <template>
     <div v-bind:id="example">
-         <div v-if="showAlert" style="color: #353535;margin-top: 20px;">
+        <div v-if="showAlert" style="color: #353535;margin-top: 20px;">
             <div style="line-height: 40px;">此浏览器版本不支持 WebGPU</div>
-            <div style="font-size: 16px;color: #999999;">请使用 Chrome/Microsoft Edge 113 及以上版本，或者 Chrome/Edge Canary, FireFox Nightly 并
-                <span><a href="https://jinleili.github.io/learn-wgpu-zh/#如何开启浏览器-webgpu-试验功能" class="a">开启 WebGPU
-                        实验功能</a></span>
+            <div style="font-size: 16px;color: #999999;">
+                请使用 Chrome / Edge 113+，Arc 或者 Safari 18
             </div>
         </div>
         <div v-if="loading">
             正在加载 WASM 模块 ...
         </div>
-        <button class="webgpu_example_button" v-if="!exampleStarted" @click="detectWebGPUThenLoad()" :disabled="loading">点击运行
+        <button class="webgpu_example_button" v-if="!exampleStarted" @click="detectWebGPUThenLoad()"
+            :disabled="loading">点击运行
             {{ exampleName }}</button>
     </div>
 </template>
