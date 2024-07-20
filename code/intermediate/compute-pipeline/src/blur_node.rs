@@ -69,6 +69,7 @@ impl BlurNode {
                 entry_point: "cs_main",
                 compilation_options: Default::default(),
                 label: None,
+                cache: None,
             });
 
         let uniform_buf = app

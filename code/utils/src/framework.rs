@@ -21,7 +21,7 @@ pub trait Action {
 }
 
 #[cfg(not(target_arch = "wasm32"))]
-pub fn run<A: Action + 'static>(
+pub fn run<A: Action + std::marker::Send + 'static>(
     wh_ratio: Option<f32>,
     _html_canvas_container_id: Option<&'static str>,
 ) {

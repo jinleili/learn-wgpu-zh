@@ -178,6 +178,7 @@ impl Action for State {
                 // If the pipeline will be used with a multiview render pass, this
                 // indicates how many array layers the attachments will have.
                 multiview: None,
+                cache: None,
             });
 
         let vertex_buffer = app

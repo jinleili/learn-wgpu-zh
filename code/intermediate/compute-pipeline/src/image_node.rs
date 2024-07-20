@@ -67,6 +67,7 @@ impl ImageNode {
                 depth_stencil: None,
                 multisample: wgpu::MultisampleState::default(),
                 multiview: None,
+                cache: None,
             });
         let bind_group = app.device.create_bind_group(&wgpu::BindGroupDescriptor {
             layout: &bind_group_layout,

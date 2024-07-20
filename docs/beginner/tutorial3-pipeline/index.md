@@ -225,6 +225,7 @@ primitive: wgpu::PrimitiveState {
         alpha_to_coverage_enabled: false, // 4.
     },
     multiview: None, // 5.
+    cache: None,
 });
 ```
 

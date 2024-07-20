@@ -252,6 +252,7 @@ impl ViewNode {
             },
             multisample: wgpu::MultisampleState::default(),
             multiview: None,
+            cache: None,
         });
 
         ViewNode {

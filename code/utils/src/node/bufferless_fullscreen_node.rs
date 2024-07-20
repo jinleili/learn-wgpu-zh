@@ -69,6 +69,7 @@ impl BufferlessFullscreenNode {
                 ..Default::default()
             },
             multiview: None,
+            cache: None,
         });
 
         let bind_group = create_bind_group(device, bg_data, &pipeline.get_bind_group_layout(0));

@@ -192,6 +192,7 @@ impl State {
                     } else {
                         wgpu::Limits::default()
                     },
+                    memory_hints: wgpu::MemoryHints::Performance,
                 },
                 None, // Trace path
             )

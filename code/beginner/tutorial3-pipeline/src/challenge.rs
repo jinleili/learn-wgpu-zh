@@ -78,6 +78,7 @@ impl Action for State {
                 // If the pipeline will be used with a multiview render pass, this
                 // indicates how many array layers the attachments will have.
                 multiview: None,
+                cache: None,
             });
 
         let shader = app
@@ -126,6 +127,7 @@ impl Action for State {
                     // If the pipeline will be used with a multiview render pass, this
                     // indicates how many array layers the attachments will have.
                     multiview: None,
+                    cache: None,
                 });
 
         let use_color = true;
@@ -189,32 +191,31 @@ impl Action for State {
                 label: Some("Render Encoder"),
             });
 
-        {
-            let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-                label: Some("Render Pass"),
-                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                    view: &view,
-                    resolve_target: None,
-                    ops: wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(wgpu::Color {
-                            r: 0.1,
-                            g: 0.2,
-                            b: 0.3,
-                            a: 1.0,
-                        }),
-                        store: wgpu::StoreOp::Store,
-                    },
-                })],
-                ..Default::default()
-            });
+        let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+            label: Some("Render Pass"),
+            color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                view: &view,
+                resolve_target: None,
+                ops: wgpu::Operations {
+                    load: wgpu::LoadOp::Clear(wgpu::Color {
+                        r: 0.1,
+                        g: 0.2,
+                        b: 0.3,
+                        a: 1.0,
+                    }),
+                    store: wgpu::StoreOp::Store,
+                },
+            })],
+            ..Default::default()
+        });
 
-            render_pass.set_pipeline(if self.use_color {
-                &self.render_pipeline
-            } else {
-                &self.challenge_render_pipeline
-            });
-            render_pass.draw(0..3, 0..1);
-        }
+        render_pass.set_pipeline(if self.use_color {
+            &self.render_pipeline
+        } else {
+            &self.challenge_render_pipeline
+        });
+        render_pass.draw(0..3, 0..1);
+        drop(render_pass);
 
         self.app.queue.submit(iter::once(encoder.finish()));
         output.present();

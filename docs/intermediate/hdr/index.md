@@ -494,6 +494,7 @@ let (device, queue) = adapter
             // 这里是变更!
             required_features: wgpu::Features::all_webgpu_mask(),
             required_limits: wgpu::Limits::downlevel_defaults(),
+            memory_hints: wgpu::MemoryHints::Performance,
         },
         None, // Trace path
     )
@@ -565,6 +566,7 @@ impl HdrLoader {
                 module: &module,
                 entry_point: "compute_equirect_to_cubemap",
                 compilation_options: Default::default(),
+                cache: None,
             });
 
         Self {

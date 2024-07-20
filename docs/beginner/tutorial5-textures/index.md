@@ -75,7 +75,7 @@ let diffuse_texture = device.create_texture(
 
 ```rust
 queue.write_texture(
-    // 告诉 wgpu 从何处复制像素数据
+    // 告诉 wgpu 将像素数据复制到何处
     wgpu::ImageCopyTexture {
         texture: &diffuse_texture,
         mip_level: 0,

@@ -51,6 +51,7 @@ impl State {
                     } else {
                         wgpu::Limits::default()
                     },
+                    memory_hints: wgpu::MemoryHints::Performance,
                 },
                 // Some(&std::path::Path::new("trace")), // Trace path
                 None,
@@ -61,7 +62,7 @@ impl State {
         let size = window.inner_size();
         let width = size.width.max(1);
         let height = size.height.max(1);
-        let caps = surface.get_capabilities(&adapter);
+        let caps: wgpu::SurfaceCapabilities = surface.get_capabilities(&adapter);
         let config = wgpu::SurfaceConfiguration {
             usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
             format: caps.formats[0],
@@ -142,20 +143,19 @@ impl State {
                 label: Some("Render Encoder"),
             });
 
-        {
-            let _render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-                label: Some("Render Pass"),
-                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                    view: &view,
-                    resolve_target: None,
-                    ops: wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(self.clear_color),
-                        store: wgpu::StoreOp::Store,
-                    },
-                })],
-                ..Default::default()
-            });
-        }
+        let _render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+            label: Some("Render Pass"),
+            color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                view: &view,
+                resolve_target: None,
+                ops: wgpu::Operations {
+                    load: wgpu::LoadOp::Clear(self.clear_color),
+                    store: wgpu::StoreOp::Store,
+                },
+            })],
+            ..Default::default()
+        });
+        drop(_render_pass);
 
         self.queue.submit(iter::once(encoder.finish()));
         output.present();

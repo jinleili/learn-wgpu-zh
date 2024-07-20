@@ -51,6 +51,7 @@ impl State {
                     } else {
                         wgpu::Limits::default()
                     },
+                    memory_hints: wgpu::MemoryHints::Performance,
                 },
                 // Some(&std::path::Path::new("trace")), // Trace path
                 None,

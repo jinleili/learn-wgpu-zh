@@ -131,6 +131,7 @@ impl TerrainPipeline {
             module: &shader,
             entry_point: "gen_terrain_compute",
             compilation_options: Default::default(),
+            cache: None,
         });
 
         let render_pipeline_layout =
@@ -377,6 +378,7 @@ impl TerrainHackPipeline {
                 ],
             }),
             multiview: None,
+            cache: None,
         });
 
         let render_pipeline_layout =

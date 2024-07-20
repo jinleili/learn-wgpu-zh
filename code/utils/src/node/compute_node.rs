@@ -61,6 +61,7 @@ impl ComputeNode {
             module: shader_module,
             entry_point: "cs_main",
             compilation_options: Default::default(),
+            cache: None,
         });
 
         ComputeNode {
@@ -109,6 +110,7 @@ impl ComputeNode {
             module: shader_module,
             entry_point: "cs_main",
             compilation_options: Default::default(),
+            cache: None,
         });
 
         ComputeNode {

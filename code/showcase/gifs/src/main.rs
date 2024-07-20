@@ -24,6 +24,7 @@ async fn run() {
                 } else {
                     wgpu::Limits::default()
                 },
+                memory_hints: wgpu::MemoryHints::Performance,
             },
             None, // Trace path
         )
@@ -229,6 +230,7 @@ fn create_render_pipeline(
         // If the pipeline will be used with a multiview render pass, this
         // indicates how many array layers the attachments will have.
         multiview: None,
+        cache: None,
     })
 }
 

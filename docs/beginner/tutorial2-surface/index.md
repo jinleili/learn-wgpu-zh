@@ -138,6 +138,7 @@ let (device, queue) = adapter.request_device(
             wgpu::Limits::default()
         },
         label: None,
+        memory_hints: wgpu::MemoryHints::Performance,
     },
     None, // 追踪 API 调用路径
 ).await.unwrap();

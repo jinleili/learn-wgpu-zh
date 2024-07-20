@@ -83,6 +83,7 @@ impl Line {
                 depth_stencil: None,
                 multisample: MultisampleState::default(),
                 multiview: None,
+                cache: None,
             });
 
         Self {
