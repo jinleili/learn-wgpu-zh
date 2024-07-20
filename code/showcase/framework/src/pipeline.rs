@@ -247,6 +247,7 @@ impl<'a> RenderPipelineBuilder<'a> {
                 alpha_to_coverage_enabled: self.alpha_to_coverage_enabled,
             },
             multiview: self.multiview,
+            cache: None,
         });
         Ok(pipeline)
     }
