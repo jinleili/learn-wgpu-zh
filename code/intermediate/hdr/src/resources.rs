@@ -41,21 +41,6 @@ pub async fn load_string(file_name: &str) -> anyhow::Result<String> {
 pub async fn load_binary(file_name: &str) -> anyhow::Result<Vec<u8>> {
     cfg_if! {
         if #[cfg(target_arch = "wasm32")] {
-    //          use reqwest::header::{HeaderMap, HeaderValue, CONTENT_TYPE};
-    //                 use reqwest::Client;
-
-    //                 let mut headers = HeaderMap::new();
-    //                 headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/octet-stream"));
-    // let client = Client::new();
-    //         let url = format_url(file_name);
-
-    // let data = client.get(url)
-    //     .headers(headers)
-    //     .send()
-    //     .await?.bytes()
-    //             .await?
-    //             .to_vec();
-
             let url = format_url(file_name);
             let data = reqwest::get(url)
                 .await?

@@ -12,9 +12,6 @@ mod model;
 mod resources;
 mod texture;
 
-#[cfg(feature = "debug")]
-mod debug;
-
 use model::{DrawLight, DrawModel, Vertex};
 
 const NUM_INSTANCES_PER_ROW: u32 = 10;
@@ -166,8 +163,6 @@ struct State {
     hdr: hdr::HdrPipeline,
     environment_bind_group: wgpu::BindGroup,
     sky_pipeline: wgpu::RenderPipeline,
-    #[cfg(feature = "debug")]
-    debug: debug::Debug,
 }
 
 fn create_render_pipeline(
@@ -542,9 +537,6 @@ impl State {
             )
         };
 
-        #[cfg(feature = "debug")]
-        let debug = debug::Debug::new(&device, &camera_bind_group_layout, surface_format);
-
         Self {
             app,
             render_pipeline,
@@ -569,9 +561,6 @@ impl State {
             hdr,
             environment_bind_group,
             sky_pipeline,
-
-            #[cfg(feature = "debug")]
-            debug,
         }
     }
 
@@ -723,25 +712,6 @@ impl State {
         // NEW!
         // 应用色调映射
         self.hdr.process(&mut encoder, &view);
-
-        #[cfg(feature = "debug")]
-        {
-            let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-                label: Some("Debug"),
-                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                    view: &view,
-                    resolve_target: None,
-                    ops: wgpu::Operations {
-                        load: wgpu::LoadOp::Load,
-                        store: wgpu::StoreOp::Store,
-                    },
-                })],
-                depth_stencil_attachment: None,
-                occlusion_query_set: None,
-                timestamp_writes: None,
-            });
-            self.debug.draw_axis(&mut pass, &self.camera_bind_group);
-        }
 
         self.app.queue.submit(iter::once(encoder.finish()));
         output.present();
