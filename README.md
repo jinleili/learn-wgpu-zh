@@ -1,6 +1,6 @@
 # [《学习 wgpu》中文版](https://jinleili.github.io/learn-wgpu-zh/)
 
-![Minimum Rust Version](https://img.shields.io/badge/min%20rust-1.76-green.svg)
+![Minimum Rust Version](https://img.shields.io/badge/min%20rust-1.79-green.svg)
 [![Build Status](https://github.com/jinleili/learn-wgpu-zh/workflows/Build/badge.svg?branch=master)](https://github.com/jinleili/learn-wgpu-zh/actions)
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/jinleili/learn-wgpu-zh/blob/master/LICENSE.MIT)
 
