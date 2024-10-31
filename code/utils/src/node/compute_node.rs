@@ -59,7 +59,7 @@ impl ComputeNode {
             label: None,
             layout: Some(&pipeline_layout),
             module: shader_module,
-            entry_point: "cs_main",
+            entry_point: Some("cs_main"),
             compilation_options: Default::default(),
             cache: None,
         });
@@ -108,7 +108,7 @@ impl ComputeNode {
             label: None,
             layout: Some(&pipeline_layout),
             module: shader_module,
-            entry_point: "cs_main",
+            entry_point: Some("cs_main"),
             compilation_options: Default::default(),
             cache: None,
         });

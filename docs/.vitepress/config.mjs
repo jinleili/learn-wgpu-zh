@@ -6,6 +6,13 @@ export default defineConfig({
   title: "学习 wgpu",
   description: "wgpu：下一代跨平台图形接口 WebGPU 的 Rust 实现",
   base: "/learn-wgpu-zh/",
+
+  server: {
+    host: "0.0.0.0",
+    port: 80,
+    hmr: false,
+  },
+
   appearance: true,
   lastUpdated: true,
 
