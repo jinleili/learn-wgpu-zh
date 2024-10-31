@@ -4774,6 +4774,7 @@ dependencies = [
  "js-sys",
  "log",
  "pollster",
+ "utils",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",

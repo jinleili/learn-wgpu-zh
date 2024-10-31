@@ -1,49 +1,26 @@
 use std::rc::Rc;
 use std::sync::{Arc, Mutex};
-use std::thread;
 use winit::dpi::PhysicalSize;
-use winit::error::EventLoopError;
 use winit::{
     application::ApplicationHandler,
-    event::{ElementState, KeyEvent, StartCause, WindowEvent},
+    event::{StartCause, WindowEvent},
     event_loop::{ActiveEventLoop, ControlFlow, EventLoop},
-    keyboard::PhysicalKey,
     window::{Window, WindowId},
-};
-#[cfg(target_arch = "wasm32")]
-use {
-    wasm_bindgen::{prelude::*, JsCast},
-    web_time as time,
 };
 
 #[cfg(not(target_arch = "wasm32"))]
 use std::time;
+#[cfg(target_arch = "wasm32")]
+use web_time as time;
 
 const WAIT_TIME: time::Duration = time::Duration::from_millis(16);
-const POLL_SLEEP_TIME: time::Duration = time::Duration::from_millis(16);
 
 struct WgpuApp {
     window: Arc<Window>,
 }
 
-#[derive(Default, Debug, Clone, Copy, PartialEq, Eq)]
-enum Mode {
-    Wait,
-    WaitUntil,
-    #[default]
-    Poll,
-}
-
-#[derive(Default)]
-struct WgpuAppHandler {
-    mode: Mode,
-    wait_cancelled: bool,
-    close_requested: bool,
-    app: Rc<Mutex<Option<WgpuApp>>>,
-}
-
-impl WgpuAppHandler {
-    fn create_app(&mut self, window: Arc<Window>) {
+impl WgpuApp {
+    async fn new(window: Arc<Window>) -> Self {
         // 计算一个默认显示高度
         let height = 700 * window.scale_factor() as u32;
         let width = (height as f32 * 1.6) as u32;
@@ -89,11 +66,23 @@ impl WgpuAppHandler {
                 })
                 .expect("Couldn't append canvas to document body.");
         }
-
-        self.app.lock().unwrap().replace(WgpuApp {
-            window: window.clone(),
-        });
+        Self { window }
     }
+}
+
+#[derive(Default, Debug, Clone, Copy, PartialEq, Eq)]
+enum Mode {
+    #[default]
+    Wait,
+    WaitUntil,
+}
+
+#[derive(Default)]
+struct WgpuAppHandler {
+    mode: Mode,
+    wait_cancelled: bool,
+    close_requested: bool,
+    app: Rc<Mutex<Option<WgpuApp>>>,
 }
 
 impl ApplicationHandler for WgpuAppHandler {
@@ -114,7 +103,20 @@ impl ApplicationHandler for WgpuAppHandler {
         let window_attributes = Window::default_attributes().with_title("tutorial1-window");
         let window = Arc::new(event_loop.create_window(window_attributes).unwrap());
 
-        self.create_app(window);
+        cfg_if::cfg_if! {
+            if #[cfg(target_arch = "wasm32")] {
+                let app = self.app.clone();
+                wasm_bindgen_futures::spawn_local(async move {
+                    let wgpu_app = WgpuApp::new(window).await;
+
+                    let mut app = app.lock().unwrap();
+                    *app = Some(wgpu_app);
+                });
+            } else {
+                let wgpu_app = pollster::block_on(WgpuApp::new(window));
+                self.app.lock().unwrap().replace(wgpu_app);
+            }
+        }
     }
 
     fn suspended(&mut self, _event_loop: &ActiveEventLoop) {
@@ -135,15 +137,7 @@ impl ApplicationHandler for WgpuAppHandler {
             WindowEvent::Resized(_size) => {
                 // 窗口大小改变
             }
-            WindowEvent::KeyboardInput {
-                event:
-                    KeyEvent {
-                        physical_key: PhysicalKey::Code(..),
-                        state: ElementState::Pressed,
-                        ..
-                    },
-                ..
-            } => {
+            WindowEvent::KeyboardInput { .. } => {
                 // 键盘事件
             }
             WindowEvent::RedrawRequested => {
@@ -161,10 +155,6 @@ impl ApplicationHandler for WgpuAppHandler {
                     event_loop
                         .set_control_flow(ControlFlow::WaitUntil(time::Instant::now() + WAIT_TIME));
                 }
-            }
-            Mode::Poll => {
-                thread::sleep(POLL_SLEEP_TIME);
-                event_loop.set_control_flow(ControlFlow::Poll);
             }
         };
 
