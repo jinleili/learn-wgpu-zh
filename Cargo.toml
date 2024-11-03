@@ -22,7 +22,9 @@ version = "0.24"
 default-features = false
 
 [workspace.dependencies]
-app-surface = "1.2.1"
+# app-surface = "1.2.1"
+app-surface = { path = "../idroid/wgpu-in-app/app-surface" }
+
 bytemuck = { version = "1.19", features = ["derive"] }
 cfg-if = "1"
 glam = "0.29"
@@ -31,6 +33,7 @@ futures-intrusive = "0.4"
 instant = "0.1"
 log = "0.4"
 pollster = "0.3"
+parking_lot = "0.12"
 rayon = "1.8"
 tobj = "3.2"
 winit = "0.30.5"

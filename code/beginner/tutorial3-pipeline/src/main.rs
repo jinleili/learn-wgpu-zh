@@ -1,109 +1,142 @@
 use app_surface::{AppSurface, SurfaceFrame};
-use std::iter;
-use utils::framework::{run, Action};
-use winit::{dpi::PhysicalSize, window::WindowId};
+use std::{iter, sync::Arc};
+use utils::framework::{run, WgpuAppAction};
+use wgpu::WasmNotSend;
+use winit::dpi::PhysicalSize;
 
-struct State {
+struct WgpuApp {
     app: AppSurface,
+    size: PhysicalSize<u32>,
+    size_changed: bool,
     // NEW!
     render_pipeline: wgpu::RenderPipeline,
 }
 
-impl Action for State {
-    fn new(app: AppSurface) -> Self {
-        let shader = app
-            .device
-            .create_shader_module(wgpu::ShaderModuleDescriptor {
-                label: Some("Shader"),
-                source: wgpu::ShaderSource::Wgsl(include_str!("shader.wgsl").into()),
-            });
+impl WgpuApp {
+    /// 必要的时候调整 surface 大小
+    fn resize_surface_if_needed(&mut self) {
+        if self.size_changed {
+            self.app
+                .resize_surface_by_size((self.size.width, self.size.height));
+            self.size_changed = false;
+        }
+    }
+}
 
-        let render_pipeline_layout =
-            app.device
-                .create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-                    label: Some("Render Pipeline Layout"),
-                    bind_group_layouts: &[],
-                    push_constant_ranges: &[],
+impl WgpuAppAction for WgpuApp {
+    fn new(
+        window: Arc<winit::window::Window>,
+    ) -> impl std::future::Future<Output = Self> + WasmNotSend {
+        async move {
+            // 配置窗口
+            Self::config_window(window.clone(), "tutorial3-pipeline");
+
+            // 创建 wgpu 应用
+            let app = AppSurface::new(window).await;
+
+            // 创建着色器
+            let shader = app
+                .device
+                .create_shader_module(wgpu::ShaderModuleDescriptor {
+                    label: Some("Shader"),
+                    source: wgpu::ShaderSource::Wgsl(include_str!("shader.wgsl").into()),
                 });
 
-        let render_pipeline = app
-            .device
-            .create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-                label: Some("Render Pipeline"),
-                layout: Some(&render_pipeline_layout),
-                vertex: wgpu::VertexState {
-                    module: &shader,
-                    entry_point: "vs_main",
-                    compilation_options: Default::default(),
-                    buffers: &[],
-                },
-                fragment: Some(wgpu::FragmentState {
-                    module: &shader,
-                    entry_point: "fs_main",
-                    compilation_options: Default::default(),
-                    targets: &[Some(wgpu::ColorTargetState {
-                        format: app.config.format.add_srgb_suffix(),
-                        blend: Some(wgpu::BlendState {
-                            color: wgpu::BlendComponent::REPLACE,
-                            alpha: wgpu::BlendComponent::REPLACE,
-                        }),
-                        write_mask: wgpu::ColorWrites::ALL,
-                    })],
-                }),
-                primitive: wgpu::PrimitiveState {
-                    topology: wgpu::PrimitiveTopology::TriangleList,
-                    strip_index_format: None,
-                    front_face: wgpu::FrontFace::Ccw,
-                    cull_mode: Some(wgpu::Face::Back),
-                    polygon_mode: wgpu::PolygonMode::Fill,
-                    // Requires Features::DEPTH_CLIP_CONTROL
-                    unclipped_depth: false,
-                    // Requires Features::CONSERVATIVE_RASTERIZATION
-                    conservative: false,
-                },
-                depth_stencil: None,
-                multisample: wgpu::MultisampleState {
-                    count: 1,
-                    mask: !0,
-                    alpha_to_coverage_enabled: false,
-                },
-                // If the pipeline will be used with a multiview render pass, this
-                // indicates how many array layers the attachments will have.
-                multiview: None,
-                cache: None,
-            });
+            let render_pipeline_layout =
+                app.device
+                    .create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+                        label: Some("Render Pipeline Layout"),
+                        bind_group_layouts: &[],
+                        push_constant_ranges: &[],
+                    });
 
-        Self {
-            app,
-            render_pipeline,
+            let render_pipeline =
+                app.device
+                    .create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+                        label: Some("Render Pipeline"),
+                        layout: Some(&render_pipeline_layout),
+                        vertex: wgpu::VertexState {
+                            module: &shader,
+                            entry_point: Some("vs_main"),
+                            compilation_options: Default::default(),
+                            buffers: &[],
+                        },
+                        fragment: Some(wgpu::FragmentState {
+                            module: &shader,
+                            entry_point: Some("fs_main"),
+                            compilation_options: Default::default(),
+                            targets: &[Some(wgpu::ColorTargetState {
+                                format: app.config.format.add_srgb_suffix(),
+                                blend: Some(wgpu::BlendState {
+                                    color: wgpu::BlendComponent::REPLACE,
+                                    alpha: wgpu::BlendComponent::REPLACE,
+                                }),
+                                write_mask: wgpu::ColorWrites::ALL,
+                            })],
+                        }),
+                        primitive: wgpu::PrimitiveState {
+                            topology: wgpu::PrimitiveTopology::TriangleList,
+                            strip_index_format: None,
+                            front_face: wgpu::FrontFace::Ccw,
+                            cull_mode: Some(wgpu::Face::Back),
+                            polygon_mode: wgpu::PolygonMode::Fill,
+                            // Requires Features::DEPTH_CLIP_CONTROL
+                            unclipped_depth: false,
+                            // Requires Features::CONSERVATIVE_RASTERIZATION
+                            conservative: false,
+                        },
+                        depth_stencil: None,
+                        multisample: wgpu::MultisampleState {
+                            count: 1,
+                            mask: !0,
+                            alpha_to_coverage_enabled: false,
+                        },
+                        // If the pipeline will be used with a multiview render pass, this
+                        // indicates how many array layers the attachments will have.
+                        multiview: None,
+                        cache: None,
+                    });
+
+            let size = PhysicalSize {
+                width: app.config.width,
+                height: app.config.height,
+            };
+
+            let instance = Self {
+                app,
+                size,
+                size_changed: false,
+                render_pipeline,
+            };
+
+            instance
         }
     }
 
-    fn start(&mut self) {
-        //  只有在进入事件循环之后，才有可能真正获取到窗口大小。
-        let size = self.app.get_view().inner_size();
-        self.resize(&size);
-    }
-
-    fn get_adapter_info(&self) -> wgpu::AdapterInfo {
-        self.app.adapter.get_info()
-    }
-    fn current_window_id(&self) -> WindowId {
-        self.app.get_view().id()
-    }
-
-    fn resize(&mut self, size: &PhysicalSize<u32>) {
-        if self.app.config.width == size.width && self.app.config.height == size.height {
+    fn set_window_resized(&mut self, new_size: PhysicalSize<u32>) {
+        if self.app.config.width == new_size.width && self.app.config.height == new_size.height {
             return;
         }
-        self.app.resize_surface();
+        self.size = new_size;
+        self.size_changed = true;
     }
 
-    fn request_redraw(&mut self) {
+    fn get_size(&self) -> PhysicalSize<u32> {
+        PhysicalSize::new(self.app.config.width, self.app.config.height)
+    }
+
+    fn pre_present_notify(&self) {
+        // 通知 wgpu 应用可以进行渲染了
+        self.app.get_view().pre_present_notify();
+    }
+
+    fn request_redraw(&self) {
         self.app.get_view().request_redraw();
     }
 
     fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
+        self.resize_surface_if_needed();
+
         let (output, view) = self.app.get_current_frame_view(None);
         let mut encoder = self
             .app
@@ -142,6 +175,6 @@ impl Action for State {
     }
 }
 
-pub fn main() {
-    run::<State>(Some(1.4), None);
+pub fn main() -> Result<(), impl std::error::Error> {
+    run::<WgpuApp>()
 }

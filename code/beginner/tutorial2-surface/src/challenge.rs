@@ -4,19 +4,12 @@ use std::sync::{Arc, Mutex};
 use winit::{
     application::ApplicationHandler,
     dpi::PhysicalSize,
-    event::{ElementState, KeyEvent, StartCause, WindowEvent},
-    event_loop::{ActiveEventLoop, ControlFlow, EventLoop},
+    event::{ElementState, KeyEvent, WindowEvent},
+    event_loop::{ActiveEventLoop, EventLoop},
     keyboard::KeyCode,
     keyboard::PhysicalKey,
     window::{Window, WindowId},
 };
-
-#[cfg(not(target_arch = "wasm32"))]
-use std::time;
-#[cfg(target_arch = "wasm32")]
-use web_time as time;
-
-const WAIT_TIME: time::Duration = time::Duration::from_millis(16);
 
 struct WgpuApp {
     window: Arc<Window>,
@@ -29,16 +22,16 @@ struct WgpuApp {
     queue: wgpu::Queue,
     config: wgpu::SurfaceConfiguration,
     size: winit::dpi::PhysicalSize<u32>,
+    size_changed: bool,
     clear_color: wgpu::Color,
 }
 
 impl WgpuApp {
     async fn new(window: Arc<Window>) -> Self {
-        // 计算一个默认显示高度
-        let height = 700 * window.scale_factor() as u32;
-        let width = (height as f32 * 1.6) as u32;
-
         if cfg!(not(target_arch = "wasm32")) {
+            // 计算一个默认显示高度
+            let height = 700 * window.scale_factor() as u32;
+            let width = (height as f32 * 1.6) as u32;
             let _ = window.request_inner_size(PhysicalSize::new(width, height));
         }
 
@@ -52,30 +45,15 @@ impl WgpuApp {
                 .and_then(|win| win.document())
                 .map(|doc| {
                     let canvas = window.canvas().unwrap();
-                    let mut web_width = 800.0f32;
+                    let _ = canvas.set_attribute("id", "winit-canvas");
                     match doc.get_element_by_id("wasm-example") {
                         Some(dst) => {
-                            web_width = dst.client_width() as f32;
-                            let _ = dst.append_child(&web_sys::Element::from(canvas));
+                            let _ = dst.append_child(canvas.as_ref());
                         }
                         None => {
-                            canvas.style().set_css_text(
-                                "background-color: black; display: block; margin: 20px auto;",
-                            );
-                            doc.body()
-                                .map(|body| body.append_child(&web_sys::Element::from(canvas)));
+                            doc.body().map(|body| body.append_child(canvas.as_ref()));
                         }
                     };
-                    // winit 0.29 开始，通过 request_inner_size, canvas.set_width 都无法设置 canvas 的大小
-                    let canvas = window.canvas().unwrap();
-                    let web_height = web_width;
-                    let scale_factor = window.scale_factor() as f32;
-                    canvas.set_width((web_width * scale_factor) as u32);
-                    canvas.set_height((web_height * scale_factor) as u32);
-                    canvas.style().set_css_text(
-                        &(canvas.style().css_text()
-                            + &format!("width: {}px; height: {}px", web_width, web_height)),
-                    );
                 })
                 .expect("Couldn't append canvas to document body.");
         }
@@ -137,6 +115,7 @@ impl WgpuApp {
             config,
             clear_color,
             size,
+            size_changed: false,
         }
     }
 
@@ -162,12 +141,26 @@ impl WgpuApp {
         }
     }
 
-    pub fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
-        if new_size.width > 0 && new_size.height > 0 {
-            self.size = new_size;
-            self.config.width = new_size.width;
-            self.config.height = new_size.height;
+    /// 记录窗口大小已发生变化
+    ///
+    /// # NOTE:
+    /// 当缩放浏览器窗口时, 窗口大小会以高于渲染帧率的频率发生变化，
+    /// 如果窗口 size 发生变化就立即调整 surface 大小, 会导致缩放浏览器窗口大小时渲染画面闪烁。
+    fn set_window_resized(&mut self, new_size: PhysicalSize<u32>) {
+        if new_size == self.size {
+            return;
+        }
+        self.size = new_size;
+        self.size_changed = true;
+    }
+
+    /// 必要的时候调整 surface 大小
+    fn resize_surface_if_needed(&mut self) {
+        if self.size_changed {
+            self.config.width = self.size.width;
+            self.config.height = self.size.height;
             self.surface.configure(&self.device, &self.config);
+            self.size_changed = false;
         }
     }
 
@@ -175,6 +168,7 @@ impl WgpuApp {
         if self.size.width == 0 || self.size.height == 0 {
             return Ok(());
         }
+        self.resize_surface_if_needed();
         let output = self.surface.get_current_texture()?;
         let view = output
             .texture
@@ -208,30 +202,12 @@ impl WgpuApp {
     }
 }
 
-#[derive(Default, Debug, Clone, Copy, PartialEq, Eq)]
-enum Mode {
-    #[default]
-    Wait,
-    WaitUntil,
-}
-
 #[derive(Default)]
 struct WgpuAppHandler {
-    mode: Mode,
-    wait_cancelled: bool,
-    close_requested: bool,
     app: Rc<Mutex<Option<WgpuApp>>>,
 }
 
 impl ApplicationHandler for WgpuAppHandler {
-    fn new_events(&mut self, _event_loop: &ActiveEventLoop, cause: StartCause) {
-        self.wait_cancelled = match cause {
-            StartCause::WaitCancelled { .. } => self.mode == Mode::WaitUntil,
-            StartCause::Init => false,
-            _ => false,
-        }
-    }
-
     fn resumed(&mut self, event_loop: &ActiveEventLoop) {
         // 恢复事件
         if self.app.as_ref().lock().unwrap().is_some() {
@@ -262,7 +238,7 @@ impl ApplicationHandler for WgpuAppHandler {
 
     fn window_event(
         &mut self,
-        _event_loop: &ActiveEventLoop,
+        event_loop: &ActiveEventLoop,
         _window_id: WindowId,
         event: WindowEvent,
     ) {
@@ -274,7 +250,7 @@ impl ApplicationHandler for WgpuAppHandler {
         // 窗口事件
         match event {
             WindowEvent::CloseRequested => {
-                self.close_requested = true;
+                event_loop.exit();
             }
             WindowEvent::Resized(physical_size) => {
                 if physical_size.width == 0 || physical_size.height == 0 {
@@ -282,7 +258,7 @@ impl ApplicationHandler for WgpuAppHandler {
                     println!("Window minimized!");
                 } else {
                     let app = app.as_mut().unwrap();
-                    app.resize(physical_size);
+                    app.set_window_resized(physical_size);
 
                     // 请求重绘, Web 环境下需要手动请求
                     app.window.request_redraw();
@@ -301,7 +277,7 @@ impl ApplicationHandler for WgpuAppHandler {
                 match app.render() {
                     Ok(_) => {}
                     // 当展示平面的上下文丢失，就需重新配置
-                    Err(wgpu::SurfaceError::Lost) => app.resize(app.size),
+                    Err(wgpu::SurfaceError::Lost) => eprintln!("Surface is lost"),
                     // 所有其他错误（过期、超时等）应在下一帧解决
                     Err(e) => eprintln!("{e:?}"),
                 }
@@ -309,22 +285,6 @@ impl ApplicationHandler for WgpuAppHandler {
                 app.window.request_redraw();
             }
             _ => (),
-        }
-    }
-
-    fn about_to_wait(&mut self, event_loop: &ActiveEventLoop) {
-        match self.mode {
-            Mode::Wait => event_loop.set_control_flow(ControlFlow::Wait),
-            Mode::WaitUntil => {
-                if !self.wait_cancelled {
-                    event_loop
-                        .set_control_flow(ControlFlow::WaitUntil(time::Instant::now() + WAIT_TIME));
-                }
-            }
-        };
-
-        if self.close_requested {
-            event_loop.exit();
         }
     }
 }

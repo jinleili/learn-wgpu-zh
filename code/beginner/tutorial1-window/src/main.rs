@@ -3,17 +3,10 @@ use std::sync::{Arc, Mutex};
 use winit::dpi::PhysicalSize;
 use winit::{
     application::ApplicationHandler,
-    event::{StartCause, WindowEvent},
-    event_loop::{ActiveEventLoop, ControlFlow, EventLoop},
+    event::WindowEvent,
+    event_loop::{ActiveEventLoop, EventLoop},
     window::{Window, WindowId},
 };
-
-#[cfg(not(target_arch = "wasm32"))]
-use std::time;
-#[cfg(target_arch = "wasm32")]
-use web_time as time;
-
-const WAIT_TIME: time::Duration = time::Duration::from_millis(16);
 
 struct WgpuApp {
     window: Arc<Window>,
@@ -70,30 +63,12 @@ impl WgpuApp {
     }
 }
 
-#[derive(Default, Debug, Clone, Copy, PartialEq, Eq)]
-enum Mode {
-    #[default]
-    Wait,
-    WaitUntil,
-}
-
 #[derive(Default)]
 struct WgpuAppHandler {
-    mode: Mode,
-    wait_cancelled: bool,
-    close_requested: bool,
     app: Rc<Mutex<Option<WgpuApp>>>,
 }
 
 impl ApplicationHandler for WgpuAppHandler {
-    fn new_events(&mut self, _event_loop: &ActiveEventLoop, cause: StartCause) {
-        self.wait_cancelled = match cause {
-            StartCause::WaitCancelled { .. } => self.mode == Mode::WaitUntil,
-            StartCause::Init => false,
-            _ => false,
-        }
-    }
-
     fn resumed(&mut self, event_loop: &ActiveEventLoop) {
         // 恢复事件
         if self.app.as_ref().lock().unwrap().is_some() {
@@ -125,14 +100,14 @@ impl ApplicationHandler for WgpuAppHandler {
 
     fn window_event(
         &mut self,
-        _event_loop: &ActiveEventLoop,
+        event_loop: &ActiveEventLoop,
         _window_id: WindowId,
         event: WindowEvent,
     ) {
         // 窗口事件
         match event {
             WindowEvent::CloseRequested => {
-                self.close_requested = true;
+                event_loop.exit();
             }
             WindowEvent::Resized(_size) => {
                 // 窗口大小改变
@@ -144,22 +119,6 @@ impl ApplicationHandler for WgpuAppHandler {
                 // surface重绘事件
             }
             _ => (),
-        }
-    }
-
-    fn about_to_wait(&mut self, event_loop: &ActiveEventLoop) {
-        match self.mode {
-            Mode::Wait => event_loop.set_control_flow(ControlFlow::Wait),
-            Mode::WaitUntil => {
-                if !self.wait_cancelled {
-                    event_loop
-                        .set_control_flow(ControlFlow::WaitUntil(time::Instant::now() + WAIT_TIME));
-                }
-            }
-        };
-
-        if self.close_requested {
-            event_loop.exit();
         }
     }
 }

@@ -1,5 +1,5 @@
-// pub mod framework;
-// pub use framework::{run, Action};
+pub mod framework;
+pub use framework::{run, WgpuAppAction};
 
 pub mod load_texture;
 pub use load_texture::{
@@ -126,7 +126,6 @@ pub fn init_logger() {
     }
 }
 
-
 #[cfg(target_arch = "wasm32")]
 fn parse_url_query_string<'a>(query: &'a str, search_key: &str) -> Option<&'a str> {
     let query_string = query.strip_prefix('?')?;
@@ -142,4 +141,99 @@ fn parse_url_query_string<'a>(query: &'a str, search_key: &str) -> Option<&'a st
     }
 
     None
+}
+
+#[cfg(target_arch = "wasm32")]
+use {
+    std::sync::Arc,
+    wasm_bindgen::{prelude::*, JsValue},
+    winit::platform::web::WindowExtWebSys,
+    winit::window::Window,
+};
+
+#[cfg(target_arch = "wasm32")]
+pub(crate) fn string_from_js_value(value: &JsValue) -> String {
+    value.as_string().unwrap_or_else(|| format!("{value:#?}"))
+}
+
+/// Install a `ResizeObserver` to observe changes to the size of the canvas.
+///
+/// This is the only way to ensure a canvas size change without an associated window `resize` event
+/// actually results in a resize of the canvas.
+///
+/// The resize observer is called the by the browser at `observe` time, instead of just on the first actual resize.
+/// We use that to trigger the first `request_animation_frame` _after_ updating the size of the canvas to the correct dimensions,
+/// to avoid [#4622](https://github.com/emilk/egui/issues/4622).
+#[cfg(target_arch = "wasm32")]
+fn install_resize_observer(window: Arc<Window>) -> Result<(), JsValue> {
+    let window_clone = window.clone();
+    let closure = Closure::wrap(Box::new({
+        move |entries: js_sys::Array| {
+            let canvas = window.canvas().unwrap();
+            let (width, height) = match crate::get_display_size(&entries) {
+                Ok(v) => v,
+                Err(err) => {
+                    log::error!("{}", crate::string_from_js_value(&err));
+                    return;
+                }
+            };
+            canvas.set_width(width);
+            canvas.set_height(height);
+
+            // we rely on the resize observer to trigger the first `request_animation_frame`:
+            log::info!(
+                "resize observer 触发, 窗口大小: {:?}",
+                (width, height, canvas.width(), canvas.height())
+            );
+            window.request_redraw();
+        }
+    }) as Box<dyn FnMut(js_sys::Array)>);
+
+    let observer = web_sys::ResizeObserver::new(closure.as_ref().unchecked_ref())?;
+    let options = web_sys::ResizeObserverOptions::new();
+    options.set_box(web_sys::ResizeObserverBoxOptions::ContentBox);
+    observer.observe_with_options(window_clone.canvas().unwrap().as_ref(), &options);
+    std::mem::forget(observer);
+    std::mem::forget(closure);
+
+    Ok(())
+}
+
+#[cfg(target_arch = "wasm32")]
+fn get_display_size(resize_observer_entries: &js_sys::Array) -> Result<(u32, u32), JsValue> {
+    let width;
+    let height;
+    let mut dpr = web_sys::window().unwrap().device_pixel_ratio();
+
+    let entry: web_sys::ResizeObserverEntry = resize_observer_entries.at(0).dyn_into()?;
+    if JsValue::from_str("devicePixelContentBoxSize").js_in(entry.as_ref()) {
+        // NOTE: Only this path gives the correct answer for most browsers.
+        // Unfortunately this doesn't work perfectly everywhere.
+        let size: web_sys::ResizeObserverSize =
+            entry.device_pixel_content_box_size().at(0).dyn_into()?;
+        width = size.inline_size();
+        height = size.block_size();
+        dpr = 1.0; // no need to apply
+    } else if JsValue::from_str("contentBoxSize").js_in(entry.as_ref()) {
+        let content_box_size = entry.content_box_size();
+        let idx0 = content_box_size.at(0);
+        if !idx0.is_undefined() {
+            let size: web_sys::ResizeObserverSize = idx0.dyn_into()?;
+            width = size.inline_size();
+            height = size.block_size();
+        } else {
+            // legacy
+            let size = JsValue::clone(content_box_size.as_ref());
+            let size: web_sys::ResizeObserverSize = size.dyn_into()?;
+            width = size.inline_size();
+            height = size.block_size();
+        }
+    } else {
+        // legacy
+        let content_rect = entry.content_rect();
+        width = content_rect.width();
+        height = content_rect.height();
+    }
+
+    Ok(((width.round() * dpr) as u32, (height.round() * dpr) as u32))
 }
