@@ -11,6 +11,7 @@ app-surface.workspace = true
 bytemuck = { workspace = true, features = ["derive"] }
 cfg-if.workspace = true
 glam.workspace = true
+instant.workspace = true
 env_logger.workspace = true
 log.workspace = true
 pollster.workspace = true

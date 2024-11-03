@@ -1,10 +1,8 @@
 use app_surface::{AppSurface, SurfaceFrame};
-use std::iter;
-use wgpu::util::DeviceExt;
+use std::{iter, sync::Arc};
+use utils::{run, WgpuAppAction};
+use wgpu::{util::DeviceExt, WasmNotSend};
 use winit::{dpi::PhysicalSize, event::*};
-
-mod framework;
-use framework::run;
 
 mod camera;
 mod hdr;
@@ -138,8 +136,10 @@ struct LightUniform {
     _padding2: u32,
 }
 
-struct State {
+struct WgpuApp {
     app: AppSurface,
+    size: PhysicalSize<u32>,
+    size_changed: bool,
     render_pipeline: wgpu::RenderPipeline,
     obj_model: model::Model,
     camera: camera::Camera,
@@ -165,6 +165,29 @@ struct State {
     sky_pipeline: wgpu::RenderPipeline,
 }
 
+impl WgpuApp {
+    /// 必要的时候调整 surface 大小
+    fn resize_surface_if_needed(&mut self) {
+        if self.size_changed {
+            //  需先 resize surface
+            self.app
+                .resize_surface_by_size((self.size.width, self.size.height));
+
+            // 再更新 projection, hdr, depth_texture
+            self.projection.resize(self.size.width, self.size.height);
+            self.hdr
+                .resize(self.app.device.as_ref(), self.size.width, self.size.height);
+            self.depth_texture = texture::Texture::create_depth_texture(
+                self.app.device.as_ref(),
+                &self.app.config,
+                "depth_texture",
+            );
+
+            self.size_changed = false;
+        }
+    }
+}
+
 fn create_render_pipeline(
     device: &wgpu::Device,
     layout: &wgpu::PipelineLayout,
@@ -181,13 +204,13 @@ fn create_render_pipeline(
         layout: Some(layout),
         vertex: wgpu::VertexState {
             module: &shader,
-            entry_point: "vs_main",
+            entry_point: Some("vs_main"),
             compilation_options: Default::default(),
             buffers: vertex_layouts,
         },
         fragment: Some(wgpu::FragmentState {
             module: &shader,
-            entry_point: "fs_main",
+            entry_point: Some("fs_main"),
             compilation_options: Default::default(),
             targets: &[Some(wgpu::ColorTargetState {
                 format: color_format,
@@ -226,402 +249,412 @@ fn create_render_pipeline(
     })
 }
 
-impl State {
-    async fn new(app: AppSurface) -> Self {
-        // 本教程的着色器中假定 Surface 使用 sRGB 纹理格式.
-        // 但在 Web 环境只支持使用 bgra8unorm, rgba8unorm, rgba16float 三种格式
-        // 所以，我们利用纹理的 view_formats 特性，在调用 surface 的 create_view 时设置 view 格式为 sRGB
-        let surface_format = app.config.format.remove_srgb_suffix();
-        let mut app = app;
-        app.sdq.update_config_format(surface_format);
+impl WgpuAppAction for WgpuApp {
+    fn new(
+        window: Arc<winit::window::Window>,
+    ) -> impl std::future::Future<Output = Self> + WasmNotSend {
+        async move {
+            // 配置窗口
+            Self::config_window(window.clone(), "tutorial7-instancing");
 
-        let device = app.device.as_ref();
-        let queue = app.queue.as_ref();
-        let config = &app.config;
+            // 创建 wgpu 应用
+            let mut app = AppSurface::new(window).await;
 
-        let texture_bind_group_layout =
-            device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-                entries: &[
-                    wgpu::BindGroupLayoutEntry {
-                        binding: 0,
-                        visibility: wgpu::ShaderStages::FRAGMENT,
-                        ty: wgpu::BindingType::Texture {
-                            multisampled: false,
-                            sample_type: wgpu::TextureSampleType::Float { filterable: true },
-                            view_dimension: wgpu::TextureViewDimension::D2,
+            // 本教程的着色器中假定 Surface 使用 sRGB 纹理格式.
+            // 但在 Web 环境只支持使用 bgra8unorm, rgba8unorm, rgba16float 三种格式
+            // 所以，我们利用纹理的 view_formats 特性，在调用 surface 的 create_view 时设置 view 格式为 sRGB
+            let surface_format = app.config.format.remove_srgb_suffix();
+            app.ctx.update_config_format(surface_format);
+
+            let device = app.device.as_ref();
+            let queue = app.queue.as_ref();
+            let config = &app.config;
+
+            let texture_bind_group_layout =
+                device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+                    entries: &[
+                        wgpu::BindGroupLayoutEntry {
+                            binding: 0,
+                            visibility: wgpu::ShaderStages::FRAGMENT,
+                            ty: wgpu::BindingType::Texture {
+                                multisampled: false,
+                                sample_type: wgpu::TextureSampleType::Float { filterable: true },
+                                view_dimension: wgpu::TextureViewDimension::D2,
+                            },
+                            count: None,
                         },
-                        count: None,
-                    },
-                    wgpu::BindGroupLayoutEntry {
-                        binding: 1,
-                        visibility: wgpu::ShaderStages::FRAGMENT,
-                        ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering),
-                        count: None,
-                    },
-                    // normal map
-                    wgpu::BindGroupLayoutEntry {
-                        binding: 2,
-                        visibility: wgpu::ShaderStages::FRAGMENT,
-                        ty: wgpu::BindingType::Texture {
-                            multisampled: false,
-                            sample_type: wgpu::TextureSampleType::Float { filterable: true },
-                            view_dimension: wgpu::TextureViewDimension::D2,
+                        wgpu::BindGroupLayoutEntry {
+                            binding: 1,
+                            visibility: wgpu::ShaderStages::FRAGMENT,
+                            ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering),
+                            count: None,
                         },
-                        count: None,
-                    },
-                    wgpu::BindGroupLayoutEntry {
-                        binding: 3,
-                        visibility: wgpu::ShaderStages::FRAGMENT,
-                        ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering),
-                        count: None,
-                    },
-                ],
-                label: Some("texture_bind_group_layout"),
+                        // normal map
+                        wgpu::BindGroupLayoutEntry {
+                            binding: 2,
+                            visibility: wgpu::ShaderStages::FRAGMENT,
+                            ty: wgpu::BindingType::Texture {
+                                multisampled: false,
+                                sample_type: wgpu::TextureSampleType::Float { filterable: true },
+                                view_dimension: wgpu::TextureViewDimension::D2,
+                            },
+                            count: None,
+                        },
+                        wgpu::BindGroupLayoutEntry {
+                            binding: 3,
+                            visibility: wgpu::ShaderStages::FRAGMENT,
+                            ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering),
+                            count: None,
+                        },
+                    ],
+                    label: Some("texture_bind_group_layout"),
+                });
+
+            let camera = camera::Camera::new((0.0, 5.0, 10.0), -90.0, -20.0);
+            let projection = camera::Projection::new(config.width, config.height, 45.0, 0.1, 100.0);
+            let camera_controller = camera::CameraController::new(4.0, 0.4);
+
+            let mut camera_uniform = CameraUniform::new();
+            camera_uniform.update_view_proj(&camera, &projection);
+
+            let camera_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                label: Some("Camera Buffer"),
+                contents: bytemuck::cast_slice(&[camera_uniform]),
+                usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
             });
 
-        let camera = camera::Camera::new((0.0, 5.0, 10.0), -90.0, -20.0);
-        let projection = camera::Projection::new(config.width, config.height, 45.0, 0.1, 100.0);
-        let camera_controller = camera::CameraController::new(4.0, 0.4);
+            const SPACE_BETWEEN: f32 = 3.0;
+            let instances = (0..NUM_INSTANCES_PER_ROW)
+                .flat_map(|z| {
+                    (0..NUM_INSTANCES_PER_ROW).map(move |x| {
+                        let x = SPACE_BETWEEN * (x as f32 - NUM_INSTANCES_PER_ROW as f32 / 2.0);
+                        let z = SPACE_BETWEEN * (z as f32 - NUM_INSTANCES_PER_ROW as f32 / 2.0);
 
-        let mut camera_uniform = CameraUniform::new();
-        camera_uniform.update_view_proj(&camera, &projection);
+                        let position = glam::Vec3 { x, y: 0.0, z };
 
-        let camera_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("Camera Buffer"),
-            contents: bytemuck::cast_slice(&[camera_uniform]),
-            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
-        });
+                        let rotation = if position.length().abs() <= f32::EPSILON {
+                            glam::Quat::from_axis_angle(glam::Vec3::Z, 0.0)
+                        } else {
+                            glam::Quat::from_axis_angle(
+                                position.normalize(),
+                                std::f32::consts::FRAC_PI_4,
+                            )
+                        };
 
-        const SPACE_BETWEEN: f32 = 3.0;
-        let instances = (0..NUM_INSTANCES_PER_ROW)
-            .flat_map(|z| {
-                (0..NUM_INSTANCES_PER_ROW).map(move |x| {
-                    let x = SPACE_BETWEEN * (x as f32 - NUM_INSTANCES_PER_ROW as f32 / 2.0);
-                    let z = SPACE_BETWEEN * (z as f32 - NUM_INSTANCES_PER_ROW as f32 / 2.0);
-
-                    let position = glam::Vec3 { x, y: 0.0, z };
-
-                    let rotation = if position.length().abs() <= f32::EPSILON {
-                        glam::Quat::from_axis_angle(glam::Vec3::Z, 0.0)
-                    } else {
-                        glam::Quat::from_axis_angle(
-                            position.normalize(),
-                            std::f32::consts::FRAC_PI_4,
-                        )
-                    };
-
-                    Instance { position, rotation }
+                        Instance { position, rotation }
+                    })
                 })
-            })
-            .collect::<Vec<_>>();
+                .collect::<Vec<_>>();
 
-        let instance_data = instances.iter().map(Instance::to_raw).collect::<Vec<_>>();
-        let instance_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("Instance Buffer"),
-            contents: bytemuck::cast_slice(&instance_data),
-            usage: wgpu::BufferUsages::VERTEX,
-        });
-
-        let camera_bind_group_layout =
-            device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-                entries: &[wgpu::BindGroupLayoutEntry {
-                    binding: 0,
-                    visibility: wgpu::ShaderStages::VERTEX | wgpu::ShaderStages::FRAGMENT,
-                    ty: wgpu::BindingType::Buffer {
-                        ty: wgpu::BufferBindingType::Uniform,
-                        has_dynamic_offset: false,
-                        min_binding_size: None,
-                    },
-                    count: None,
-                }],
-                label: Some("camera_bind_group_layout"),
+            let instance_data = instances.iter().map(Instance::to_raw).collect::<Vec<_>>();
+            let instance_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                label: Some("Instance Buffer"),
+                contents: bytemuck::cast_slice(&instance_data),
+                usage: wgpu::BufferUsages::VERTEX,
             });
 
-        let camera_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
-            layout: &camera_bind_group_layout,
-            entries: &[wgpu::BindGroupEntry {
-                binding: 0,
-                resource: camera_buffer.as_entire_binding(),
-            }],
-            label: Some("camera_bind_group"),
-        });
+            let camera_bind_group_layout =
+                device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+                    entries: &[wgpu::BindGroupLayoutEntry {
+                        binding: 0,
+                        visibility: wgpu::ShaderStages::VERTEX | wgpu::ShaderStages::FRAGMENT,
+                        ty: wgpu::BindingType::Buffer {
+                            ty: wgpu::BufferBindingType::Uniform,
+                            has_dynamic_offset: false,
+                            min_binding_size: None,
+                        },
+                        count: None,
+                    }],
+                    label: Some("camera_bind_group_layout"),
+                });
 
-        let obj_model =
-            resources::load_model("cube.obj", device, queue, &texture_bind_group_layout)
-                .await
-                .unwrap();
-
-        let light_uniform = LightUniform {
-            position: [2.0, 2.0, 2.0],
-            _padding: 0,
-            color: [1.0, 1.0, 1.0],
-            _padding2: 0,
-        };
-
-        let light_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("Light VB"),
-            contents: bytemuck::cast_slice(&[light_uniform]),
-            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
-        });
-
-        let light_bind_group_layout =
-            device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-                entries: &[wgpu::BindGroupLayoutEntry {
+            let camera_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+                layout: &camera_bind_group_layout,
+                entries: &[wgpu::BindGroupEntry {
                     binding: 0,
-                    visibility: wgpu::ShaderStages::VERTEX | wgpu::ShaderStages::FRAGMENT,
-                    ty: wgpu::BindingType::Buffer {
-                        ty: wgpu::BufferBindingType::Uniform,
-                        has_dynamic_offset: false,
-                        min_binding_size: None,
-                    },
-                    count: None,
+                    resource: camera_buffer.as_entire_binding(),
+                }],
+                label: Some("camera_bind_group"),
+            });
+
+            let obj_model =
+                resources::load_model("cube.obj", device, queue, &texture_bind_group_layout)
+                    .await
+                    .unwrap();
+
+            let light_uniform = LightUniform {
+                position: [2.0, 2.0, 2.0],
+                _padding: 0,
+                color: [1.0, 1.0, 1.0],
+                _padding2: 0,
+            };
+
+            let light_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                label: Some("Light VB"),
+                contents: bytemuck::cast_slice(&[light_uniform]),
+                usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+            });
+
+            let light_bind_group_layout =
+                device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+                    entries: &[wgpu::BindGroupLayoutEntry {
+                        binding: 0,
+                        visibility: wgpu::ShaderStages::VERTEX | wgpu::ShaderStages::FRAGMENT,
+                        ty: wgpu::BindingType::Buffer {
+                            ty: wgpu::BufferBindingType::Uniform,
+                            has_dynamic_offset: false,
+                            min_binding_size: None,
+                        },
+                        count: None,
+                    }],
+                    label: None,
+                });
+
+            let light_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+                layout: &light_bind_group_layout,
+                entries: &[wgpu::BindGroupEntry {
+                    binding: 0,
+                    resource: light_buffer.as_entire_binding(),
                 }],
                 label: None,
             });
 
-        let light_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
-            layout: &light_bind_group_layout,
-            entries: &[wgpu::BindGroupEntry {
-                binding: 0,
-                resource: light_buffer.as_entire_binding(),
-            }],
-            label: None,
-        });
+            let depth_texture =
+                texture::Texture::create_depth_texture(device, config, "depth_texture");
 
-        let depth_texture = texture::Texture::create_depth_texture(device, config, "depth_texture");
-
-        // NEW!
-        let hdr = hdr::HdrPipeline::new(device, config);
-
-        let hdr_loader = resources::HdrLoader::new(device);
-        // pure-sky 是一张 .hdr 后缀的文件，网格上加载为何报如下错误？
-        // Format error decoding Hdr: Radiance HDR signature not found
-        let sky_bytes = resources::load_binary("pure-sky.hdr").await.unwrap();
-        let sky_texture = hdr_loader
-            .from_equirectangular_bytes(device, queue, &sky_bytes, 1080, Some("Sky Texture"))
-            .unwrap();
-
-        let environment_layout =
-            device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-                label: Some("environment_layout"),
-                entries: &[
-                    wgpu::BindGroupLayoutEntry {
-                        binding: 0,
-                        visibility: wgpu::ShaderStages::FRAGMENT,
-                        ty: wgpu::BindingType::Texture {
-                            sample_type: wgpu::TextureSampleType::Float { filterable: false },
-                            view_dimension: wgpu::TextureViewDimension::Cube,
-                            multisampled: false,
-                        },
-                        count: None,
-                    },
-                    wgpu::BindGroupLayoutEntry {
-                        binding: 1,
-                        visibility: wgpu::ShaderStages::FRAGMENT,
-                        ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::NonFiltering),
-                        count: None,
-                    },
-                ],
-            });
-
-        let environment_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
-            label: Some("environment_bind_group"),
-            layout: &environment_layout,
-            entries: &[
-                wgpu::BindGroupEntry {
-                    binding: 0,
-                    resource: wgpu::BindingResource::TextureView(sky_texture.view()),
-                },
-                wgpu::BindGroupEntry {
-                    binding: 1,
-                    resource: wgpu::BindingResource::Sampler(sky_texture.sampler()),
-                },
-            ],
-        });
-
-        let render_pipeline_layout =
-            device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-                label: Some("Render Pipeline Layout"),
-                bind_group_layouts: &[
-                    &texture_bind_group_layout,
-                    &camera_bind_group_layout,
-                    &light_bind_group_layout,
-                    &environment_layout, // UPDATED!
-                ],
-                push_constant_ranges: &[],
-            });
-
-        let render_pipeline = {
-            let shader = wgpu::ShaderModuleDescriptor {
-                label: Some("Normal Shader"),
-                source: wgpu::ShaderSource::Wgsl(include_str!("shader.wgsl").into()),
-            };
-            create_render_pipeline(
-                device,
-                &render_pipeline_layout,
-                hdr.format(),
-                Some(texture::Texture::DEPTH_FORMAT),
-                &[model::ModelVertex::desc(), InstanceRaw::desc()],
-                wgpu::PrimitiveTopology::TriangleList,
-                shader,
-            )
-        };
-
-        let light_render_pipeline = {
-            let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-                label: Some("Light Pipeline Layout"),
-                bind_group_layouts: &[&camera_bind_group_layout, &light_bind_group_layout],
-                push_constant_ranges: &[],
-            });
-            let shader = wgpu::ShaderModuleDescriptor {
-                label: Some("Light Shader"),
-                source: wgpu::ShaderSource::Wgsl(include_str!("light.wgsl").into()),
-            };
-            create_render_pipeline(
-                device,
-                &layout,
-                hdr.format(),
-                Some(texture::Texture::DEPTH_FORMAT),
-                &[model::ModelVertex::desc()],
-                wgpu::PrimitiveTopology::TriangleList,
-                shader,
-            )
-        };
-
-        // NEW!
-        let sky_pipeline = {
-            let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-                label: Some("Sky Pipeline Layout"),
-                bind_group_layouts: &[&camera_bind_group_layout, &environment_layout],
-                push_constant_ranges: &[],
-            });
-            let shader = wgpu::include_wgsl!("sky.wgsl");
-            create_render_pipeline(
-                device,
-                &layout,
-                hdr.format(),
-                Some(texture::Texture::DEPTH_FORMAT),
-                &[],
-                wgpu::PrimitiveTopology::TriangleList,
-                shader,
-            )
-        };
-
-        let debug_material = {
-            let diffuse_bytes = include_bytes!("../res/cobble-diffuse.png");
-            let normal_bytes = include_bytes!("../res/cobble-normal.png");
-
-            let diffuse_texture = texture::Texture::from_bytes(
-                device,
-                queue,
-                diffuse_bytes,
-                "res/alt-diffuse.png",
-                false,
-            )
-            .unwrap();
-            let normal_texture = texture::Texture::from_bytes(
-                device,
-                queue,
-                normal_bytes,
-                "res/alt-normal.png",
-                true,
-            )
-            .unwrap();
-
-            model::Material::new(
-                device,
-                "alt-material",
-                diffuse_texture,
-                normal_texture,
-                &texture_bind_group_layout,
-            )
-        };
-
-        Self {
-            app,
-            render_pipeline,
-            obj_model,
-            camera,
-            projection,
-            camera_controller,
-            camera_buffer,
-            camera_bind_group,
-            camera_uniform,
-            instances,
-            instance_buffer,
-            depth_texture,
-            light_uniform,
-            light_buffer,
-            light_bind_group,
-            light_render_pipeline,
-            #[allow(dead_code)]
-            debug_material,
-            mouse_pressed: false,
             // NEW!
-            hdr,
-            environment_bind_group,
-            sky_pipeline,
+            let hdr = hdr::HdrPipeline::new(device, config);
+
+            let hdr_loader = resources::HdrLoader::new(device);
+            // pure-sky 是一张 .hdr 后缀的文件，网格上加载为何报如下错误？
+            // Format error decoding Hdr: Radiance HDR signature not found
+            let sky_bytes = resources::load_binary("pure-sky.hdr").await.unwrap();
+            let sky_texture = hdr_loader
+                .from_equirectangular_bytes(device, queue, &sky_bytes, 1080, Some("Sky Texture"))
+                .unwrap();
+
+            let environment_layout =
+                device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+                    label: Some("environment_layout"),
+                    entries: &[
+                        wgpu::BindGroupLayoutEntry {
+                            binding: 0,
+                            visibility: wgpu::ShaderStages::FRAGMENT,
+                            ty: wgpu::BindingType::Texture {
+                                sample_type: wgpu::TextureSampleType::Float { filterable: false },
+                                view_dimension: wgpu::TextureViewDimension::Cube,
+                                multisampled: false,
+                            },
+                            count: None,
+                        },
+                        wgpu::BindGroupLayoutEntry {
+                            binding: 1,
+                            visibility: wgpu::ShaderStages::FRAGMENT,
+                            ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::NonFiltering),
+                            count: None,
+                        },
+                    ],
+                });
+
+            let environment_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+                label: Some("environment_bind_group"),
+                layout: &environment_layout,
+                entries: &[
+                    wgpu::BindGroupEntry {
+                        binding: 0,
+                        resource: wgpu::BindingResource::TextureView(sky_texture.view()),
+                    },
+                    wgpu::BindGroupEntry {
+                        binding: 1,
+                        resource: wgpu::BindingResource::Sampler(sky_texture.sampler()),
+                    },
+                ],
+            });
+
+            let render_pipeline_layout =
+                device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+                    label: Some("Render Pipeline Layout"),
+                    bind_group_layouts: &[
+                        &texture_bind_group_layout,
+                        &camera_bind_group_layout,
+                        &light_bind_group_layout,
+                        &environment_layout, // UPDATED!
+                    ],
+                    push_constant_ranges: &[],
+                });
+
+            let render_pipeline = {
+                let shader = wgpu::ShaderModuleDescriptor {
+                    label: Some("Normal Shader"),
+                    source: wgpu::ShaderSource::Wgsl(include_str!("shader.wgsl").into()),
+                };
+                create_render_pipeline(
+                    device,
+                    &render_pipeline_layout,
+                    hdr.format(),
+                    Some(texture::Texture::DEPTH_FORMAT),
+                    &[model::ModelVertex::desc(), InstanceRaw::desc()],
+                    wgpu::PrimitiveTopology::TriangleList,
+                    shader,
+                )
+            };
+
+            let light_render_pipeline = {
+                let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+                    label: Some("Light Pipeline Layout"),
+                    bind_group_layouts: &[&camera_bind_group_layout, &light_bind_group_layout],
+                    push_constant_ranges: &[],
+                });
+                let shader = wgpu::ShaderModuleDescriptor {
+                    label: Some("Light Shader"),
+                    source: wgpu::ShaderSource::Wgsl(include_str!("light.wgsl").into()),
+                };
+                create_render_pipeline(
+                    device,
+                    &layout,
+                    hdr.format(),
+                    Some(texture::Texture::DEPTH_FORMAT),
+                    &[model::ModelVertex::desc()],
+                    wgpu::PrimitiveTopology::TriangleList,
+                    shader,
+                )
+            };
+
+            // NEW!
+            let sky_pipeline = {
+                let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+                    label: Some("Sky Pipeline Layout"),
+                    bind_group_layouts: &[&camera_bind_group_layout, &environment_layout],
+                    push_constant_ranges: &[],
+                });
+                let shader = wgpu::include_wgsl!("sky.wgsl");
+                create_render_pipeline(
+                    device,
+                    &layout,
+                    hdr.format(),
+                    Some(texture::Texture::DEPTH_FORMAT),
+                    &[],
+                    wgpu::PrimitiveTopology::TriangleList,
+                    shader,
+                )
+            };
+
+            let debug_material = {
+                let diffuse_bytes = include_bytes!("../res/cobble-diffuse.png");
+                let normal_bytes = include_bytes!("../res/cobble-normal.png");
+
+                let diffuse_texture = texture::Texture::from_bytes(
+                    device,
+                    queue,
+                    diffuse_bytes,
+                    "res/alt-diffuse.png",
+                    false,
+                )
+                .unwrap();
+                let normal_texture = texture::Texture::from_bytes(
+                    device,
+                    queue,
+                    normal_bytes,
+                    "res/alt-normal.png",
+                    true,
+                )
+                .unwrap();
+
+                model::Material::new(
+                    device,
+                    "alt-material",
+                    diffuse_texture,
+                    normal_texture,
+                    &texture_bind_group_layout,
+                )
+            };
+
+            let size = PhysicalSize::<u32>::new(config.width, config.height);
+
+            Self {
+                app,
+                size,
+                size_changed: false,
+                render_pipeline,
+                obj_model,
+                camera,
+                projection,
+                camera_controller,
+                camera_buffer,
+                camera_bind_group,
+                camera_uniform,
+                instances,
+                instance_buffer,
+                depth_texture,
+                light_uniform,
+                light_buffer,
+                light_bind_group,
+                light_render_pipeline,
+                #[allow(dead_code)]
+                debug_material,
+                mouse_pressed: false,
+                // NEW!
+                hdr,
+                environment_bind_group,
+                sky_pipeline,
+            }
         }
     }
 
-    fn start(&mut self) {
-        //  只有在进入事件循环之后，才有可能真正获取到窗口大小。
-        let size = self.app.get_view().inner_size();
-        self.resize(&size);
-    }
-
-    fn get_adapter_info(&self) -> wgpu::AdapterInfo {
-        self.app.adapter.get_info()
-    }
-
-    fn resize(&mut self, new_size: &PhysicalSize<u32>) {
+    fn set_window_resized(&mut self, new_size: PhysicalSize<u32>) {
         if self.app.config.width == new_size.width && self.app.config.height == new_size.height {
             return;
         }
-        //  需先 resize surface
-        self.app.resize_surface();
-
-        // 再更新 projection, hdr, depth_texture
-        let config = &self.app.config;
-        self.projection.resize(config.width, config.height);
-        self.hdr
-            .resize(self.app.device.as_ref(), config.width, config.height);
-        self.depth_texture = texture::Texture::create_depth_texture(
-            self.app.device.as_ref(),
-            config,
-            "depth_texture",
-        );
+        self.size = new_size;
+        self.size_changed = true;
     }
 
-    fn request_redraw(&mut self) {
+    fn get_size(&self) -> PhysicalSize<u32> {
+        PhysicalSize::new(self.app.config.width, self.app.config.height)
+    }
+
+    fn pre_present_notify(&self) {
+        // 通知 wgpu 应用可以进行渲染了
+        self.app.get_view().pre_present_notify();
+    }
+
+    fn request_redraw(&self) {
         self.app.get_view().request_redraw();
     }
 
-    fn input(&mut self, event: &WindowEvent) -> bool {
+    fn keyboard_input(&mut self, event: &KeyEvent) -> bool {
+        self.camera_controller.process_keyboard(
+            &event.physical_key,
+            &event.logical_key,
+            event.state,
+        );
+
+        // 返回 true 表示事件已处理
+        true
+    }
+
+    fn mouse_click(&mut self, state: ElementState, button: MouseButton) -> bool {
+        if button == MouseButton::Left {
+            self.mouse_pressed = state == ElementState::Pressed;
+            true
+        } else {
+            false
+        }
+    }
+
+    fn mouse_wheel(&mut self, delta: MouseScrollDelta, _phase: TouchPhase) -> bool {
+        self.camera_controller.process_scroll(&delta);
+        true
+    }
+
+    fn device_input(&mut self, event: &DeviceEvent) -> bool {
         match event {
-            WindowEvent::KeyboardInput {
-                event:
-                    KeyEvent {
-                        state,
-                        physical_key,
-                        logical_key,
-                        ..
-                    },
-                ..
-            } => self
-                .camera_controller
-                .process_keyboard(physical_key, logical_key, *state),
-            WindowEvent::MouseWheel { delta, .. } => {
-                self.camera_controller.process_scroll(delta);
-                true
-            }
-            WindowEvent::MouseInput {
-                button: MouseButton::Left,
-                state,
-                ..
-            } => {
-                self.mouse_pressed = *state == ElementState::Pressed;
-                true
+            DeviceEvent::MouseMotion { delta } => {
+                if self.mouse_pressed {
+                    self.camera_controller.process_mouse(delta.0, delta.1);
+                    return true;
+                }
+                false
             }
             _ => false,
         }
@@ -649,6 +682,8 @@ impl State {
     }
 
     fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
+        self.resize_surface_if_needed();
+
         let (output, view) = self
             .app
             .get_current_frame_view(Some(self.app.config.format.add_srgb_suffix()));
@@ -720,6 +755,6 @@ impl State {
     }
 }
 
-fn main() {
-    run(Some(1.6));
+pub fn main() -> Result<(), impl std::error::Error> {
+    run::<WgpuApp>()
 }

@@ -5,7 +5,7 @@ use wgpu::{util::DeviceExt, WasmNotSend};
 use winit::{
     dpi::PhysicalSize,
     event::*,
-    keyboard::{Key, KeyCode, NamedKey, PhysicalKey},
+    keyboard::{KeyCode, PhysicalKey},
 };
 
 mod texture;
@@ -124,46 +124,35 @@ impl CameraController {
         }
     }
 
-    fn process_events(&mut self, event: &WindowEvent) -> bool {
-        match event {
-            WindowEvent::KeyboardInput {
-                event:
-                    KeyEvent {
-                        state,
-                        logical_key,
-                        physical_key,
-                        ..
-                    },
-                ..
-            } => {
-                let is_pressed = *state == ElementState::Pressed;
-                if let Key::Named(NamedKey::Space) = logical_key {
-                    self.is_up_pressed = is_pressed;
-                    return true;
-                }
-                match physical_key {
-                    PhysicalKey::Code(KeyCode::ShiftLeft) => {
-                        self.is_down_pressed = is_pressed;
-                        true
-                    }
-                    PhysicalKey::Code(KeyCode::KeyW) | PhysicalKey::Code(KeyCode::ArrowUp) => {
-                        self.is_forward_pressed = is_pressed;
-                        true
-                    }
-                    PhysicalKey::Code(KeyCode::KeyA) | PhysicalKey::Code(KeyCode::ArrowLeft) => {
-                        self.is_left_pressed = is_pressed;
-                        true
-                    }
-                    PhysicalKey::Code(KeyCode::KeyS) | PhysicalKey::Code(KeyCode::ArrowDown) => {
-                        self.is_backward_pressed = is_pressed;
-                        true
-                    }
-                    PhysicalKey::Code(KeyCode::KeyD) | PhysicalKey::Code(KeyCode::ArrowRight) => {
-                        self.is_right_pressed = is_pressed;
-                        true
-                    }
-                    _ => false,
-                }
+    fn process_events(&mut self, event: &KeyEvent) -> bool {
+        // 直接检查 KeyEvent 的状态
+        let is_pressed = event.state == ElementState::Pressed;
+
+        if event.physical_key == PhysicalKey::Code(KeyCode::Space) {
+            self.is_up_pressed = is_pressed;
+            return true;
+        }
+
+        match event.physical_key {
+            PhysicalKey::Code(KeyCode::ShiftLeft) => {
+                self.is_down_pressed = is_pressed;
+                true
+            }
+            PhysicalKey::Code(KeyCode::KeyW) | PhysicalKey::Code(KeyCode::ArrowUp) => {
+                self.is_forward_pressed = is_pressed;
+                true
+            }
+            PhysicalKey::Code(KeyCode::KeyA) | PhysicalKey::Code(KeyCode::ArrowLeft) => {
+                self.is_left_pressed = is_pressed;
+                true
+            }
+            PhysicalKey::Code(KeyCode::KeyS) | PhysicalKey::Code(KeyCode::ArrowDown) => {
+                self.is_backward_pressed = is_pressed;
+                true
+            }
+            PhysicalKey::Code(KeyCode::KeyD) | PhysicalKey::Code(KeyCode::ArrowRight) => {
+                self.is_right_pressed = is_pressed;
+                true
             }
             _ => false,
         }
@@ -468,11 +457,11 @@ impl WgpuAppAction for WgpuApp {
         self.app.get_view().request_redraw();
     }
 
-    fn input(&mut self, event: &WindowEvent) -> bool {
+    fn keyboard_input(&mut self, event: &KeyEvent) -> bool {
         self.camera_controller.process_events(event)
     }
 
-    fn update(&mut self) {
+    fn update(&mut self, _dt: instant::Duration) {
         self.camera_controller.update_camera(&mut self.camera);
         self.camera_uniform.update_view_proj(&self.camera);
         self.app.queue.write_buffer(

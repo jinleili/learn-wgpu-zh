@@ -5,7 +5,7 @@ use wgpu::{util::DeviceExt, WasmNotSend};
 use winit::{
     dpi::PhysicalSize,
     event::*,
-    keyboard::{Key, NamedKey},
+    keyboard::{KeyCode, PhysicalKey},
 };
 
 #[repr(C)]
@@ -254,22 +254,12 @@ impl WgpuAppAction for WgpuApp {
         self.app.get_view().request_redraw();
     }
 
-    fn input(&mut self, event: &WindowEvent) -> bool {
-        match event {
-            WindowEvent::KeyboardInput {
-                event:
-                    KeyEvent {
-                        state,
-                        logical_key: Key::Named(NamedKey::Space),
-                        ..
-                    },
-                ..
-            } => {
-                self.use_complex = *state == ElementState::Pressed;
-                true
-            }
-            _ => false,
+    fn keyboard_input(&mut self, event: &KeyEvent) -> bool {
+        if event.physical_key == PhysicalKey::Code(KeyCode::Space) {
+            self.use_complex = event.state == ElementState::Pressed;
+            return true;
         }
+        false
     }
 
     fn render(&mut self) -> Result<(), wgpu::SurfaceError> {

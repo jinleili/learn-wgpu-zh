@@ -134,46 +134,34 @@ impl CameraController {
         }
     }
 
-    fn process_events(&mut self, event: &WindowEvent) -> bool {
-        match event {
-            WindowEvent::KeyboardInput {
-                event:
-                    KeyEvent {
-                        state,
-                        physical_key,
-                        logical_key,
-                        ..
-                    },
-                ..
-            } => {
-                let is_pressed = *state == ElementState::Pressed;
-                if let Key::Named(NamedKey::Space) = logical_key {
-                    self.is_up_pressed = is_pressed;
-                    return true;
-                }
-                match physical_key {
-                    PhysicalKey::Code(KeyCode::ShiftLeft) => {
-                        self.is_down_pressed = is_pressed;
-                        true
-                    }
-                    PhysicalKey::Code(KeyCode::KeyW) | PhysicalKey::Code(KeyCode::ArrowUp) => {
-                        self.is_forward_pressed = is_pressed;
-                        true
-                    }
-                    PhysicalKey::Code(KeyCode::KeyA) | PhysicalKey::Code(KeyCode::ArrowLeft) => {
-                        self.is_left_pressed = is_pressed;
-                        true
-                    }
-                    PhysicalKey::Code(KeyCode::KeyS) | PhysicalKey::Code(KeyCode::ArrowDown) => {
-                        self.is_backward_pressed = is_pressed;
-                        true
-                    }
-                    PhysicalKey::Code(KeyCode::KeyD) | PhysicalKey::Code(KeyCode::ArrowRight) => {
-                        self.is_right_pressed = is_pressed;
-                        true
-                    }
-                    _ => false,
-                }
+    fn process_events(&mut self, event: &KeyEvent) -> bool {
+        let is_pressed = event.state == ElementState::Pressed;
+
+        if let Key::Named(NamedKey::Space) = event.logical_key {
+            self.is_up_pressed = is_pressed;
+            return true;
+        }
+
+        match event.physical_key {
+            PhysicalKey::Code(KeyCode::ShiftLeft) => {
+                self.is_down_pressed = is_pressed;
+                return true;
+            }
+            PhysicalKey::Code(KeyCode::KeyW) | PhysicalKey::Code(KeyCode::ArrowUp) => {
+                self.is_forward_pressed = is_pressed;
+                return true;
+            }
+            PhysicalKey::Code(KeyCode::KeyA) | PhysicalKey::Code(KeyCode::ArrowLeft) => {
+                self.is_left_pressed = is_pressed;
+                return true;
+            }
+            PhysicalKey::Code(KeyCode::KeyS) | PhysicalKey::Code(KeyCode::ArrowDown) => {
+                self.is_backward_pressed = is_pressed;
+                return true;
+            }
+            PhysicalKey::Code(KeyCode::KeyD) | PhysicalKey::Code(KeyCode::ArrowRight) => {
+                self.is_right_pressed = is_pressed;
+                return true;
             }
             _ => false,
         }
@@ -563,11 +551,11 @@ impl WgpuAppAction for WgpuApp {
         self.app.get_view().request_redraw();
     }
 
-    fn input(&mut self, event: &WindowEvent) -> bool {
+    fn keyboard_input(&mut self, event: &KeyEvent) -> bool {
         self.camera_controller.process_events(event)
     }
 
-    fn update(&mut self) {
+    fn update(&mut self, _dt: instant::Duration) {
         self.camera_controller.update_camera(&mut self.camera);
         self.camera_uniform.update_view_proj(&self.camera);
         self.app.queue.write_buffer(

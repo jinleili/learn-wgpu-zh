@@ -217,9 +217,9 @@ checksum = "74f37166d7d48a0284b99dd824694c26119c700b53bf0d1540cdb147dbdaaf13"
 
 [[package]]
 name = "app-surface"
-version = "1.2.2"
+version = "1.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "34874d2b116b520a0286fa6d82d648a802a6a7793a8d46aa6698e0b70d5c77ad"
+checksum = "811fd23b787742d4a6f2dd0e6305ec8ed97739647e3a6b381ddd252d4fd836f1"
 dependencies = [
  "android_logger",
  "ash 0.38.0+1.3.281",
@@ -4533,11 +4533,13 @@ dependencies = [
  "glam",
  "glob",
  "image 0.24.9",
+ "instant",
  "js-sys",
  "log",
  "pollster",
  "reqwest",
  "tobj 3.2.5",
+ "utils",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
@@ -4562,11 +4564,13 @@ dependencies = [
  "glam",
  "glob",
  "image 0.24.9",
+ "instant",
  "js-sys",
  "log",
  "pollster",
  "reqwest",
  "tobj 3.2.5",
+ "utils",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
@@ -4597,6 +4601,7 @@ dependencies = [
  "pollster",
  "reqwest",
  "tobj 3.2.5",
+ "utils",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
@@ -4625,6 +4630,7 @@ dependencies = [
  "pollster",
  "reqwest",
  "tobj 3.2.5",
+ "utils",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
@@ -4746,6 +4752,7 @@ dependencies = [
  "glam",
  "glob",
  "image 0.24.9",
+ "instant",
  "js-sys",
  "log",
  "pollster",
@@ -4774,6 +4781,7 @@ dependencies = [
  "glam",
  "glob",
  "image 0.24.9",
+ "instant",
  "js-sys",
  "log",
  "pollster",
@@ -4802,6 +4810,7 @@ dependencies = [
  "glam",
  "glob",
  "image 0.24.9",
+ "instant",
  "js-sys",
  "log",
  "pollster",
@@ -4830,6 +4839,7 @@ dependencies = [
  "glam",
  "glob",
  "image 0.24.9",
+ "instant",
  "js-sys",
  "log",
  "pollster",

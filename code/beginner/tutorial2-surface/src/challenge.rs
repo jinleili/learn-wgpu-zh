@@ -119,26 +119,16 @@ impl WgpuApp {
         }
     }
 
-    fn input(&mut self, event: &WindowEvent) -> bool {
-        match event {
-            WindowEvent::KeyboardInput {
-                event:
-                    KeyEvent {
-                        physical_key: PhysicalKey::Code(KeyCode::Space),
-                        state,
-                        ..
-                    },
-                ..
-            } => {
-                self.clear_color = if *state == ElementState::Released {
-                    wgpu::Color::BLACK
-                } else {
-                    wgpu::Color::WHITE
-                };
-                true
-            }
-            _ => false,
+    fn keyboard_input(&mut self, event: &KeyEvent) -> bool {
+        if event.physical_key == PhysicalKey::Code(KeyCode::Space) {
+            self.clear_color = if event.state == ElementState::Released {
+                wgpu::Color::BLACK
+            } else {
+                wgpu::Color::WHITE
+            };
+            return true;
         }
+        false
     }
 
     /// 记录窗口大小已发生变化
@@ -264,12 +254,9 @@ impl ApplicationHandler for WgpuAppHandler {
                     app.window.request_redraw();
                 }
             }
-            WindowEvent::KeyboardInput { .. } => {
+            WindowEvent::KeyboardInput { event, .. } => {
                 // 键盘事件
-                app.as_mut().unwrap().input(&event);
-
-                // 请求重绘, Web 环境下需要手动请求
-                app.as_mut().unwrap().window.request_redraw();
+                app.as_mut().unwrap().keyboard_input(&event);
             }
             WindowEvent::RedrawRequested => {
                 // surface 重绘事件

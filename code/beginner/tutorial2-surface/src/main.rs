@@ -246,8 +246,6 @@ impl ApplicationHandler for WgpuAppHandler {
             }
             WindowEvent::KeyboardInput { .. } => {
                 // 键盘事件
-                // 请求重绘, Web 环境下需要手动请求
-                app.as_mut().unwrap().window.request_redraw();
             }
             WindowEvent::RedrawRequested => {
                 // surface 重绘事件
