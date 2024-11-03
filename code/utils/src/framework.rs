@@ -66,6 +66,8 @@ pub trait WgpuAppAction {
                     };
                 })
                 .expect("Couldn't append canvas to document body.");
+
+            canvas.focus().expect("画布无法获取焦点");
         }
     }
 
@@ -81,6 +83,9 @@ pub trait WgpuAppAction {
     fn input(&mut self, _event: &WindowEvent) -> bool {
         false
     }
+
+    /// 更新渲染数据
+    fn update(&mut self) {}
 
     /// 在提交渲染之前通知窗口系统。
     fn pre_present_notify(&self);
@@ -169,6 +174,8 @@ impl<A: WgpuAppAction + 'static> ApplicationHandler for WgpuAppHandler<A> {
             WindowEvent::RedrawRequested => {
                 // surface 重绘事件
                 let app = app.as_mut().unwrap();
+                app.update();
+
                 app.pre_present_notify();
 
                 match app.render() {

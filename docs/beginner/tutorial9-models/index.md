@@ -211,7 +211,7 @@ reqwest = { version = "0.11" }
 还需要将 `Location` 功能添加到 `web-sys` 的 features 数组里：
 
 ```toml
-web-sys = { version = "0.3.64", features = [
+web-sys = { version = "0.3.72", features = [
     "Document",
     "Window",
     "Element",

@@ -255,18 +255,18 @@ WASM 环境中不能在异步函数里使用 `block_on`。`Future`（异步函�
 ```toml
 [dependencies]
 cfg-if = "1"
-winit = "0.29.15"
+winit = "0.30"
 env_logger = "0.11"
 log = "0.4"
-wgpu = "0.20"
+wgpu = "23"
 pollster = "0.3"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 console_error_panic_hook = "0.1.7"
 console_log = "1.0"
-wasm-bindgen = "=0.2.93"
-wasm-bindgen-futures = "0.4.43"
-web-sys = { version = "0.3.70", features = [
+wasm-bindgen = "0.2.95"
+wasm-bindgen-futures = "0.4.45"
+web-sys = { version = "0.3.72", features = [
     "Document",
     "Window",
     "Element",
