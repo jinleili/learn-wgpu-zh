@@ -92,7 +92,7 @@ impl WgpuAppAction for WgpuApp {
     ) -> impl std::future::Future<Output = Self> + WasmNotSend {
         async move {
             // 配置窗口
-            Self::config_window(window.clone(), "tutorial3-pipeline");
+            Self::config_window(window.clone(), "tutorial5-textures");
 
             // 创建 wgpu 应用
             let app = AppSurface::new(window).await;

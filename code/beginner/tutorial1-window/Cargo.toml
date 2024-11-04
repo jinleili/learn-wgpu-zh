@@ -15,6 +15,7 @@ winit.workspace = true
 env_logger.workspace = true
 log.workspace = true
 wgpu.workspace = true
+parking_lot.workspace = true
 pollster.workspace = true
 utils.workspace = true
 

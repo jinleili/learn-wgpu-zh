@@ -152,7 +152,7 @@ use {
 };
 
 #[cfg(target_arch = "wasm32")]
-pub(crate) fn string_from_js_value(value: &JsValue) -> String {
+pub fn string_from_js_value(value: &JsValue) -> String {
     value.as_string().unwrap_or_else(|| format!("{value:#?}"))
 }
 
@@ -165,7 +165,7 @@ pub(crate) fn string_from_js_value(value: &JsValue) -> String {
 /// We use that to trigger the first `request_animation_frame` _after_ updating the size of the canvas to the correct dimensions,
 /// to avoid [#4622](https://github.com/emilk/egui/issues/4622).
 #[cfg(target_arch = "wasm32")]
-fn install_resize_observer(window: Arc<Window>) -> Result<(), JsValue> {
+pub fn install_resize_observer(window: Arc<Window>) -> Result<(), JsValue> {
     let window_clone = window.clone();
     let closure = Closure::wrap(Box::new({
         move |entries: js_sys::Array| {
@@ -177,8 +177,8 @@ fn install_resize_observer(window: Arc<Window>) -> Result<(), JsValue> {
                     return;
                 }
             };
-            canvas.set_width(width);
-            canvas.set_height(height);
+            // canvas.set_width(width);
+            // canvas.set_height(height);
 
             // we rely on the resize observer to trigger the first `request_animation_frame`:
             log::info!(

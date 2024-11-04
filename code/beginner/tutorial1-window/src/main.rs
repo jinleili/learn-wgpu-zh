@@ -1,5 +1,5 @@
+use parking_lot::Mutex;
 use std::rc::Rc;
-use std::sync::{Arc, Mutex};
 use winit::dpi::PhysicalSize;
 use winit::{
     application::ApplicationHandler,
@@ -9,55 +9,50 @@ use winit::{
 };
 
 struct WgpuApp {
-    window: Arc<Window>,
+    /// 避免窗口被释放
+    #[allow(unused)]
+    window: Window,
 }
 
 impl WgpuApp {
-    async fn new(window: Arc<Window>) -> Self {
-        // 计算一个默认显示高度
-        let height = 700 * window.scale_factor() as u32;
-        let width = (height as f32 * 1.6) as u32;
-
+    async fn new(window: Window) -> Self {
         if cfg!(not(target_arch = "wasm32")) {
+            // 计算一个默认显示高度
+            let height = 700 * window.scale_factor() as u32;
+            let width = (height as f32 * 1.6) as u32;
             let _ = window.request_inner_size(PhysicalSize::new(width, height));
         }
 
         #[cfg(target_arch = "wasm32")]
         {
-            // Winit prevents sizing with CSS, so we have to set
-            // the size manually when on web.
             use winit::platform::web::WindowExtWebSys;
 
+            let canvas = window.canvas().unwrap();
+
+            // 将 canvas 添加到当前网页中
             web_sys::window()
                 .and_then(|win| win.document())
                 .map(|doc| {
-                    let canvas = window.canvas().unwrap();
-                    let mut web_width = 800.0f32;
+                    let _ = canvas.set_attribute("id", "winit-canvas");
                     match doc.get_element_by_id("wasm-example") {
                         Some(dst) => {
-                            web_width = dst.client_width() as f32;
-                            let _ = dst.append_child(&web_sys::Element::from(canvas));
+                            let _ = dst.append_child(canvas.as_ref());
                         }
                         None => {
-                            canvas.style().set_css_text(
-                                "background-color: black; display: block; margin: 20px auto;",
-                            );
-                            doc.body()
-                                .map(|body| body.append_child(&web_sys::Element::from(canvas)));
+                            doc.body().map(|body| body.append_child(canvas.as_ref()));
                         }
                     };
-                    // winit 0.29 开始，通过 request_inner_size, canvas.set_width 都无法设置 canvas 的大小
-                    let canvas = window.canvas().unwrap();
-                    let web_height = web_width;
-                    let scale_factor = window.scale_factor() as f32;
-                    canvas.set_width((web_width * scale_factor) as u32);
-                    canvas.set_height((web_height * scale_factor) as u32);
-                    canvas.style().set_css_text(
-                        &(canvas.style().css_text()
-                            + &format!("width: {}px; height: {}px", web_width, web_height)),
-                    );
                 })
                 .expect("Couldn't append canvas to document body.");
+
+            // 确保画布可以获得焦点
+            // https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/tabindex
+            canvas.set_tab_index(0);
+
+            let style = canvas.style();
+            // 当画布获得焦点时不显示高亮轮廓
+            style.set_property("outline", "none").unwrap();
+            canvas.focus().expect("画布无法获取焦点");
         }
         Self { window }
     }
@@ -71,12 +66,12 @@ struct WgpuAppHandler {
 impl ApplicationHandler for WgpuAppHandler {
     fn resumed(&mut self, event_loop: &ActiveEventLoop) {
         // 恢复事件
-        if self.app.as_ref().lock().unwrap().is_some() {
+        if self.app.as_ref().lock().is_some() {
             return;
         }
 
         let window_attributes = Window::default_attributes().with_title("tutorial1-window");
-        let window = Arc::new(event_loop.create_window(window_attributes).unwrap());
+        let window = event_loop.create_window(window_attributes).unwrap();
 
         cfg_if::cfg_if! {
             if #[cfg(target_arch = "wasm32")] {
@@ -84,12 +79,12 @@ impl ApplicationHandler for WgpuAppHandler {
                 wasm_bindgen_futures::spawn_local(async move {
                     let wgpu_app = WgpuApp::new(window).await;
 
-                    let mut app = app.lock().unwrap();
+                    let mut app = app.lock();
                     *app = Some(wgpu_app);
                 });
             } else {
                 let wgpu_app = pollster::block_on(WgpuApp::new(window));
-                self.app.lock().unwrap().replace(wgpu_app);
+                self.app.lock().replace(wgpu_app);
             }
         }
     }

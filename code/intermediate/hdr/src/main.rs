@@ -255,7 +255,7 @@ impl WgpuAppAction for WgpuApp {
     ) -> impl std::future::Future<Output = Self> + WasmNotSend {
         async move {
             // 配置窗口
-            Self::config_window(window.clone(), "tutorial7-instancing");
+            Self::config_window(window.clone(), "hdr");
 
             // 创建 wgpu 应用
             let mut app = AppSurface::new(window).await;

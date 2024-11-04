@@ -69,9 +69,15 @@ fn main() {
         height: 100vh;
     }
     canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+    }
+    #wgpu-app-container {
         width: 50vw;
-        min-width: 400px;
-        height: auto;
+        height: 38vw;
+        min-width: 375px;
+        min-height: 240px;
     }
     "#,
     );

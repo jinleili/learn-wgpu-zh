@@ -86,7 +86,11 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4f {
     let d = abs(in.dis);
     let rho = 0.15;
     if d >= rho {
-        color.a = smoothstep(1., 0., (d - rho) / 1.5);
+        // wgpu v23 中的 smoothstep，第一个参数是 low 还是 high 都可以
+        // color.a = smoothstep(1., 0., (d - rho) / 1.5);
+        
+        // chrome 中的 smoothstep，第一个参数必须大于第二个参数
+        color.a = smoothstep(0., 1., 1.0 - (d - rho) / 1.5);
     }
     return color;
 }

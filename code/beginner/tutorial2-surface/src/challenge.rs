@@ -1,6 +1,5 @@
-use std::iter;
-use std::rc::Rc;
-use std::sync::{Arc, Mutex};
+use parking_lot::Mutex;
+use std::{iter, rc::Rc, sync::Arc};
 use winit::{
     application::ApplicationHandler,
     dpi::PhysicalSize,
@@ -200,7 +199,7 @@ struct WgpuAppHandler {
 impl ApplicationHandler for WgpuAppHandler {
     fn resumed(&mut self, event_loop: &ActiveEventLoop) {
         // 恢复事件
-        if self.app.as_ref().lock().unwrap().is_some() {
+        if self.app.as_ref().lock().is_some() {
             return;
         }
 
@@ -212,12 +211,12 @@ impl ApplicationHandler for WgpuAppHandler {
                 wasm_bindgen_futures::spawn_local(async move {
                     let wgpu_app = WgpuApp::new(window).await;
 
-                    let mut app = app.lock().unwrap();
+                    let mut app = app.lock();
                     *app = Some(wgpu_app);
                 });
             } else {
                 let wgpu_app = pollster::block_on(WgpuApp::new(window));
-                self.app.lock().unwrap().replace(wgpu_app);
+                self.app.lock().replace(wgpu_app);
             }
         }
     }
@@ -232,10 +231,12 @@ impl ApplicationHandler for WgpuAppHandler {
         _window_id: WindowId,
         event: WindowEvent,
     ) {
-        let mut app = self.app.lock().unwrap();
+        let mut app = self.app.lock();
         if app.as_ref().is_none() {
             return;
         }
+
+        let app = app.as_mut().unwrap();
 
         // 窗口事件
         match event {
@@ -247,7 +248,6 @@ impl ApplicationHandler for WgpuAppHandler {
                     // 处理最小化窗口的事件
                     println!("Window minimized!");
                 } else {
-                    let app = app.as_mut().unwrap();
                     app.set_window_resized(physical_size);
 
                     // 请求重绘, Web 环境下需要手动请求
@@ -256,11 +256,12 @@ impl ApplicationHandler for WgpuAppHandler {
             }
             WindowEvent::KeyboardInput { event, .. } => {
                 // 键盘事件
-                app.as_mut().unwrap().keyboard_input(&event);
+                app.keyboard_input(&event);
             }
             WindowEvent::RedrawRequested => {
                 // surface 重绘事件
-                let app = app.as_mut().unwrap();
+                app.window.pre_present_notify();
+                
                 match app.render() {
                     Ok(_) => {}
                     // 当展示平面的上下文丢失，就需重新配置

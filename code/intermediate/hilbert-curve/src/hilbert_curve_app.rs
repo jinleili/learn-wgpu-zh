@@ -1,11 +1,14 @@
 use crate::{hilbert_curve::HilbertCurve, line::Line};
 use app_surface::{AppSurface, SurfaceFrame};
-use std::iter;
-use utils::{framework::Action, BufferObj, SceneUniform};
-use winit::{dpi::PhysicalSize, window::WindowId};
+use std::{iter, sync::Arc};
+use utils::{BufferObj, SceneUniform, WgpuAppAction};
+use wgpu::WasmNotSend;
+use winit::dpi::PhysicalSize;
 
 pub struct HilbertCurveApp {
     app: AppSurface,
+    size: PhysicalSize<u32>,
+    size_changed: bool,
     mvp_buffer: BufferObj,
     line: Line,
     // 当前曲线与目标曲线的顶点缓冲区
@@ -22,127 +25,149 @@ pub struct HilbertCurveApp {
     is_animation_up: bool,
 }
 
-impl Action for HilbertCurveApp {
-    fn new(app: AppSurface) -> Self {
-        let mut app = app;
-        // 兼容 web
-        let format = app.config.format.remove_srgb_suffix();
-        app.sdq.update_config_format(format);
+impl HilbertCurveApp {
+    /// 必要的时候调整 surface 大小
+    fn resize_surface_if_needed(&mut self) {
+        if self.size_changed {
+            //  需先 resize surface
+            self.app
+                .resize_surface_by_size((self.size.width, self.size.height));
 
-        let viewport = glam::Vec2 {
-            x: app.config.width as f32,
-            y: app.config.height as f32,
-        };
-
-        // 投影
-        let (p_matrix, mv_matrix, _) = utils::matrix_helper::perspective_mvp(viewport);
-        let mvp_buffer = BufferObj::create_uniform_buffer(
-            &app.device,
-            &SceneUniform {
+            let viewport = glam::Vec2 {
+                x: self.size.width as f32,
+                y: self.size.height as f32,
+            };
+            // 更新 uniform
+            let (p_matrix, mv_matrix, _) = utils::matrix_helper::perspective_mvp(viewport);
+            let resized_uniform = SceneUniform {
                 mvp: (p_matrix * mv_matrix).to_cols_array_2d(),
                 viewport_pixels: viewport.to_array(),
                 padding: [0., 0.],
-            },
-            Some("SceneUniform"),
-        );
-        // 动作总帧总
-        let draw_count = 60 * 3;
-        let offset_buffer_size = 256;
-        let hilbert_buf = BufferObj::create_empty_uniform_buffer(
-            &app.device,
-            (draw_count * offset_buffer_size) as wgpu::BufferAddress,
-            offset_buffer_size,
-            true,
-            Some("动画的动态偏移缓冲区"),
-        );
-        // 按动态偏移量填充 uniform 缓冲区
-        let mut depth_bias = 1.0;
-        for step in 0..draw_count {
-            let uniform = crate::HilbertUniform {
-                near_target_ratio: step as f32 / (draw_count - 1) as f32,
-                depth_bias,
             };
-            app.queue.write_buffer(
-                &hilbert_buf.buffer,
-                offset_buffer_size * (step),
-                bytemuck::bytes_of(&uniform),
+            self.app.queue.write_buffer(
+                &self.mvp_buffer.buffer,
+                0,
+                bytemuck::bytes_of(&resized_uniform),
             );
-            depth_bias -= 0.01;
+            self.size_changed = false;
         }
+    }
+}
 
-        // buffer 大小
-        let size = (4 * 4 * 3) * HilbertCurve::new(5).vertices.len() as u64;
-        // 创建两个 ping-pong 顶点缓冲区
-        let mut vertex_buffers: Vec<wgpu::Buffer> = Vec::with_capacity(2);
-        for _ in 0..2 {
-            let buf = app.device.create_buffer(&wgpu::BufferDescriptor {
+impl WgpuAppAction for HilbertCurveApp {
+    fn new(
+        window: Arc<winit::window::Window>,
+    ) -> impl std::future::Future<Output = Self> + WasmNotSend {
+        async move {
+            // 配置窗口
+            Self::config_window(window.clone(), "hilbert-curve");
+
+            // 创建 wgpu 应用
+            let mut app = AppSurface::new(window).await;
+
+            // 兼容 web
+            let format = app.config.format.remove_srgb_suffix();
+            app.ctx.update_config_format(format);
+
+            let viewport = glam::Vec2 {
+                x: app.config.width as f32,
+                y: app.config.height as f32,
+            };
+
+            // 投影
+            let (p_matrix, mv_matrix, _) = utils::matrix_helper::perspective_mvp(viewport);
+            let mvp_buffer = BufferObj::create_uniform_buffer(
+                &app.device,
+                &SceneUniform {
+                    mvp: (p_matrix * mv_matrix).to_cols_array_2d(),
+                    viewport_pixels: viewport.to_array(),
+                    padding: [0., 0.],
+                },
+                Some("SceneUniform"),
+            );
+            // 动作总帧总
+            let draw_count = 60 * 3;
+            let offset_buffer_size = 256;
+            let hilbert_buf = BufferObj::create_empty_uniform_buffer(
+                &app.device,
+                (draw_count * offset_buffer_size) as wgpu::BufferAddress,
+                offset_buffer_size,
+                true,
+                Some("动画的动态偏移缓冲区"),
+            );
+            // 按动态偏移量填充 uniform 缓冲区
+            let mut depth_bias = 1.0;
+            for step in 0..draw_count {
+                let uniform = crate::HilbertUniform {
+                    near_target_ratio: step as f32 / (draw_count - 1) as f32,
+                    depth_bias,
+                };
+                app.queue.write_buffer(
+                    &hilbert_buf.buffer,
+                    offset_buffer_size * (step),
+                    bytemuck::bytes_of(&uniform),
+                );
+                depth_bias -= 0.01;
+            }
+
+            // buffer 大小
+            let size = (4 * 4 * 3) * HilbertCurve::new(5).vertices.len() as u64;
+            // 创建两个 ping-pong 顶点缓冲区
+            let mut vertex_buffers: Vec<wgpu::Buffer> = Vec::with_capacity(2);
+            for _ in 0..2 {
+                let buf = app.device.create_buffer(&wgpu::BufferDescriptor {
+                    size,
+                    usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
+                    label: Some("vertex buffer"),
+                    mapped_at_creation: false,
+                });
+                vertex_buffers.push(buf);
+            }
+
+            let line = Line::new(&app, &mvp_buffer, &hilbert_buf);
+
+            let size = PhysicalSize::new(app.config.width, app.config.height);
+
+            Self {
+                app,
                 size,
-                usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
-                label: Some("vertex buffer"),
-                mapped_at_creation: false,
-            });
-            vertex_buffers.push(buf);
-        }
-
-        let line = Line::new(&app, &mvp_buffer, &hilbert_buf);
-
-        Self {
-            app,
-            mvp_buffer,
-            line,
-            vertex_buffers,
-            curve_vertex_count: 0,
-            animate_index: 0,
-            draw_count: draw_count as u32,
-            curve_dimention: 1,
-            is_animation_up: true,
+                size_changed: false,
+                mvp_buffer,
+                line,
+                vertex_buffers,
+                curve_vertex_count: 0,
+                animate_index: 0,
+                draw_count: draw_count as u32,
+                curve_dimention: 1,
+                is_animation_up: true,
+            }
         }
     }
 
-    fn start(&mut self) {
-        //  只有在进入事件循环之后，才有可能真正获取到窗口大小。
-        let size = self.app.get_view().inner_size();
-        self.resize(&size);
-    }
-
-    fn get_adapter_info(&self) -> wgpu::AdapterInfo {
-        self.app.adapter.get_info()
-    }
-
-    fn current_window_id(&self) -> WindowId {
-        self.app.get_view().id()
-    }
-
-    fn resize(&mut self, size: &PhysicalSize<u32>) {
-        let app = &mut self.app;
-        if app.config.width == size.width && app.config.height == size.height {
+    fn set_window_resized(&mut self, new_size: PhysicalSize<u32>) {
+        if self.app.config.width == new_size.width && self.app.config.height == new_size.height {
             return;
         }
-        app.resize_surface();
-
-        let viewport = glam::Vec2 {
-            x: app.config.width as f32,
-            y: app.config.height as f32,
-        };
-        // 更新 uniform
-        let (p_matrix, mv_matrix, _) = utils::matrix_helper::perspective_mvp(viewport);
-        let resized_uniform = SceneUniform {
-            mvp: (p_matrix * mv_matrix).to_cols_array_2d(),
-            viewport_pixels: viewport.to_array(),
-            padding: [0., 0.],
-        };
-        app.queue.write_buffer(
-            &self.mvp_buffer.buffer,
-            0,
-            bytemuck::bytes_of(&resized_uniform),
-        );
+        self.size = new_size;
+        self.size_changed = true;
     }
 
-    fn request_redraw(&mut self) {
+    fn get_size(&self) -> PhysicalSize<u32> {
+        PhysicalSize::new(self.app.config.width, self.app.config.height)
+    }
+
+    fn pre_present_notify(&self) {
+        // 通知 wgpu 应用可以进行渲染了
+        self.app.get_view().pre_present_notify();
+    }
+
+    fn request_redraw(&self) {
         self.app.get_view().request_redraw();
     }
 
     fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
+        self.resize_surface_if_needed();
+
         // 循环执行动画
         self.animate_index += 1;
         if self.animate_index == self.draw_count {

@@ -4507,6 +4507,7 @@ dependencies = [
  "fern",
  "js-sys",
  "log",
+ "parking_lot 0.12.3",
  "pollster",
  "utils",
  "wasm-bindgen",

@@ -4,7 +4,10 @@ use wgpu::WasmNotSend;
 use winit::{
     application::ApplicationHandler,
     dpi::PhysicalSize,
-    event::WindowEvent,
+    event::{
+        DeviceEvent, DeviceId, ElementState, KeyEvent, MouseButton, MouseScrollDelta, TouchPhase,
+        WindowEvent,
+    },
     event_loop::{ActiveEventLoop, EventLoop},
     window::{Window, WindowId},
 };
@@ -19,18 +22,46 @@ pub trait WgpuAppAction {
     /// 配置窗口
     fn config_window(window: Arc<Window>, title: &str) {
         window.set_title(title);
+        if cfg!(not(target_arch = "wasm32")) {
+            // 计算一个默认显示高度
+            let height = 700 * window.scale_factor() as u32;
+            let width = height;
+            let _ = window.request_inner_size(PhysicalSize::new(width, height));
+        }
 
         #[cfg(target_arch = "wasm32")]
         {
             let canvas = window.canvas().unwrap();
-            let style = canvas.style();
+
+            // 将 canvas 添加到当前网页中
+            // 将 canvas 添加到当前网页中
+            web_sys::window()
+                .and_then(|win| win.document())
+                .map(|doc| {
+                    let _ = canvas.set_attribute("id", "winit-canvas");
+                    match doc.get_element_by_id("wgpu-app-container") {
+                        Some(dst) => {
+                            let _ = dst.append_child(canvas.as_ref());
+                        }
+                        None => {
+                            let container = doc.create_element("div").unwrap();
+                            let _ = container.set_attribute("id", "wgpu-app-container");
+                            let _ = container.append_child(canvas.as_ref());
+
+                            doc.body().map(|body| body.append_child(container.as_ref()));
+                        }
+                    };
+                })
+                .expect("Couldn't append canvas to document body.");
 
             // 确保画布可以获得焦点
             // https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/tabindex
             canvas.set_tab_index(0);
 
             // 当画布获得焦点时不显示高亮轮廓
+            let style = canvas.style();
             style.set_property("outline", "none").unwrap();
+            canvas.focus().expect("画布无法获取焦点");
 
             // 记录 winit 0.30 在 web 下的问题：
             // - 通过 css设置 canvas 的宽高不一致时，winit 有很高的概率不会触发 resized 事件, 手动 resize 浏览器窗口后恢复;
@@ -49,25 +80,6 @@ pub trait WgpuAppAction {
             //         crate::string_from_js_value(&err)
             //     ),
             // }
-
-            // 将 canvas 添加到当前网页中
-            web_sys::window()
-                .and_then(|win| win.document())
-                .map(|doc| {
-                    let canvas = window.canvas().unwrap();
-                    let _ = canvas.set_attribute("id", "winit-canvas");
-                    match doc.get_element_by_id("wasm-example") {
-                        Some(dst) => {
-                            let _ = dst.append_child(canvas.as_ref());
-                        }
-                        None => {
-                            doc.body().map(|body| body.append_child(canvas.as_ref()));
-                        }
-                    };
-                })
-                .expect("Couldn't append canvas to document body.");
-
-            canvas.focus().expect("画布无法获取焦点");
         }
     }
 
@@ -80,12 +92,26 @@ pub trait WgpuAppAction {
     /// 获取窗口大小    
     fn get_size(&self) -> PhysicalSize<u32>;
 
-    fn input(&mut self, _event: &WindowEvent) -> bool {
+    /// 键盘事件
+    fn keyboard_input(&mut self, _event: &KeyEvent) -> bool {
+        false
+    }
+
+    fn mouse_click(&mut self, _state: ElementState, _button: MouseButton) -> bool {
+        false
+    }
+
+    fn mouse_wheel(&mut self, _delta: MouseScrollDelta, _phase: TouchPhase) -> bool {
+        false
+    }
+
+    /// 鼠标移动/触摸事件
+    fn device_input(&mut self, _event: &DeviceEvent) -> bool {
         false
     }
 
     /// 更新渲染数据
-    fn update(&mut self) {}
+    fn update(&mut self, _dt: instant::Duration) {}
 
     /// 在提交渲染之前通知窗口系统。
     fn pre_present_notify(&self);
@@ -97,12 +123,14 @@ pub trait WgpuAppAction {
 
 struct WgpuAppHandler<A: WgpuAppAction> {
     app: Rc<Mutex<Option<A>>>,
+    last_render_time: instant::Instant,
 }
 
 impl<A: WgpuAppAction> Default for WgpuAppHandler<A> {
     fn default() -> Self {
         Self {
             app: Rc::new(Mutex::new(None)),
+            last_render_time: instant::Instant::now(),
         }
     }
 }
@@ -114,8 +142,11 @@ impl<A: WgpuAppAction + 'static> ApplicationHandler for WgpuAppHandler<A> {
             return;
         }
 
+        self.last_render_time = instant::Instant::now();
+
         let window_attributes = Window::default_attributes();
         let window = Arc::new(event_loop.create_window(window_attributes).unwrap());
+        let window_clone = window.clone();
 
         cfg_if::cfg_if! {
             if #[cfg(target_arch = "wasm32")] {
@@ -131,6 +162,7 @@ impl<A: WgpuAppAction + 'static> ApplicationHandler for WgpuAppHandler<A> {
                 self.app.lock().replace(wgpu_app);
             }
         }
+        window_clone.request_redraw();
     }
 
     fn suspended(&mut self, _event_loop: &ActiveEventLoop) {
@@ -162,19 +194,28 @@ impl<A: WgpuAppAction + 'static> ApplicationHandler for WgpuAppHandler<A> {
 
                     let app = app.as_mut().unwrap();
                     app.set_window_resized(physical_size);
-
-                    // 请求重绘, Web 环境下需要手动请求
-                    app.request_redraw();
                 }
             }
-            WindowEvent::KeyboardInput { .. } => {
+            WindowEvent::KeyboardInput { event, .. } => {
                 // 键盘事件
-                let _ = app.as_mut().unwrap().input(&event);
+                let _ = app.as_mut().unwrap().keyboard_input(&event);
+            }
+            WindowEvent::MouseWheel { delta, phase, .. } => {
+                // 鼠标滚轮事件
+                let _ = app.as_mut().unwrap().mouse_wheel(delta, phase);
+            }
+            WindowEvent::MouseInput { button, state, .. } => {
+                // 鼠标点击事件
+                let _ = app.as_mut().unwrap().mouse_click(state, button);
             }
             WindowEvent::RedrawRequested => {
                 // surface 重绘事件
+                let now = instant::Instant::now();
+                let dt = now - self.last_render_time;
+                self.last_render_time = now;
+
                 let app = app.as_mut().unwrap();
-                app.update();
+                app.update(dt);
 
                 app.pre_present_notify();
 
@@ -190,6 +231,17 @@ impl<A: WgpuAppAction + 'static> ApplicationHandler for WgpuAppHandler<A> {
                 app.request_redraw();
             }
             _ => (),
+        }
+    }
+
+    fn device_event(
+        &mut self,
+        _event_loop: &ActiveEventLoop,
+        _device_id: DeviceId,
+        event: DeviceEvent,
+    ) {
+        if let Some(app) = self.app.lock().as_mut() {
+            app.device_input(&event);
         }
     }
 }

@@ -30,30 +30,45 @@ impl WgpuApp {
 
         #[cfg(target_arch = "wasm32")]
         {
-            // Winit prevents sizing with CSS, so we have to set
-            // the size manually when on web.
             use winit::platform::web::WindowExtWebSys;
-
             let canvas = window.canvas().unwrap();
+
+            // 将 canvas 添加到当前网页中
+            web_sys::window()
+                .and_then(|win| win.document())
+                .map(|doc| {
+                    let _ = canvas.set_attribute("id", "winit-canvas");
+                    match doc.get_element_by_id("wgpu-app-container") {
+                        Some(dst) => {
+                            let _ = dst.append_child(canvas.as_ref());
+                        }
+                        None => {
+                            let container = doc.create_element("div").unwrap();
+                            let _ = container.set_attribute("id", "wgpu-app-container");
+                            let _ = container.append_child(canvas.as_ref());
+
+                            doc.body().map(|body| body.append_child(container.as_ref()));
+                        }
+                    };
+                })
+                .expect("Couldn't append canvas to document body.");
 
             // 确保画布可以获得焦点
             // https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/tabindex
             canvas.set_tab_index(0);
 
-            web_sys::window()
-                .and_then(|win| win.document())
-                .map(|doc| {
-                    let _ = canvas.set_attribute("id", "winit-canvas");
-                    match doc.get_element_by_id("wasm-example") {
-                        Some(dst) => {
-                            let _ = dst.append_child(canvas.as_ref());
-                        }
-                        None => {
-                            doc.body().map(|body| body.append_child(canvas.as_ref()));
-                        }
-                    };
-                })
-                .expect("Couldn't append canvas to document body.");
+            // 当画布获得焦点时不显示高亮轮廓
+            let style = canvas.style();
+            style.set_property("outline", "none").unwrap();
+            canvas.focus().expect("画布无法获取焦点");
+
+            match utils::install_resize_observer(window.clone()) {
+                Ok(_) => (),
+                Err(err) => log::error!(
+                    "resize observer 监听失败: {}",
+                    utils::string_from_js_value(&err)
+                ),
+            }
         }
 
         // The instance is a handle to our GPU
@@ -193,6 +208,7 @@ impl ApplicationHandler for WgpuAppHandler {
         }
 
         let window_attributes = Window::default_attributes().with_title("tutorial2-surface");
+
         let window = Arc::new(event_loop.create_window(window_attributes).unwrap());
         cfg_if::cfg_if! {
             if #[cfg(target_arch = "wasm32")] {
@@ -222,8 +238,11 @@ impl ApplicationHandler for WgpuAppHandler {
     ) {
         let mut app = self.app.lock();
         if app.as_ref().is_none() {
+            log::error!("app 未初始化: {:?}", event);
             return;
         }
+
+        let app = app.as_mut().unwrap();
 
         // 窗口事件
         match event {
@@ -237,11 +256,7 @@ impl ApplicationHandler for WgpuAppHandler {
                 } else {
                     log::info!("Window resized: {:?}", physical_size);
 
-                    let app = app.as_mut().unwrap();
                     app.set_window_resized(physical_size);
-
-                    // 请求重绘, Web 环境下需要手动请求
-                    app.window.request_redraw();
                 }
             }
             WindowEvent::KeyboardInput { .. } => {
@@ -249,7 +264,8 @@ impl ApplicationHandler for WgpuAppHandler {
             }
             WindowEvent::RedrawRequested => {
                 // surface 重绘事件
-                let app = app.as_mut().unwrap();
+                app.window.pre_present_notify();
+
                 match app.render() {
                     Ok(_) => {}
                     // 当展示平面的上下文丢失，就需重新配置

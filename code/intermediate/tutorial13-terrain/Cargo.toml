@@ -21,6 +21,7 @@ pollster.workspace = true
 tobj = { workspace = true, features = ["async"] }
 winit.workspace = true
 wgpu.workspace = true
+utils.workspace = true
 
 [dependencies.image]
 workspace = true
@@ -32,11 +33,12 @@ console_log.workspace = true
 reqwest.workspace = true
 wasm-bindgen.workspace = true
 wasm-bindgen-futures.workspace = true
+web-time.workspace = true
 web-sys = { workspace = true, features = [
     "Document",
     "Window",
     "Element",
-    "Location"
+    "Location",
 ] }
 
 [build-dependencies]
