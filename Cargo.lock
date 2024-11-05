@@ -832,6 +832,7 @@ name = "compute"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "app-surface",
  "bytemuck",
  "cfg-if",
  "env_logger",
@@ -840,10 +841,11 @@ dependencies = [
  "glob",
  "image 0.24.9",
  "log",
- "naga 0.11.1",
+ "naga 23.0.0",
  "pollster",
  "rayon",
  "tobj 2.0.4",
+ "utils",
  "wgpu 23.0.0",
  "winit 0.30.5",
 ]
@@ -1024,7 +1026,7 @@ dependencies = [
  "ndk-context",
  "oboe",
  "once_cell",
- "parking_lot 0.12.3",
+ "parking_lot",
  "stdweb",
  "thiserror",
  "wasm-bindgen",
@@ -1289,6 +1291,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "flume"
+version = "0.11.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "da0e4dd2a88388a1f4ccc7c9ce104604dab68d9f408dc34cd45823d5a9069095"
+dependencies = [
+ "futures-core",
+ "futures-sink",
+ "nanorand",
+ "spin",
+]
+
+[[package]]
 name = "fnv"
 version = "1.0.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1359,7 +1373,7 @@ dependencies = [
  "image 0.24.9",
  "instant",
  "log",
- "naga 0.9.0",
+ "naga 23.0.0",
  "pollster",
  "rayon",
  "thiserror",
@@ -1388,17 +1402,6 @@ name = "futures-core"
 version = "0.3.31"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "05f29059c0c2090612e8d742178b0580d2dc940c837851ad723096f87af6663e"
-
-[[package]]
-name = "futures-intrusive"
-version = "0.4.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a604f7a68fbf8103337523b1fadc8ade7361ee3f112f7c680ad179651616aed5"
-dependencies = [
- "futures-core",
- "lock_api",
- "parking_lot 0.11.2",
-]
 
 [[package]]
 name = "futures-io"
@@ -1493,8 +1496,8 @@ dependencies = [
  "anyhow",
  "bytemuck",
  "env_logger",
+ "flume",
  "framework",
- "futures-intrusive",
  "gif 0.11.4",
  "glam",
  "image 0.24.9",
@@ -2461,24 +2464,6 @@ dependencies = [
 
 [[package]]
 name = "naga"
-version = "0.9.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5f50357e1167a3ab92d6b3c7f4bf5f7fd13fde3f4b28bf0d5ea07b5100fdb6c0"
-dependencies = [
- "bit-set 0.5.3",
- "bitflags 1.3.2",
- "indexmap 1.9.3",
- "log",
- "num-traits",
- "pp-rs",
- "rustc-hash 1.1.0",
- "spirv 0.2.0+1.5.4",
- "termcolor",
- "thiserror",
-]
-
-[[package]]
-name = "naga"
 version = "0.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6c3d4269bcb7d50121097702fde1afb75f4ea8083aeb7a55688dcf289a853271"
@@ -2529,11 +2514,21 @@ dependencies = [
  "hexf-parse",
  "indexmap 2.6.0",
  "log",
+ "pp-rs",
  "rustc-hash 1.1.0",
  "spirv 0.3.0+sdk-1.3.268.0",
  "termcolor",
  "thiserror",
  "unicode-xid",
+]
+
+[[package]]
+name = "nanorand"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6a51313c5820b0b02bd422f4b44776fbf47961755c74ce64afc73bfad10226c3"
+dependencies = [
+ "getrandom",
 ]
 
 [[package]]
@@ -3186,37 +3181,12 @@ checksum = "f38d5652c16fde515bb1ecef450ab0f6a219d619a7274976324d5e377f7dceba"
 
 [[package]]
 name = "parking_lot"
-version = "0.11.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7d17b78036a60663b797adeaee46f5c9dfebb86948d1255007a1d6be0271ff99"
-dependencies = [
- "instant",
- "lock_api",
- "parking_lot_core 0.8.6",
-]
-
-[[package]]
-name = "parking_lot"
 version = "0.12.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f1bf18183cf54e8d6059647fc3063646a1801cf30896933ec2311622cc4b9a27"
 dependencies = [
  "lock_api",
- "parking_lot_core 0.9.10",
-]
-
-[[package]]
-name = "parking_lot_core"
-version = "0.8.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "60a2cfe6f0ad2bfc16aefa463b497d5c7a5ecd44a23efa72aa342d90177356dc"
-dependencies = [
- "cfg-if",
- "instant",
- "libc",
- "redox_syscall 0.2.16",
- "smallvec",
- "winapi",
+ "parking_lot_core",
 ]
 
 [[package]]
@@ -3592,15 +3562,6 @@ checksum = "1465873a3dfdaa8ae7cb14b4383657caab0b3e8a0aa9ae8e04b044854c8dfce2"
 dependencies = [
  "crossbeam-deque",
  "crossbeam-utils",
-]
-
-[[package]]
-name = "redox_syscall"
-version = "0.2.16"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fb5a58c1855b4b6819d59012155603f0b22ad30cad752600aadfcb695265519a"
-dependencies = [
- "bitflags 1.3.2",
 ]
 
 [[package]]
@@ -4061,6 +4022,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "spin"
+version = "0.9.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6980e8d7511241f8acf4aebddbb1ff938df5eebe98691418c4468d0b72a96a67"
+dependencies = [
+ "lock_api",
+]
+
+[[package]]
 name = "spirv"
 version = "0.2.0+1.5.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4261,6 +4231,7 @@ name = "threading"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "app-surface",
  "async-std",
  "bytemuck",
  "cfg-if",
@@ -4277,6 +4248,7 @@ dependencies = [
  "rayon",
  "reqwest",
  "tobj 3.2.5",
+ "utils",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
@@ -4507,7 +4479,7 @@ dependencies = [
  "fern",
  "js-sys",
  "log",
- "parking_lot 0.12.3",
+ "parking_lot",
  "pollster",
  "utils",
  "wasm-bindgen",
@@ -4651,7 +4623,7 @@ dependencies = [
  "fern",
  "js-sys",
  "log",
- "parking_lot 0.12.3",
+ "parking_lot",
  "pollster",
  "utils",
  "wasm-bindgen",
@@ -4936,7 +4908,7 @@ dependencies = [
  "instant",
  "js-sys",
  "log",
- "parking_lot 0.12.3",
+ "parking_lot",
  "png",
  "pollster",
  "reqwest",
@@ -5458,7 +5430,7 @@ dependencies = [
  "js-sys",
  "log",
  "naga 0.12.3",
- "parking_lot 0.12.3",
+ "parking_lot",
  "profiling",
  "raw-window-handle 0.5.2",
  "smallvec",
@@ -5483,7 +5455,7 @@ dependencies = [
  "js-sys",
  "log",
  "naga 23.0.0",
- "parking_lot 0.12.3",
+ "parking_lot",
  "profiling",
  "raw-window-handle 0.6.2",
  "smallvec",
@@ -5508,7 +5480,7 @@ dependencies = [
  "codespan-reporting",
  "log",
  "naga 0.12.3",
- "parking_lot 0.12.3",
+ "parking_lot",
  "profiling",
  "raw-window-handle 0.5.2",
  "rustc-hash 1.1.0",
@@ -5534,7 +5506,7 @@ dependencies = [
  "log",
  "naga 23.0.0",
  "once_cell",
- "parking_lot 0.12.3",
+ "parking_lot",
  "profiling",
  "raw-window-handle 0.6.2",
  "rustc-hash 1.1.0",
@@ -5572,7 +5544,7 @@ dependencies = [
  "metal 0.24.0",
  "naga 0.12.3",
  "objc",
- "parking_lot 0.12.3",
+ "parking_lot",
  "profiling",
  "range-alloc",
  "raw-window-handle 0.5.2",
@@ -5616,7 +5588,7 @@ dependencies = [
  "ndk-sys 0.5.0+25.2.9519653",
  "objc",
  "once_cell",
- "parking_lot 0.12.3",
+ "parking_lot",
  "profiling",
  "range-alloc",
  "raw-window-handle 0.6.2",
@@ -5706,7 +5678,7 @@ checksum = "712e227841d057c1ee1cd2fb22fa7e5a5461ae8e48fa2ca79ec42cfc1931183f"
 name = "windowless"
 version = "0.1.0"
 dependencies = [
- "futures-intrusive",
+ "flume",
  "image 0.24.9",
  "pollster",
  "wgpu 23.0.0",

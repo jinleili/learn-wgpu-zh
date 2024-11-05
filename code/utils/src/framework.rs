@@ -3,7 +3,7 @@ use std::{rc::Rc, sync::Arc};
 use wgpu::WasmNotSend;
 use winit::{
     application::ApplicationHandler,
-    dpi::PhysicalSize,
+    dpi::{PhysicalPosition, PhysicalSize},
     event::{
         DeviceEvent, DeviceId, ElementState, KeyEvent, MouseButton, MouseScrollDelta, TouchPhase,
         WindowEvent,
@@ -41,6 +41,10 @@ pub trait WgpuAppAction {
         false
     }
 
+    fn cursor_move(&mut self, _position: PhysicalPosition<f64>) -> bool {
+        false
+    }
+
     /// 鼠标移动/触摸事件
     fn device_input(&mut self, _event: &DeviceEvent) -> bool {
         false
@@ -49,15 +53,12 @@ pub trait WgpuAppAction {
     /// 更新渲染数据
     fn update(&mut self, _dt: instant::Duration) {}
 
-    /// 在提交渲染之前通知窗口系统。
-    fn pre_present_notify(&self);
     /// 提交渲染
     fn render(&mut self) -> Result<(), wgpu::SurfaceError>;
-    /// 请求重绘    
-    fn request_redraw(&self);
 }
 
 struct WgpuAppHandler<A: WgpuAppAction> {
+    window: Option<Arc<Window>>,
     title: &'static str,
     app: Rc<Mutex<Option<A>>>,
     /// 错失的窗口大小变化
@@ -84,6 +85,7 @@ impl<A: WgpuAppAction> WgpuAppHandler<A> {
     fn new(title: &'static str) -> Self {
         Self {
             title,
+            window: None,
             app: Rc::new(Mutex::new(None)),
             missed_resize: Rc::new(Mutex::new(None)),
             missed_request_redraw: Rc::new(Mutex::new(false)),
@@ -91,7 +93,8 @@ impl<A: WgpuAppAction> WgpuAppHandler<A> {
         }
     }
     /// 配置窗口
-    fn config_window(&mut self, window: &mut Window) {
+    fn config_window(&mut self) {
+        let window = self.window.as_mut().unwrap();
         window.set_title(self.title);
         if cfg!(not(target_arch = "wasm32")) {
             // 计算一个默认显示高度
@@ -134,6 +137,20 @@ impl<A: WgpuAppAction> WgpuAppHandler<A> {
             canvas.focus().expect("画布无法获取焦点");
         }
     }
+
+    /// 在提交渲染之前通知窗口系统。
+    fn pre_present_notify(&self) {
+        if let Some(window) = self.window.as_ref() {
+            window.pre_present_notify();
+        }
+    }
+
+    /// 请求重绘    
+    fn request_redraw(&self) {
+        if let Some(window) = self.window.as_ref() {
+            window.request_redraw();
+        }
+    }
 }
 
 impl<A: WgpuAppAction + 'static> ApplicationHandler for WgpuAppHandler<A> {
@@ -146,10 +163,10 @@ impl<A: WgpuAppAction + 'static> ApplicationHandler for WgpuAppHandler<A> {
         self.last_render_time = instant::Instant::now();
 
         let window_attributes = Window::default_attributes();
-        let mut window = event_loop.create_window(window_attributes).unwrap();
-        self.config_window(&mut window);
+        let window = Arc::new(event_loop.create_window(window_attributes).unwrap());
 
-        let window = Arc::new(window);
+        self.window = Some(window.clone());
+        self.config_window();
 
         cfg_if::cfg_if! {
             if #[cfg(target_arch = "wasm32")] {
@@ -237,6 +254,10 @@ impl<A: WgpuAppAction + 'static> ApplicationHandler for WgpuAppHandler<A> {
                 // 鼠标点击事件
                 let _ = app.mouse_click(state, button);
             }
+            WindowEvent::CursorMoved { position, .. } => {
+                // 鼠标移动事件
+                let _ = app.cursor_move(position);
+            }
             WindowEvent::RedrawRequested => {
                 // surface 重绘事件
                 let now = instant::Instant::now();
@@ -245,7 +266,7 @@ impl<A: WgpuAppAction + 'static> ApplicationHandler for WgpuAppHandler<A> {
 
                 app.update(dt);
 
-                app.pre_present_notify();
+                self.pre_present_notify();
 
                 match app.render() {
                     Ok(_) => {}
@@ -256,7 +277,7 @@ impl<A: WgpuAppAction + 'static> ApplicationHandler for WgpuAppHandler<A> {
                 }
 
                 // 除非我们手动请求，RedrawRequested 将只会触发一次。
-                app.request_redraw();
+                self.request_redraw();
             }
             _ => (),
         }

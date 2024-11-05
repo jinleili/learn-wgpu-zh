@@ -534,15 +534,6 @@ impl WgpuAppAction for WgpuApp {
         PhysicalSize::new(self.app.config.width, self.app.config.height)
     }
 
-    fn pre_present_notify(&self) {
-        // 通知 wgpu 应用可以进行渲染了
-        self.app.get_view().pre_present_notify();
-    }
-
-    fn request_redraw(&self) {
-        self.app.get_view().request_redraw();
-    }
-
     fn keyboard_input(&mut self, event: &KeyEvent) -> bool {
         self.camera_controller.process_events(event)
     }
