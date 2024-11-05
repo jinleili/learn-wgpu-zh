@@ -216,7 +216,8 @@ impl WgpuApp {
             self.app
                 .resize_surface_by_size((self.size.width, self.size.height));
 
-            self.camera_staging.camera.aspect = self.app.config.width as f32 / self.app.config.height as f32;
+            self.camera_staging.camera.aspect =
+                self.app.config.width as f32 / self.app.config.height as f32;
 
             self.size_changed = false;
         }
@@ -228,9 +229,6 @@ impl WgpuAppAction for WgpuApp {
         window: Arc<winit::window::Window>,
     ) -> impl std::future::Future<Output = Self> + WasmNotSend {
         async move {
-            // 配置窗口
-            Self::config_window(window.clone(), "tutorial6-challenge");
-
             // 创建 wgpu 应用
             let app = AppSurface::new(window).await;
 
@@ -517,5 +515,5 @@ impl WgpuAppAction for WgpuApp {
 }
 
 pub fn main() -> Result<(), impl std::error::Error> {
-    run::<WgpuApp>()
+    run::<WgpuApp>("tutorial6-challenge")
 }

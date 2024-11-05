@@ -58,7 +58,7 @@ impl WgpuApp {
                         }
                     };
                 })
-                .expect("Couldn't append canvas to document body.");
+                .expect("无法将 canvas 添加到当前网页中");
 
             // 确保画布可以获得焦点
             // https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/tabindex

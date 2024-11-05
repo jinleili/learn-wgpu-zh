@@ -1,7 +1,6 @@
 use parking_lot::Mutex;
 use std::rc::Rc;
 use std::sync::Arc;
-use winit::dpi::PhysicalSize;
 use winit::{
     application::ApplicationHandler,
     event::WindowEvent,
@@ -17,13 +16,6 @@ struct WgpuApp {
 
 impl WgpuApp {
     async fn new(window: Arc<Window>) -> Self {
-        if cfg!(not(target_arch = "wasm32")) {
-            // 计算一个默认显示高度
-            let height = 700 * window.scale_factor() as u32;
-            let width = (height as f32 * 1.6) as u32;
-            let _ = window.request_inner_size(PhysicalSize::new(width, height));
-        }
-
         #[cfg(target_arch = "wasm32")]
         {
             use winit::platform::web::WindowExtWebSys;
@@ -48,7 +40,7 @@ impl WgpuApp {
                         }
                     };
                 })
-                .expect("Couldn't append canvas to document body.");
+                .expect("无法将 canvas 添加到当前网页中");
 
             // 确保画布可以获得焦点
             // https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/tabindex
@@ -66,14 +58,6 @@ impl WgpuApp {
 #[derive(Default)]
 struct WgpuAppHandler {
     app: Rc<Mutex<Option<WgpuApp>>>,
-
-    /// 错失的请求重绘事件
-    ///
-    /// # NOTE：
-    /// 在 web 端，app 的初始化是异步的，当收到 redraw 事件时，初始化可能还没有完成从而错过请求重绘事件，
-    /// 当 app 初始化完成后会调用 `request_redraw` 方法来补上错失的请求重绘事件。
-    #[allow(dead_code)]
-    missed_request_redraw: Rc<Mutex<bool>>,
 }
 
 impl ApplicationHandler for WgpuAppHandler {
@@ -89,18 +73,10 @@ impl ApplicationHandler for WgpuAppHandler {
         cfg_if::cfg_if! {
             if #[cfg(target_arch = "wasm32")] {
                 let app = self.app.clone();
-                let missed_request_redraw = self.missed_request_redraw.clone();
-
                 wasm_bindgen_futures::spawn_local(async move {
-                    let window_cloned = window.clone();
-
                     let wgpu_app = WgpuApp::new(window).await;
                     let mut app = app.lock();
                     *app = Some(wgpu_app);
-
-                    if *missed_request_redraw.lock() {
-                        window_cloned.request_redraw();
-                    }
                 });
             } else {
                 let wgpu_app = pollster::block_on(WgpuApp::new(window));

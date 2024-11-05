@@ -63,23 +63,15 @@ export default {
             this.loading = true;
             this.exampleStarted = true;
             try {
-                                            console.log("根据 aspectRatio 设置 wgpu-app-container 的高度 0");
-
                 const url = window.location.protocol + '//' + window.location.host + '/learn-wgpu-zh'
                 const module = await import(/* @vite-ignore */`${url}/wasm/${this.example}.js`.replace('_', '-'));
                 module.default().then((instance) => {
-                    this.loading = false;
-                    this.exampleStarted = true;
-                    // 在模块装载成功后调整容器高度
-                    this.setContainerHeight();
+                    this.wgpuAppLoaded();
                 }, (e) => {
                     if (!`${e}`.includes("don't mind me. This isn't actually an error!")) {
                         this.showErr(e);
                     } else {
-                        this.exampleStarted = true;
-                        this.loading = false;
-                         // 在模块装载成功后调整容器高度
-                        this.setContainerHeight();
+                        this.wgpuAppLoaded();
                     }
                 });
 
@@ -88,15 +80,14 @@ export default {
             }
         },
 
-         setContainerHeight() {
-                            console.log("根据 aspectRatio 设置 wgpu-app-container 的高度 1");
-
-            // 根据 aspectRatio 设置 wgpu-app-container 的高度
+         wgpuAppLoaded() {
+            this.exampleStarted = true;
+            this.loading = false;
+            // 在模块装载成功后调整容器高度
             const container = document.getElementById('wgpu-app-container');
             if (container) {
-                let width = container.clientWidth;
-                container.style.height = `${window.innerWidth / this.aspectRatio}px`;
-                console.log("container height: ", container.style.height);
+                let width = container.getBoundingClientRect().width;
+                container.style.height = `${width * this.aspectRatio}px`;
             }
         },
 

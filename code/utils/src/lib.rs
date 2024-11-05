@@ -92,7 +92,7 @@ pub fn init_logger() {
             let query_level: Option<log::LevelFilter> = parse_url_query_string(&query_string, "RUST_LOG")
                 .and_then(|x| x.parse().ok());
 
-            // 我们将 wgpu 日志级别保持在错误级别，因为 Info 级别非常嘈杂。
+            // 我们将 wgpu 日志级别保持在错误级别，因为 Info 级别的日志输出非常多。
             let base_level = query_level.unwrap_or(log::LevelFilter::Info);
             let wgpu_level = query_level.unwrap_or(log::LevelFilter::Error);
 

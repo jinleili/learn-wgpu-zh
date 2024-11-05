@@ -19,51 +19,6 @@ pub trait WgpuAppAction {
     #[allow(opaque_hidden_inferred_bound)]
     fn new(window: Arc<Window>) -> impl std::future::Future<Output = Self> + WasmNotSend;
 
-    /// 配置窗口
-    fn config_window(window: Arc<Window>, title: &str) {
-        window.set_title(title);
-        if cfg!(not(target_arch = "wasm32")) {
-            // 计算一个默认显示高度
-            let height = 700 * window.scale_factor() as u32;
-            let width = height;
-            let _ = window.request_inner_size(PhysicalSize::new(width, height));
-        }
-
-        #[cfg(target_arch = "wasm32")]
-        {
-            let canvas = window.canvas().unwrap();
-
-            // 将 canvas 添加到当前网页中
-            web_sys::window()
-                .and_then(|win| win.document())
-                .map(|doc| {
-                    let _ = canvas.set_attribute("id", "winit-canvas");
-                    match doc.get_element_by_id("wgpu-app-container") {
-                        Some(dst) => {
-                            let _ = dst.append_child(canvas.as_ref());
-                        }
-                        None => {
-                            let container = doc.create_element("div").unwrap();
-                            let _ = container.set_attribute("id", "wgpu-app-container");
-                            let _ = container.append_child(canvas.as_ref());
-
-                            doc.body().map(|body| body.append_child(container.as_ref()));
-                        }
-                    };
-                })
-                .expect("Couldn't append canvas to document body.");
-
-            // 确保画布可以获得焦点
-            // https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/tabindex
-            canvas.set_tab_index(0);
-
-            // 设置画布获得焦点时不显示高亮轮廓
-            let style = canvas.style();
-            style.set_property("outline", "none").unwrap();
-            canvas.focus().expect("画布无法获取焦点");
-        }
-    }
-
     /// 记录窗口大小已发生变化
     ///
     /// # NOTE:
@@ -103,6 +58,7 @@ pub trait WgpuAppAction {
 }
 
 struct WgpuAppHandler<A: WgpuAppAction> {
+    title: &'static str,
     app: Rc<Mutex<Option<A>>>,
     /// 错失的窗口大小变化
     ///
@@ -124,13 +80,58 @@ struct WgpuAppHandler<A: WgpuAppAction> {
     last_render_time: instant::Instant,
 }
 
-impl<A: WgpuAppAction> Default for WgpuAppHandler<A> {
-    fn default() -> Self {
+impl<A: WgpuAppAction> WgpuAppHandler<A> {
+    fn new(title: &'static str) -> Self {
         Self {
+            title,
             app: Rc::new(Mutex::new(None)),
             missed_resize: Rc::new(Mutex::new(None)),
             missed_request_redraw: Rc::new(Mutex::new(false)),
             last_render_time: instant::Instant::now(),
+        }
+    }
+    /// 配置窗口
+    fn config_window(&mut self, window: &mut Window) {
+        window.set_title(self.title);
+        if cfg!(not(target_arch = "wasm32")) {
+            // 计算一个默认显示高度
+            let height = 700 * window.scale_factor() as u32;
+            let width = height;
+            let _ = window.request_inner_size(PhysicalSize::new(width, height));
+        }
+
+        #[cfg(target_arch = "wasm32")]
+        {
+            let canvas = window.canvas().unwrap();
+
+            // 将 canvas 添加到当前网页中
+            web_sys::window()
+                .and_then(|win| win.document())
+                .map(|doc| {
+                    let _ = canvas.set_attribute("id", "winit-canvas");
+                    match doc.get_element_by_id("wgpu-app-container") {
+                        Some(dst) => {
+                            let _ = dst.append_child(canvas.as_ref());
+                        }
+                        None => {
+                            let container = doc.create_element("div").unwrap();
+                            let _ = container.set_attribute("id", "wgpu-app-container");
+                            let _ = container.append_child(canvas.as_ref());
+
+                            doc.body().map(|body| body.append_child(container.as_ref()));
+                        }
+                    };
+                })
+                .expect("无法将 canvas 添加到当前网页中");
+
+            // 确保画布可以获得焦点
+            // https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/tabindex
+            canvas.set_tab_index(0);
+
+            // 设置画布获得焦点时不显示高亮轮廓
+            let style = canvas.style();
+            style.set_property("outline", "none").unwrap();
+            canvas.focus().expect("画布无法获取焦点");
         }
     }
 }
@@ -145,7 +146,10 @@ impl<A: WgpuAppAction + 'static> ApplicationHandler for WgpuAppHandler<A> {
         self.last_render_time = instant::Instant::now();
 
         let window_attributes = Window::default_attributes();
-        let window = Arc::new(event_loop.create_window(window_attributes).unwrap());
+        let mut window = event_loop.create_window(window_attributes).unwrap();
+        self.config_window(&mut window);
+
+        let window = Arc::new(window);
 
         cfg_if::cfg_if! {
             if #[cfg(target_arch = "wasm32")] {
@@ -270,10 +274,10 @@ impl<A: WgpuAppAction + 'static> ApplicationHandler for WgpuAppHandler<A> {
     }
 }
 
-pub fn run<A: WgpuAppAction + 'static>() -> Result<(), impl std::error::Error> {
+pub fn run<A: WgpuAppAction + 'static>(title: &'static str) -> Result<(), impl std::error::Error> {
     crate::init_logger();
 
     let events_loop = EventLoop::new().unwrap();
-    let mut app = WgpuAppHandler::<A>::default();
+    let mut app = WgpuAppHandler::<A>::new(title);
     events_loop.run_app(&mut app)
 }

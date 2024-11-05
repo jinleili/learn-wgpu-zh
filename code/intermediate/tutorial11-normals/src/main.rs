@@ -342,9 +342,6 @@ impl WgpuAppAction for WgpuApp {
         window: Arc<winit::window::Window>,
     ) -> impl std::future::Future<Output = Self> + WasmNotSend {
         async move {
-            // 配置窗口
-            Self::config_window(window.clone(), "tutorial11-normals");
-
             // 创建 wgpu 应用
             let app = AppSurface::new(window).await;
 
@@ -736,5 +733,5 @@ impl WgpuAppAction for WgpuApp {
 }
 
 pub fn main() -> Result<(), impl std::error::Error> {
-    run::<WgpuApp>()
+    run::<WgpuApp>("tutorial11-normals")
 }

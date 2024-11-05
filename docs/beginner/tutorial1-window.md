@@ -1,16 +1,17 @@
 # 依赖与窗口
 
-部分读者可能已经熟悉如何在 Rust 中打开窗口程序，且有自己偏好的窗口管理库。但本教程是为所有人设计的，所以不免要涉及这部分的内容。所幸你可以跳过这部分，但有一点值得了解，即无论使用什么样的窗口解决方案，都需要实现 [raw-window-handle](https://github.com/rust-windowing/raw-window-handle) 里定义的 `raw_window_handle()` 及 `raw_display_handle()` 两个抽象接口。如果有兴趣自己动手来为 wgpu 实现一个基础的窗口，可以参考 [wgpu-in-app](https://github.com/jinleili/wgpu-in-app)，[与 Android App 集成](../integration-and-debugging/android/)这一章节也有详情的介绍。
+部分读者可能已经熟悉如何在 Rust 中打开窗口程序，且有自己偏好的窗口管理库。但本教程是为所有人设计的，所以不免要涉及这部分的内容。所幸你可以跳过这部分，但有一点值得了解，即无论使用什么样的窗口解决方案，都需要实现 [raw-window-handle](https://github.com/rust-windowing/raw-window-handle) 里定义的 `HasWindowHandle` 及 `HasDisplayHandle` 两个抽象接口。如果有兴趣自己动手来为 wgpu 实现一个基础的窗口，可以参考 [wgpu-in-app](https://github.com/jinleili/wgpu-in-app)，[与 Android App 集成](../integration-and-debugging/android/)这一章节也有详情的介绍。
 
 ## 我们要使用哪些包?
 
-我们将尽量保持基础部分的简单性。后续我们会逐渐添加依赖，先列出相关的 `Cargo.toml` 依赖项如下：
+我将尽量保持基础部分的简单性。后续会逐渐添加依赖，先列出相关的 `Cargo.toml` 依赖项如下：
 
 ```toml
 [dependencies]
-winit = "0.30"
 env_logger = "0.11"
 log = "0.4"
+parking_lot = "0.12"
+winit = "0.30"
 wgpu = "23"
 ```
 
@@ -20,7 +21,7 @@ wgpu = "23"
 
 ## 关于 env_logger
 
-通过 `env_logger::init()` 来启用日志是非常重要的。当 wgpu 遇到各类错误时，它都会用一条通用性的消息抛出 panic，并通过日志**包**来记录实际的错误信息。
+通过 `env_logger::init()` 来启用日志非常重要。当 wgpu 遇到各类错误时，它都会用一条通用性的消息抛出 panic，并通过日志**包**来记录实际的错误信息。
 也就是说，如果不添加 `env_logger::init()`，wgpu 将静默地退出，从而令你非常困惑！<br>
 (下面的代码中已经启用)
 
@@ -31,61 +32,89 @@ wgpu = "23"
 
 ## 示例代码
 
-这一部分没有什么特别之处，所以直接贴出完整的代码。只需将其粘贴到你的 `main.rs` 中即可：
+这一部分没有什么特别之处，所以直接贴出完整的代码：
 
 ```rust
-use winit::{
-    event::*,
-    event_loop::{ControlFlow, EventLoop},
-    window::WindowBuilder,
-};
+struct WgpuApp {
+    /// 避免窗口被释放
+    #[allow(unused)]
+    window: Arc<Window>,
+}
 
-pub fn run() {
-    env_logger::init();
-    let event_loop = EventLoop::new().unwrap();
-    let window = WindowBuilder::new().build(&event_loop).unwrap();
+impl WgpuApp {
+    async fn new(window: Arc<Window>) -> Self {
+        // ...
+        Self { window }
+    }
+}
 
-    cfg_if::cfg_if! {
-        if #[cfg(target_arch = "wasm32")] {
-            use winit::platform::web::EventLoopExtWebSys;
-            let event_loop_function = EventLoop::spawn;
-        } else {
-            let event_loop_function = EventLoop::run;
+#[derive(Default)]
+struct WgpuAppHandler {
+    app: Rc<Mutex<Option<WgpuApp>>>,
+}
+
+impl ApplicationHandler for WgpuAppHandler {
+    fn resumed(&mut self, event_loop: &ActiveEventLoop) {
+        // 恢复事件
+        if self.app.as_ref().lock().is_some() {
+            return;
+        }
+
+        let window_attributes = Window::default_attributes().with_title("tutorial1-window");
+        let window = Arc::new(event_loop.create_window(window_attributes).unwrap());
+
+        let wgpu_app = pollster::block_on(WgpuApp::new(window));
+        self.app.lock().replace(wgpu_app);
+    }
+
+    fn suspended(&mut self, _event_loop: &ActiveEventLoop) {
+        // 暂停事件
+    }
+
+    fn window_event(
+        &mut self,
+        event_loop: &ActiveEventLoop,
+        _window_id: WindowId,
+        event: WindowEvent,
+    ) {
+        // 窗口事件
+        match event {
+            WindowEvent::CloseRequested => {
+                event_loop.exit();
+            }
+            WindowEvent::Resized(_size) => {
+                // 窗口大小改变
+            }
+            WindowEvent::KeyboardInput { .. } => {
+                // 键盘事件
+            }
+            WindowEvent::RedrawRequested => {
+                // surface重绘事件
+            }
+            _ => (),
         }
     }
-    let _ = (event_loop_function)(
-        event_loop,
-        move |event: Event<()>, elwt: &EventLoopWindowTarget<()>| {
-            if event == Event::NewEvents(StartCause::Init) {
-                state.start();
-            }
-            if let Event::WindowEvent { event, .. } = event {
-                match event {
-                    WindowEvent::KeyboardInput {
-                        event:
-                            KeyEvent {
-                                logical_key: Key::Named(NamedKey::Escape),
-                                ..
-                            },
-                        ..
-                        } | WindowEvent::CloseRequested => elwt.exit(),
-                    _ => {}
-                }
-            }
-    });
 }
-
 ```
 
-上述代码所做的全部工作就是创建了一个窗口，并在用户关闭或按下 escape 键前使其保持打开。接下来，我们需要在**入口函数**中运行这些代码。很简单，只需在 `main()` 函数中调用 `run()`，然后运行!
+上述代码所做的工作包括：
+
+- 使用 `parking_lot::Mutex` 提供更高效的锁机制，结合 `Rc` 引用计数，确保 `WgpuApp` 可以在不同的线程中被实例化。
+- `WgpuApp` 结构体执有窗口实例，并根据目标平台（桌面或 Web）进行相应的初始化。
+- 在 Web 端，通过异步方式初始化 `WgpuApp`，确保不会阻塞主线程。
+- 实现 ApplicationHandler trait，处理各种窗口事件，如恢复、暂停、关闭请求、大小调整等。
+
+接下来，我们需要在**入口函数**中运行这些代码。很简单，只需在 `main()` 函数中创建 `EventLoop` 实例并调用 `run_app()` 运行!
 
 ```rust
-fn main() {
-    run();
+fn main() -> Result<(), impl std::error::Error> {
+    utils::init_logger();
+
+    let events_loop = EventLoop::new().unwrap();
+    let mut app = WgpuAppHandler::default();
+    events_loop.run_app(&mut app)
 }
 ```
-
-(其中 `tutorial1_window` 是你之前用 cargo 创建的项目的名称)
 
 当你只打算支持桌面环境时，上边这些就是全部所要做的！在下一个教程中，我们将真正开始使用 wgpu！
 
@@ -106,7 +135,7 @@ crate-type = ["cdylib", "rlib"]
 
 仅在需要将项目做为其他 Rust 项目的**包**（crate）提供时，`[lib]` 项的配置才是必须的。所以我们的示例程序可以省略上面这一步。
 
-添加上述 `[lib]` 内容依赖于像原作者那样将主要代码写入一个 `lib.rs` 文件，而如果想要通过下文的 wasm-pack 方法构建，则需要进行上述步骤。
+而如果想要通过下文的 wasm-pack 方法构建，则需要添加上述 `[lib]` 配置并像原作者那样将主要代码写入 `lib.rs` 文件。
 
 </div>
 
@@ -137,7 +166,7 @@ web-sys = { version = "0.3.72", features = [
 ]}
 ```
 
-[cfg-if](https://docs.rs/cfg-if)提供了一个宏，使得更加容易管理特定平台的代码。
+[cfg-if](https://docs.rs/cfg-if) 提供了一个宏，使得更加容易管理特定平台的代码。
 
 `[target.'cfg(target_arch = "wasm32")'.dependencies]` 行告诉 cargo，如果我们的目标是 wasm32 架构，则只包括这些依赖项。接下来的几个依赖项只是让我们与 javascript 的交互更容易。
 
@@ -151,16 +180,12 @@ web-sys = { version = "0.3.72", features = [
 
 ## 更多示例代码
 
-首先, 我们需要在 `main.rs` 内引入 `wasm-bindgen` :
+如果**入口函数**不是 `main()` 函数，则需要告诉 wasm-bindgen 在 WASM 加载后将哪个函数做为入口函数自动执行，比如：
 
 ```rust
 #[cfg(target_arch="wasm32")]
 use wasm_bindgen::prelude::*;
-```
 
-接下来，需要告诉 wasm-bindgen 在 WASM 被加载后执行我们的 `run()` 函数。
-
-```rust
 #[cfg_attr(target_arch="wasm32", wasm_bindgen(start))]
 pub async fn run() {
     // 省略的代码...
@@ -170,12 +195,38 @@ pub async fn run() {
 然后需要根据是否在 WASM 环境来切换我们正在使用的日志**包**。在 `run()` 函数内添加以下代码替换 `env_logger::init()` 行。
 
 ```rust
-cfg_if::cfg_if! {
-    if #[cfg(target_arch = "wasm32")] {
-        std::panic::set_hook(Box::new(console_error_panic_hook::hook));
-        console_log::init_with_level(log::Level::Warn).expect("无法初始化日志库");
-    } else {
-        env_logger::init();
+pub fn init_logger() {
+    cfg_if::cfg_if! {
+        if #[cfg(target_arch = "wasm32")] {
+            // 使用查询字符串来获取日志级别。
+            let query_string = web_sys::window().unwrap().location().search().unwrap();
+            let query_level: Option<log::LevelFilter> = parse_url_query_string(&query_string, "RUST_LOG")
+                .and_then(|x| x.parse().ok());
+
+            // 将 wgpu 日志级别保持在错误级别，因为 Info 级别的日志输出非常多。
+            let base_level = query_level.unwrap_or(log::LevelFilter::Info);
+            let wgpu_level = query_level.unwrap_or(log::LevelFilter::Error);
+
+            // 在 web 上，我们使用 fern，因为 console_log 没有按模块级别过滤功能。
+            fern::Dispatch::new()
+                .level(base_level)
+                .level_for("wgpu_core", wgpu_level)
+                .level_for("wgpu_hal", wgpu_level)
+                .level_for("naga", wgpu_level)
+                .chain(fern::Output::call(console_log::log))
+                .apply()
+                .unwrap();
+            std::panic::set_hook(Box::new(console_error_panic_hook::hook));
+        } else {
+            // parse_default_env 会读取 RUST_LOG 环境变量，并在这些默认过滤器之上应用它。
+            env_logger::builder()
+                .filter_level(log::LevelFilter::Info)
+                .filter_module("wgpu_core", log::LevelFilter::Info)
+                .filter_module("wgpu_hal", log::LevelFilter::Error)
+                .filter_module("naga", log::LevelFilter::Error)
+                .parse_default_env()
+                .init();
+        }
     }
 }
 ```
@@ -186,8 +237,8 @@ cfg_if::cfg_if! {
 
 ### 另一种实现
 
-在第 3~8 章，`run()` 函数及遍历 event_loop 的代码被统一封装到了 `framework.rs` 中, 还定义了 `Action` trait 来抽象每一章中不同的 `State` 。
-然后通过调用 wasm_bindgen_futures 包的 `spawn_local` 函数来创建 `State` 实例并处理 JS 异常。
+从第 3 章开始，`run()` 函数及遍历 event_loop 的代码被统一封装到了 `framework.rs` 中, 还定义了 `WgpuAppAction` trait 来抽象每一章中不同的 `WgpuApp` 。
+然后通过调用 wasm_bindgen_futures 包的 `spawn_local` 函数来创建 `WgpuApp` 实例并处理 JS 异常。
 
 第 1 ～ 2 章的代码通过 `cargo run-wasm --bin xxx` 运行时，在浏览器的控制台中会看到的 `...Using exceptions for control flow, don't mind me. This isn't actually an error!` 错误现在被消除了：
 
@@ -215,16 +266,12 @@ pub fn run<A: Action + 'static>() {
 ```rust
 #[cfg(target_arch = "wasm32")]
 {
-    use winit::dpi::PhysicalSize;
-    let _ = window.request_inner_size(PhysicalSize::new(450, 400));
-
     use winit::platform::web::WindowExtWebSys;
     web_sys::window()
         .and_then(|win| win.document())
         .and_then(|doc| {
-            let dst = doc.get_element_by_id("wasm-example")?;
-            let canvas = web_sys::Element::from(window.canvas());
-            dst.append_child(&canvas).ok()?;
+            let container = doc.get_element_by_id("wgpu-app-container")?;
+            container.append_child(canvas.as_ref());
             Some(())
         })
         .expect("无法将画布添加到网页上");
@@ -233,7 +280,7 @@ pub fn run<A: Action + 'static>() {
 
 <div class="note">
 
-`"wasm-example"` 这个 ID 是针对我的项目（也就是本教程）的。你可以你在 HTML 中使用任何 ID 来代替，或者，你也可以直接将画布添加到 `<body>` 中，就像 wgpu 源码仓库中所做的那样，这部分最终由你决定。
+`"wgpu-app-container"` 这个 ID 是针对我的项目（也就是本教程）的。你可以你在 HTML 中使用任何 ID 来代替，或者，你也可以直接将画布添加到 `<body>` 中，就像 wgpu 源码仓库中所做的那样，这部分最终由你决定。
 
 </div>
 
@@ -255,7 +302,7 @@ webgl = ["wgpu/webgl"]
 3. 安装 [`wasm-bindgen`](https://rustwasm.github.io/wasm-bindgen) 并运行：
 
 ```shell
-cargo install -f wasm-bindgen-cli --version 0.2.84
+cargo install -f wasm-bindgen-cli --version 0.2.95
 wasm-bindgen --no-typescript --out-dir {你的输出目录，例如 ./tutorial1_window_output} --web {wasm 所在的目录，例如 .\target\wasm32-unknown-unknown\release\tutorial1_window.wasm}
 ```
 
@@ -267,7 +314,7 @@ wasm-bindgen --no-typescript --out-dir {你的输出目录，例如 ./tutorial1_
 
 你可以只用 wasm-bindgen 来**构建**一个 wgpu 应用程序，但我在这样做的时候遇到了一些问题。首先，你需要在电脑上安装 wasm-bindgen，并将其作为一个依赖项。作为依赖关系的版本**需要**与你安装的版本完全一致，否则构建将会失败。
 
-为了克服这个缺点，并使阅读这篇教程的人更容易上手，我选择在组合中加入 [wasm-pack](https://rustwasm.github.io/docs/wasm-pack/)。wasm-pack 可以为你安装正确的 wasm-bindgen 版本，而且它还支持为不同类型的 web 目标进行**构建**：浏览器、NodeJS 和 webpack 等打包工具。
+为使阅读这篇教程的人更容易上手，我选择在组合中加入 [wasm-pack](https://rustwasm.github.io/docs/wasm-pack/)。wasm-pack 可以为你安装正确的 wasm-bindgen 版本，而且它还支持为不同类型的 web 目标进行**构建**：浏览器、NodeJS 和 webpack 等打包工具。
 
 使用 wasm-pack 前，你需要先[安装](https://rustwasm.github.io/wasm-pack/installer/)。
 
@@ -312,7 +359,7 @@ wasm-pack build --target web
     <title>Pong with WASM</title>
   </head>
 
-  <body id="wasm-example">
+  <body id="wgpu-app-container">
     <script type="module">
       import init from "./pkg/pong.js";
       init().then(() => {
