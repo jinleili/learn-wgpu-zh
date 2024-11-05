@@ -2,7 +2,6 @@ use crate::{hilbert_curve::HilbertCurve, line::Line};
 use app_surface::{AppSurface, SurfaceFrame};
 use std::{iter, sync::Arc};
 use utils::{BufferObj, SceneUniform, WgpuAppAction};
-use wgpu::WasmNotSend;
 use winit::dpi::PhysicalSize;
 
 pub struct HilbertCurveApp {
@@ -55,89 +54,85 @@ impl HilbertCurveApp {
 }
 
 impl WgpuAppAction for HilbertCurveApp {
-    fn new(
-        window: Arc<winit::window::Window>,
-    ) -> impl std::future::Future<Output = Self> + WasmNotSend {
-        async move {
-            // 创建 wgpu 应用
-            let mut app = AppSurface::new(window).await;
+    async fn new(window: Arc<winit::window::Window>) -> Self {
+        // 创建 wgpu 应用
+        let mut app = AppSurface::new(window).await;
 
-            // 兼容 web
-            let format = app.config.format.remove_srgb_suffix();
-            app.ctx.update_config_format(format);
+        // 兼容 web
+        let format = app.config.format.remove_srgb_suffix();
+        app.ctx.update_config_format(format);
 
-            let viewport = glam::Vec2 {
-                x: app.config.width as f32,
-                y: app.config.height as f32,
+        let viewport = glam::Vec2 {
+            x: app.config.width as f32,
+            y: app.config.height as f32,
+        };
+
+        // 投影
+        let (p_matrix, mv_matrix, _) = utils::matrix_helper::perspective_mvp(viewport);
+        let mvp_buffer = BufferObj::create_uniform_buffer(
+            &app.device,
+            &SceneUniform {
+                mvp: (p_matrix * mv_matrix).to_cols_array_2d(),
+                viewport_pixels: viewport.to_array(),
+                padding: [0., 0.],
+            },
+            Some("SceneUniform"),
+        );
+        // 动作总帧总
+        let draw_count = 60 * 3;
+        let offset_buffer_size = 256;
+        let hilbert_buf = BufferObj::create_empty_uniform_buffer(
+            &app.device,
+            (draw_count * offset_buffer_size) as wgpu::BufferAddress,
+            offset_buffer_size,
+            true,
+            Some("动画的动态偏移缓冲区"),
+        );
+        // 按动态偏移量填充 uniform 缓冲区
+        let mut depth_bias = 1.0;
+        for step in 0..draw_count {
+            let uniform = crate::HilbertUniform {
+                near_target_ratio: step as f32 / (draw_count - 1) as f32,
+                depth_bias,
             };
-
-            // 投影
-            let (p_matrix, mv_matrix, _) = utils::matrix_helper::perspective_mvp(viewport);
-            let mvp_buffer = BufferObj::create_uniform_buffer(
-                &app.device,
-                &SceneUniform {
-                    mvp: (p_matrix * mv_matrix).to_cols_array_2d(),
-                    viewport_pixels: viewport.to_array(),
-                    padding: [0., 0.],
-                },
-                Some("SceneUniform"),
+            app.queue.write_buffer(
+                &hilbert_buf.buffer,
+                offset_buffer_size * (step),
+                bytemuck::bytes_of(&uniform),
             );
-            // 动作总帧总
-            let draw_count = 60 * 3;
-            let offset_buffer_size = 256;
-            let hilbert_buf = BufferObj::create_empty_uniform_buffer(
-                &app.device,
-                (draw_count * offset_buffer_size) as wgpu::BufferAddress,
-                offset_buffer_size,
-                true,
-                Some("动画的动态偏移缓冲区"),
-            );
-            // 按动态偏移量填充 uniform 缓冲区
-            let mut depth_bias = 1.0;
-            for step in 0..draw_count {
-                let uniform = crate::HilbertUniform {
-                    near_target_ratio: step as f32 / (draw_count - 1) as f32,
-                    depth_bias,
-                };
-                app.queue.write_buffer(
-                    &hilbert_buf.buffer,
-                    offset_buffer_size * (step),
-                    bytemuck::bytes_of(&uniform),
-                );
-                depth_bias -= 0.01;
-            }
+            depth_bias -= 0.01;
+        }
 
-            // buffer 大小
-            let size = (4 * 4 * 3) * HilbertCurve::new(5).vertices.len() as u64;
-            // 创建两个 ping-pong 顶点缓冲区
-            let mut vertex_buffers: Vec<wgpu::Buffer> = Vec::with_capacity(2);
-            for _ in 0..2 {
-                let buf = app.device.create_buffer(&wgpu::BufferDescriptor {
-                    size,
-                    usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
-                    label: Some("vertex buffer"),
-                    mapped_at_creation: false,
-                });
-                vertex_buffers.push(buf);
-            }
-
-            let line = Line::new(&app, &mvp_buffer, &hilbert_buf);
-
-            let size = PhysicalSize::new(app.config.width, app.config.height);
-
-            Self {
-                app,
+        // buffer 大小
+        let size = (4 * 4 * 3) * HilbertCurve::new(5).vertices.len() as u64;
+        // 创建两个 ping-pong 顶点缓冲区
+        let mut vertex_buffers: Vec<wgpu::Buffer> = Vec::with_capacity(2);
+        for _ in 0..2 {
+            let buf = app.device.create_buffer(&wgpu::BufferDescriptor {
                 size,
-                size_changed: false,
-                mvp_buffer,
-                line,
-                vertex_buffers,
-                curve_vertex_count: 0,
-                animate_index: 0,
-                draw_count: draw_count as u32,
-                curve_dimention: 1,
-                is_animation_up: true,
-            }
+                usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
+                label: Some("vertex buffer"),
+                mapped_at_creation: false,
+            });
+            vertex_buffers.push(buf);
+        }
+
+        let line = Line::new(&app, &mvp_buffer, &hilbert_buf);
+
+        let size = PhysicalSize::new(app.config.width, app.config.height);
+
+        Self {
+            app,
+            size,
+            size_changed: false,
+            mvp_buffer,
+            line,
+            vertex_buffers,
+            curve_vertex_count: 0,
+            animate_index: 0,
+            draw_count: draw_count as u32,
+            curve_dimention: 1,
+            is_animation_up: true,
         }
     }
 

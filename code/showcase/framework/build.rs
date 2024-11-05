@@ -1,8 +1,8 @@
 use anyhow::Context;
 use glob::glob;
 use naga::back::wgsl;
-use naga::front::glsl::Options;
 use naga::front::glsl::Frontend;
+use naga::front::glsl::Options;
 use rayon::prelude::*;
 use std::{fs::read_to_string, path::PathBuf};
 

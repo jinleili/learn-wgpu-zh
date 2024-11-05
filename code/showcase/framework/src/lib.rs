@@ -196,4 +196,3 @@ impl UniformBinding {
         });
     }
 }
-

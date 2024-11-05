@@ -7,7 +7,7 @@ use utils::{
     vertex::PosTex,
     AnyTexture, BufferObj, MVPMatUniform, Plane, WgpuAppAction,
 };
-use wgpu::{Sampler, WasmNotSend};
+use wgpu::Sampler;
 use winit::dpi::PhysicalSize;
 
 pub struct VertexAnimationApp {
@@ -34,140 +34,135 @@ pub struct VertexAnimationApp {
 }
 
 impl WgpuAppAction for VertexAnimationApp {
-    fn new(
-        window: Arc<winit::window::Window>,
-    ) -> impl std::future::Future<Output = Self> + WasmNotSend {
-        async move {
-            // 创建 wgpu 应用
-            let mut app = AppSurface::new(window).await;
+    async fn new(window: Arc<winit::window::Window>) -> Self {
+        // 创建 wgpu 应用
+        let mut app = AppSurface::new(window).await;
 
-            // 兼容 web
-            let format = app.config.format.remove_srgb_suffix();
-            app.ctx.update_config_format(format);
+        // 兼容 web
+        let format = app.config.format.remove_srgb_suffix();
+        app.ctx.update_config_format(format);
 
-            let (p_matrix, mv_matrix) =
-                utils::matrix_helper::perspective_fullscreen_mvp(glam::Vec2 {
-                    x: app.config.width as f32,
-                    y: app.config.height as f32,
-                });
-            let mvp_buffer = BufferObj::create_uniform_buffer(
-                &app.device,
-                &MVPMatUniform {
-                    mvp: (p_matrix * mv_matrix).to_cols_array_2d(),
-                },
-                Some("MVPMatUniform"),
-            );
+        let (p_matrix, mv_matrix) = utils::matrix_helper::perspective_fullscreen_mvp(glam::Vec2 {
+            x: app.config.width as f32,
+            y: app.config.height as f32,
+        });
+        let mvp_buffer = BufferObj::create_uniform_buffer(
+            &app.device,
+            &MVPMatUniform {
+                mvp: (p_matrix * mv_matrix).to_cols_array_2d(),
+            },
+            Some("MVPMatUniform"),
+        );
 
-            // 加载纸张纹理
-            let bg_data = include_bytes!("../assets/bg.png");
-            let bg_tex = resource::load_a_texture(&app, bg_data);
-            let paper_data = include_bytes!("../assets/fu.png");
-            let paper_tex = resource::load_a_texture(&app, paper_data);
+        // 加载纸张纹理
+        let bg_data = include_bytes!("../assets/bg.png");
+        let bg_tex = resource::load_a_texture(&app, bg_data);
+        let paper_data = include_bytes!("../assets/fu.png");
+        let paper_tex = resource::load_a_texture(&app, paper_data);
 
-            let sampler = utils::bilinear_sampler(&app.device);
-            // 着色器
-            let (turning_shader, bg_shader) = {
-                let create_shader = |wgsl: &'static str| -> wgpu::ShaderModule {
-                    app.device
-                        .create_shader_module(wgpu::ShaderModuleDescriptor {
-                            label: None,
-                            source: wgpu::ShaderSource::Wgsl(wgsl.into()),
-                        })
-                };
-                (
-                    create_shader(include_str!("../assets/page_turning.wgsl")),
-                    create_shader(include_str!("../assets/bg_draw.wgsl")),
-                )
+        let sampler = utils::bilinear_sampler(&app.device);
+        // 着色器
+        let (turning_shader, bg_shader) = {
+            let create_shader = |wgsl: &'static str| -> wgpu::ShaderModule {
+                app.device
+                    .create_shader_module(wgpu::ShaderModuleDescriptor {
+                        label: None,
+                        source: wgpu::ShaderSource::Wgsl(wgsl.into()),
+                    })
             };
+            (
+                create_shader(include_str!("../assets/page_turning.wgsl")),
+                create_shader(include_str!("../assets/bg_draw.wgsl")),
+            )
+        };
 
-            // 翻页动作总帧总
-            let draw_count = 60 * 3;
-            let offset_buffer_size = 256;
-            let turning_buf = BufferObj::create_empty_uniform_buffer(
-                &app.device,
-                (draw_count * offset_buffer_size) as wgpu::BufferAddress,
-                offset_buffer_size,
-                true,
-                Some("翻页动画的动态偏移缓冲区"),
+        // 翻页动作总帧总
+        let draw_count = 60 * 3;
+        let offset_buffer_size = 256;
+        let turning_buf = BufferObj::create_empty_uniform_buffer(
+            &app.device,
+            (draw_count * offset_buffer_size) as wgpu::BufferAddress,
+            offset_buffer_size,
+            true,
+            Some("翻页动画的动态偏移缓冲区"),
+        );
+
+        let start_pos = glam::Vec2::new(1.0, 0.0);
+        //  从右往左下角翻页
+        let target_pos = glam::Vec2::new(-5.8, 2.5);
+        let gap_pos = target_pos - start_pos;
+
+        // 按动态偏移量填充 uniform 缓冲区
+        for step in 0..draw_count {
+            let radius = 1.0 / 8.0;
+            let data = Self::step_turning_data(radius, step as u32, draw_count as u32, gap_pos);
+            app.queue.write_buffer(
+                &turning_buf.buffer,
+                offset_buffer_size * (step),
+                bytemuck::bytes_of(&data),
             );
+        }
 
-            let start_pos = glam::Vec2::new(1.0, 0.0);
-            //  从右往左下角翻页
-            let target_pos = glam::Vec2::new(-5.8, 2.5);
-            let gap_pos = target_pos - start_pos;
+        // 平面网格
+        let (vertices, indices) = Plane::new(300, 300).generate_vertices();
 
-            // 按动态偏移量填充 uniform 缓冲区
-            for step in 0..draw_count {
-                let radius = 1.0 / 8.0;
-                let data = Self::step_turning_data(radius, step as u32, draw_count as u32, gap_pos);
-                app.queue.write_buffer(
-                    &turning_buf.buffer,
-                    offset_buffer_size * (step),
-                    bytemuck::bytes_of(&data),
-                );
-            }
+        // 准备绑定组需要的数据
+        let bind_group_data = BindGroupData {
+            uniforms: vec![&mvp_buffer],
+            inout_tv: vec![(&paper_tex, None)],
+            samplers: vec![&sampler],
+            visibilitys: vec![
+                wgpu::ShaderStages::VERTEX,
+                wgpu::ShaderStages::FRAGMENT,
+                wgpu::ShaderStages::FRAGMENT,
+            ],
+            // 配置动态偏移缓冲区
+            dynamic_uniforms: vec![&turning_buf],
+            dynamic_uniform_visibilitys: vec![
+                wgpu::ShaderStages::VERTEX | wgpu::ShaderStages::FRAGMENT,
+            ],
+            ..Default::default()
+        };
 
-            // 平面网格
-            let (vertices, indices) = Plane::new(300, 300).generate_vertices();
+        let builder = ViewNodeBuilder::<PosTex>::new(bind_group_data, &turning_shader)
+            .with_vertices_and_indices((vertices, indices))
+            .with_use_depth_stencil(true)
+            .with_cull_mode(None)
+            .with_color_format(format);
+        let turning_node = builder.build(&app.device);
 
-            // 准备绑定组需要的数据
-            let bind_group_data = BindGroupData {
-                uniforms: vec![&mvp_buffer],
-                inout_tv: vec![(&paper_tex, None)],
-                samplers: vec![&sampler],
-                visibilitys: vec![
-                    wgpu::ShaderStages::VERTEX,
-                    wgpu::ShaderStages::FRAGMENT,
-                    wgpu::ShaderStages::FRAGMENT,
-                ],
-                // 配置动态偏移缓冲区
-                dynamic_uniforms: vec![&turning_buf],
-                dynamic_uniform_visibilitys: vec![
-                    wgpu::ShaderStages::VERTEX | wgpu::ShaderStages::FRAGMENT,
-                ],
-                ..Default::default()
-            };
+        // 准备绑定组需要的数据
+        let bind_group_data = BindGroupData {
+            inout_tv: vec![(&bg_tex, None)],
+            samplers: vec![&sampler],
+            visibilitys: vec![wgpu::ShaderStages::FRAGMENT, wgpu::ShaderStages::FRAGMENT],
+            ..Default::default()
+        };
+        let bg_node = BufferlessFullscreenNode::new(
+            &app.device,
+            format,
+            &bind_group_data,
+            &bg_shader,
+            None,
+            1,
+        );
 
-            let builder = ViewNodeBuilder::<PosTex>::new(bind_group_data, &turning_shader)
-                .with_vertices_and_indices((vertices, indices))
-                .with_use_depth_stencil(true)
-                .with_cull_mode(None)
-                .with_color_format(format);
-            let turning_node = builder.build(&app.device);
+        let size = PhysicalSize::new(app.config.width, app.config.height);
 
-            // 准备绑定组需要的数据
-            let bind_group_data = BindGroupData {
-                inout_tv: vec![(&bg_tex, None)],
-                samplers: vec![&sampler],
-                visibilitys: vec![wgpu::ShaderStages::FRAGMENT, wgpu::ShaderStages::FRAGMENT],
-                ..Default::default()
-            };
-            let bg_node = BufferlessFullscreenNode::new(
-                &app.device,
-                format,
-                &bind_group_data,
-                &bg_shader,
-                None,
-                1,
-            );
-
-            let size = PhysicalSize::new(app.config.width, app.config.height);
-
-            Self {
-                app,
-                size,
-                size_changed: true,
-                bg_node,
-                turning_node,
-                particle_ink: None,
-                mvp_buffer,
-                paper_tex,
-                sampler,
-                depth_tex_view: None,
-                is_particle_ink_phase: true,
-                animate_index: 0,
-                draw_count: draw_count as u32,
-            }
+        Self {
+            app,
+            size,
+            size_changed: true,
+            bg_node,
+            turning_node,
+            particle_ink: None,
+            mvp_buffer,
+            paper_tex,
+            sampler,
+            depth_tex_view: None,
+            is_particle_ink_phase: true,
+            animate_index: 0,
+            draw_count: draw_count as u32,
         }
     }
 

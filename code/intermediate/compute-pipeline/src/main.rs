@@ -1,7 +1,7 @@
 use app_surface::{AppSurface, SurfaceFrame};
 use std::{iter, sync::Arc};
 use utils::framework::{run, WgpuAppAction};
-use wgpu::{TextureUsages, TextureView, WasmNotSend};
+use wgpu::{TextureUsages, TextureView};
 use winit::dpi::PhysicalSize;
 
 mod blur_node;
@@ -37,118 +37,114 @@ impl WgpuApp {
 }
 
 impl WgpuAppAction for WgpuApp {
-    fn new(
-        window: Arc<winit::window::Window>,
-    ) -> impl std::future::Future<Output = Self> + WasmNotSend {
-        async move {
-            // 创建 wgpu 应用
-            let app = AppSurface::new(window).await;
+    async fn new(window: Arc<winit::window::Window>) -> Self {
+        // 创建 wgpu 应用
+        let app = AppSurface::new(window).await;
 
-            let (tex, size) = resource::load_a_texture(&app);
-            let original_tv = tex.create_view(&wgpu::TextureViewDescriptor {
-                format: Some(SWAP_FORMAT),
-                ..Default::default()
+        let (tex, size) = resource::load_a_texture(&app);
+        let original_tv = tex.create_view(&wgpu::TextureViewDescriptor {
+            format: Some(SWAP_FORMAT),
+            ..Default::default()
+        });
+
+        // 使用缩小的纹理来实现模糊，不但能降低 GPU 负载，还能让模糊的效果更好。
+        let swap_size = wgpu::Extent3d {
+            width: size.width / 2,
+            height: size.height / 2,
+            depth_or_array_layers: 1,
+        };
+        let usage = TextureUsages::STORAGE_BINDING | TextureUsages::TEXTURE_BINDING;
+
+        let get_a_tv = |usage: wgpu::TextureUsages| {
+            let tex = app.device.create_texture(&wgpu::TextureDescriptor {
+                label: None,
+                size: swap_size,
+                mip_level_count: 1,
+                sample_count: 1,
+                dimension: wgpu::TextureDimension::D2,
+                format: SWAP_FORMAT,
+                usage,
+                view_formats: &[],
             });
+            tex.create_view(&wgpu::TextureViewDescriptor::default())
+        };
+        let blur_xy_tv = get_a_tv(usage | TextureUsages::RENDER_ATTACHMENT);
+        let swap_x_tv = get_a_tv(usage);
 
-            // 使用缩小的纹理来实现模糊，不但能降低 GPU 负载，还能让模糊的效果更好。
-            let swap_size = wgpu::Extent3d {
-                width: size.width / 2,
-                height: size.height / 2,
-                depth_or_array_layers: 1,
+        // 双线性采样
+        let sampler = app.device.create_sampler(&wgpu::SamplerDescriptor {
+            mag_filter: wgpu::FilterMode::Linear,
+            min_filter: wgpu::FilterMode::Linear,
+            mipmap_filter: wgpu::FilterMode::Nearest,
+            ..Default::default()
+        });
+
+        let (blur_shader, render_shader) = {
+            let create_shader = |wgsl: &'static str| -> wgpu::ShaderModule {
+                app.device
+                    .create_shader_module(wgpu::ShaderModuleDescriptor {
+                        label: None,
+                        source: wgpu::ShaderSource::Wgsl(wgsl.into()),
+                    })
             };
-            let usage = TextureUsages::STORAGE_BINDING | TextureUsages::TEXTURE_BINDING;
+            (
+                create_shader(include_str!("../assets/blur.wgsl")),
+                create_shader(include_str!("../assets/draw.wgsl")),
+            )
+        };
 
-            let get_a_tv = |usage: wgpu::TextureUsages| {
-                let tex = app.device.create_texture(&wgpu::TextureDescriptor {
-                    label: None,
-                    size: swap_size,
-                    mip_level_count: 1,
-                    sample_count: 1,
-                    dimension: wgpu::TextureDimension::D2,
-                    format: SWAP_FORMAT,
-                    usage,
-                    view_formats: &[],
-                });
-                tex.create_view(&wgpu::TextureViewDescriptor::default())
-            };
-            let blur_xy_tv = get_a_tv(usage | TextureUsages::RENDER_ATTACHMENT);
-            let swap_x_tv = get_a_tv(usage);
+        let img_size = [swap_size.width as i32, swap_size.height as i32];
+        // 计算工作组大小
+        let workgroup_count = ((swap_size.width + 15) / 16, (swap_size.height + 15) / 16);
 
-            // 双线性采样
-            let sampler = app.device.create_sampler(&wgpu::SamplerDescriptor {
-                mag_filter: wgpu::FilterMode::Linear,
-                min_filter: wgpu::FilterMode::Linear,
-                mipmap_filter: wgpu::FilterMode::Nearest,
-                ..Default::default()
-            });
+        let blur_x = BlurNode::new(
+            &app,
+            [img_size, [1, 0]],
+            &blur_xy_tv,
+            &swap_x_tv,
+            &blur_shader,
+            workgroup_count,
+        );
+        let blur_y = BlurNode::new(
+            &app,
+            [img_size, [0, 1]],
+            &swap_x_tv,
+            &blur_xy_tv,
+            &blur_shader,
+            workgroup_count,
+        );
+        // 在 WebGPU 标准中，我们可以利用 viewFormats 来直接将 sRGB 格式重新解释为线性格式
+        // 我已经给 wgpu 提交了相关 PR: https://github.com/gfx-rs/wgpu/pull/3237
+        // 如果被接受的话，就可以移除 fs_srgb_to_linear 直接重用 fs_main 了
+        let reset_node = ImageNode::new(
+            &app,
+            &original_tv,
+            &sampler,
+            &render_shader,
+            "fs_main", //"fs_srgb_to_linear",
+            SWAP_FORMAT,
+        );
+        let display_node = ImageNode::new(
+            &app,
+            &blur_xy_tv,
+            &sampler,
+            &render_shader,
+            "fs_main",
+            app.config.format.remove_srgb_suffix(),
+        );
 
-            let (blur_shader, render_shader) = {
-                let create_shader = |wgsl: &'static str| -> wgpu::ShaderModule {
-                    app.device
-                        .create_shader_module(wgpu::ShaderModuleDescriptor {
-                            label: None,
-                            source: wgpu::ShaderSource::Wgsl(wgsl.into()),
-                        })
-                };
-                (
-                    create_shader(include_str!("../assets/blur.wgsl")),
-                    create_shader(include_str!("../assets/draw.wgsl")),
-                )
-            };
+        let size = PhysicalSize::new(app.config.width, app.config.height);
 
-            let img_size = [swap_size.width as i32, swap_size.height as i32];
-            // 计算工作组大小
-            let workgroup_count = ((swap_size.width + 15) / 16, (swap_size.height + 15) / 16);
-
-            let blur_x = BlurNode::new(
-                &app,
-                [img_size, [1, 0]],
-                &blur_xy_tv,
-                &swap_x_tv,
-                &blur_shader,
-                workgroup_count,
-            );
-            let blur_y = BlurNode::new(
-                &app,
-                [img_size, [0, 1]],
-                &swap_x_tv,
-                &blur_xy_tv,
-                &blur_shader,
-                workgroup_count,
-            );
-            // 在 WebGPU 标准中，我们可以利用 viewFormats 来直接将 sRGB 格式重新解释为线性格式
-            // 我已经给 wgpu 提交了相关 PR: https://github.com/gfx-rs/wgpu/pull/3237
-            // 如果被接受的话，就可以移除 fs_srgb_to_linear 直接重用 fs_main 了
-            let reset_node = ImageNode::new(
-                &app,
-                &original_tv,
-                &sampler,
-                &render_shader,
-                "fs_main", //"fs_srgb_to_linear",
-                SWAP_FORMAT,
-            );
-            let display_node = ImageNode::new(
-                &app,
-                &blur_xy_tv,
-                &sampler,
-                &render_shader,
-                "fs_main",
-                app.config.format.remove_srgb_suffix(),
-            );
-
-            let size = PhysicalSize::new(app.config.width, app.config.height);
-
-            Self {
-                app,
-                size,
-                size_changed: false,
-                blur_x,
-                blur_y,
-                blur_xy_tv,
-                reset_node,
-                display_node,
-                frame_count: 0,
-            }
+        Self {
+            app,
+            size,
+            size_changed: false,
+            blur_x,
+            blur_y,
+            blur_xy_tv,
+            reset_node,
+            display_node,
+            frame_count: 0,
         }
     }
 
