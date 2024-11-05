@@ -72,12 +72,13 @@ fn main() {
         display: block;
         width: 100%;
         height: 100%;
+        background-color: #454545;
     }
     #wgpu-app-container {
         width: 50vw;
-        height: 38vw;
+        height: 50vw;
         min-width: 375px;
-        min-height: 240px;
+        min-height: 375px;
     }
     "#,
     );

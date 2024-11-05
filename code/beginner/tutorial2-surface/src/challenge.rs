@@ -36,25 +36,38 @@ impl WgpuApp {
 
         #[cfg(target_arch = "wasm32")]
         {
-            // Winit prevents sizing with CSS, so we have to set
-            // the size manually when on web.
             use winit::platform::web::WindowExtWebSys;
 
+            let canvas = window.canvas().unwrap();
+
+            // 将 canvas 添加到当前网页中
             web_sys::window()
                 .and_then(|win| win.document())
                 .map(|doc| {
-                    let canvas = window.canvas().unwrap();
                     let _ = canvas.set_attribute("id", "winit-canvas");
-                    match doc.get_element_by_id("wasm-example") {
+                    match doc.get_element_by_id("wgpu-app-container") {
                         Some(dst) => {
                             let _ = dst.append_child(canvas.as_ref());
                         }
                         None => {
-                            doc.body().map(|body| body.append_child(canvas.as_ref()));
+                            let container = doc.create_element("div").unwrap();
+                            let _ = container.set_attribute("id", "wgpu-app-container");
+                            let _ = container.append_child(canvas.as_ref());
+
+                            doc.body().map(|body| body.append_child(container.as_ref()));
                         }
                     };
                 })
                 .expect("Couldn't append canvas to document body.");
+
+            // 确保画布可以获得焦点
+            // https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/tabindex
+            canvas.set_tab_index(0);
+
+            // 设置画布获得焦点时不显示高亮轮廓
+            let style = canvas.style();
+            style.set_property("outline", "none").unwrap();
+            canvas.focus().expect("画布无法获取焦点");
         }
 
         // The instance is a handle to our GPU
@@ -194,6 +207,21 @@ impl WgpuApp {
 #[derive(Default)]
 struct WgpuAppHandler {
     app: Rc<Mutex<Option<WgpuApp>>>,
+    /// 错失的窗口大小变化
+    ///
+    /// # NOTE：
+    /// 在 web 端，app 的初始化是异步的，当收到 resized 事件时，初始化可能还没有完成从而错过窗口 resized 事件，
+    /// 当 app 初始化完成后会调用 `set_window_resized` 方法来补上错失的窗口大小变化事件。
+    #[allow(dead_code)]
+    missed_resize: Rc<Mutex<Option<PhysicalSize<u32>>>>,
+
+    /// 错失的请求重绘事件
+    ///
+    /// # NOTE：
+    /// 在 web 端，app 的初始化是异步的，当收到 redraw 事件时，初始化可能还没有完成从而错过请求重绘事件，
+    /// 当 app 初始化完成后会调用 `request_redraw` 方法来补上错失的请求重绘事件。
+    #[allow(dead_code)]
+    missed_request_redraw: Rc<Mutex<bool>>,
 }
 
 impl ApplicationHandler for WgpuAppHandler {
@@ -208,11 +236,23 @@ impl ApplicationHandler for WgpuAppHandler {
         cfg_if::cfg_if! {
             if #[cfg(target_arch = "wasm32")] {
                 let app = self.app.clone();
-                wasm_bindgen_futures::spawn_local(async move {
-                    let wgpu_app = WgpuApp::new(window).await;
+                let missed_resize = self.missed_resize.clone();
+                let missed_request_redraw = self.missed_request_redraw.clone();
 
+                wasm_bindgen_futures::spawn_local(async move {
+                    let window_cloned = window.clone();
+
+                    let wgpu_app = WgpuApp::new(window).await;
                     let mut app = app.lock();
                     *app = Some(wgpu_app);
+
+                    if let Some(resize) = *missed_resize.lock() {
+                        app.as_mut().unwrap().set_window_resized(resize);
+                    }
+
+                    if *missed_request_redraw.lock() {
+                        window_cloned.request_redraw();
+                    }
                 });
             } else {
                 let wgpu_app = pollster::block_on(WgpuApp::new(window));
@@ -233,6 +273,20 @@ impl ApplicationHandler for WgpuAppHandler {
     ) {
         let mut app = self.app.lock();
         if app.as_ref().is_none() {
+            // 如果 app 还没有初始化完成，则记录错失的窗口事件
+            match event {
+                WindowEvent::Resized(physical_size) => {
+                    if physical_size.width > 0 && physical_size.height > 0 {
+                        let mut missed_resize = self.missed_resize.lock();
+                        *missed_resize = Some(physical_size);
+                    }
+                }
+                WindowEvent::RedrawRequested => {
+                    let mut missed_request_redraw = self.missed_request_redraw.lock();
+                    *missed_request_redraw = true;
+                }
+                _ => (),
+            }
             return;
         }
 
@@ -261,7 +315,7 @@ impl ApplicationHandler for WgpuAppHandler {
             WindowEvent::RedrawRequested => {
                 // surface 重绘事件
                 app.window.pre_present_notify();
-                
+
                 match app.render() {
                     Ok(_) => {}
                     // 当展示平面的上下文丢失，就需重新配置

@@ -34,7 +34,6 @@ pub trait WgpuAppAction {
             let canvas = window.canvas().unwrap();
 
             // 将 canvas 添加到当前网页中
-            // 将 canvas 添加到当前网页中
             web_sys::window()
                 .and_then(|win| win.document())
                 .map(|doc| {
@@ -58,28 +57,10 @@ pub trait WgpuAppAction {
             // https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/tabindex
             canvas.set_tab_index(0);
 
-            // 当画布获得焦点时不显示高亮轮廓
+            // 设置画布获得焦点时不显示高亮轮廓
             let style = canvas.style();
             style.set_property("outline", "none").unwrap();
             canvas.focus().expect("画布无法获取焦点");
-
-            // 记录 winit 0.30 在 web 下的问题：
-            // - 通过 css设置 canvas 的宽高不一致时，winit 有很高的概率不会触发 resized 事件, 手动 resize 浏览器窗口后恢复;
-            // - 不设置高度或设置为 100% 时，canvas 的 height 会自动变为与宽度一致的（正方形）;
-
-            // 设置 canvas 的宽高比
-            // style.set_property("aspect-ratio", "auto 3/4").unwrap();
-
-            // style.set_property("width", "100%").unwrap();
-            // style.set_property("height", "auto").unwrap();
-
-            // match Self::install_resize_observer(window.clone()) {
-            //     Ok(_) => (),
-            //     Err(err) => log::error!(
-            //         "resize observer 监听失败: {}",
-            //         crate::string_from_js_value(&err)
-            //     ),
-            // }
         }
     }
 
@@ -123,6 +104,23 @@ pub trait WgpuAppAction {
 
 struct WgpuAppHandler<A: WgpuAppAction> {
     app: Rc<Mutex<Option<A>>>,
+    /// 错失的窗口大小变化
+    ///
+    /// # NOTE：
+    /// 在 web 端，app 的初始化是异步的，当收到 resized 事件时，初始化可能还没有完成从而错过窗口 resized 事件，
+    /// 当 app 初始化完成后会调用 `set_window_resized` 方法来补上错失的窗口大小变化事件。
+    #[allow(dead_code)]
+    missed_resize: Rc<Mutex<Option<PhysicalSize<u32>>>>,
+
+    /// 错失的请求重绘事件
+    ///
+    /// # NOTE：
+    /// 在 web 端，app 的初始化是异步的，当收到 redraw 事件时，初始化可能还没有完成从而错过请求重绘事件，
+    /// 当 app 初始化完成后会调用 `request_redraw` 方法来补上错失的请求重绘事件。
+    #[allow(dead_code)]
+    missed_request_redraw: Rc<Mutex<bool>>,
+
+    /// 上次执行渲染的时间
     last_render_time: instant::Instant,
 }
 
@@ -130,6 +128,8 @@ impl<A: WgpuAppAction> Default for WgpuAppHandler<A> {
     fn default() -> Self {
         Self {
             app: Rc::new(Mutex::new(None)),
+            missed_resize: Rc::new(Mutex::new(None)),
+            missed_request_redraw: Rc::new(Mutex::new(false)),
             last_render_time: instant::Instant::now(),
         }
     }
@@ -146,23 +146,33 @@ impl<A: WgpuAppAction + 'static> ApplicationHandler for WgpuAppHandler<A> {
 
         let window_attributes = Window::default_attributes();
         let window = Arc::new(event_loop.create_window(window_attributes).unwrap());
-        let window_clone = window.clone();
 
         cfg_if::cfg_if! {
             if #[cfg(target_arch = "wasm32")] {
                 let app = self.app.clone();
-                wasm_bindgen_futures::spawn_local(async move {
-                    let wgpu_app = A::new(window).await;
+                let missed_resize = self.missed_resize.clone();
+                let missed_request_redraw = self.missed_request_redraw.clone();
 
+                wasm_bindgen_futures::spawn_local(async move {
+                     let window_cloned = window.clone();
+
+                    let wgpu_app = A::new(window).await;
                     let mut app = app.lock();
                     *app = Some(wgpu_app);
+
+                    if let Some(resize) = *missed_resize.lock() {
+                        app.as_mut().unwrap().set_window_resized(resize);
+                    }
+
+                    if *missed_request_redraw.lock() {
+                        window_cloned.request_redraw();
+                    }
                 });
             } else {
                 let wgpu_app = pollster::block_on(A::new(window));
                 self.app.lock().replace(wgpu_app);
             }
         }
-        window_clone.request_redraw();
     }
 
     fn suspended(&mut self, _event_loop: &ActiveEventLoop) {
@@ -177,8 +187,24 @@ impl<A: WgpuAppAction + 'static> ApplicationHandler for WgpuAppHandler<A> {
     ) {
         let mut app = self.app.lock();
         if app.as_ref().is_none() {
+            // 如果 app 还没有初始化完成，则记录错失的窗口事件
+            match event {
+                WindowEvent::Resized(physical_size) => {
+                    if physical_size.width > 0 && physical_size.height > 0 {
+                        let mut missed_resize = self.missed_resize.lock();
+                        *missed_resize = Some(physical_size);
+                    }
+                }
+                WindowEvent::RedrawRequested => {
+                    let mut missed_request_redraw = self.missed_request_redraw.lock();
+                    *missed_request_redraw = true;
+                }
+                _ => (),
+            }
             return;
         }
+
+        let app = app.as_mut().unwrap();
 
         // 窗口事件
         match event {
@@ -192,21 +218,20 @@ impl<A: WgpuAppAction + 'static> ApplicationHandler for WgpuAppHandler<A> {
                 } else {
                     log::info!("Window resized: {:?}", physical_size);
 
-                    let app = app.as_mut().unwrap();
                     app.set_window_resized(physical_size);
                 }
             }
             WindowEvent::KeyboardInput { event, .. } => {
                 // 键盘事件
-                let _ = app.as_mut().unwrap().keyboard_input(&event);
+                let _ = app.keyboard_input(&event);
             }
             WindowEvent::MouseWheel { delta, phase, .. } => {
                 // 鼠标滚轮事件
-                let _ = app.as_mut().unwrap().mouse_wheel(delta, phase);
+                let _ = app.mouse_wheel(delta, phase);
             }
             WindowEvent::MouseInput { button, state, .. } => {
                 // 鼠标点击事件
-                let _ = app.as_mut().unwrap().mouse_click(state, button);
+                let _ = app.mouse_click(state, button);
             }
             WindowEvent::RedrawRequested => {
                 // surface 重绘事件
@@ -214,7 +239,6 @@ impl<A: WgpuAppAction + 'static> ApplicationHandler for WgpuAppHandler<A> {
                 let dt = now - self.last_render_time;
                 self.last_render_time = now;
 
-                let app = app.as_mut().unwrap();
                 app.update(dt);
 
                 app.pre_present_notify();

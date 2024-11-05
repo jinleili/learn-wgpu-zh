@@ -1,5 +1,5 @@
 <template>
-  <div id="wasm-example">
+  <div id="wgpu-app-container">
     <div class="error" v-if="error">
       {{ error }}
     </div>
@@ -81,11 +81,11 @@ export default {
 </script>
 
 <style>
-#wasm-example canvas {
-  background-color: black;
+#wgpu-app-container {
+  min-height: 60px;
 }
 
-#wasm-example button {
+#wgpu-app-container button {
   height: 33px;
   font-size: 14px;
   padding: 0px 8px;
@@ -93,7 +93,7 @@ export default {
   border-radius: 8px;
 }
 
-#wasm-example button:hover {
+#wgpu-app-container button:hover {
   border-color: #059669;
 }
 </style>

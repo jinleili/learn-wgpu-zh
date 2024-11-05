@@ -1192,6 +1192,6 @@ A little note on the reflection math. The `view_dir` gives us the direction to t
 
 ## 示例
 
-<WasmExample example="hdr"></WasmExample>
+<WebGPUExample example="hdr" aspectRatio="0.8"></WebGPUExample>
 
 <AutoGithubLink/>
