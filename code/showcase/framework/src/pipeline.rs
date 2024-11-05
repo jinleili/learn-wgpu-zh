@@ -222,13 +222,13 @@ impl<'a> RenderPipelineBuilder<'a> {
             layout: Some(layout),
             vertex: wgpu::VertexState {
                 module: &vs,
-                entry_point: "main",
+                entry_point: Some("main"),
                 compilation_options: Default::default(),
                 buffers: &self.vertex_buffers,
             },
             fragment: Some(wgpu::FragmentState {
                 module: &fs,
-                entry_point: "main",
+                entry_point: Some("main"),
                 compilation_options: Default::default(),
                 targets: &self.color_states,
             }),

@@ -63,13 +63,13 @@ async fn run() {
         layout: Some(&render_pipeline_layout),
         vertex: wgpu::VertexState {
             module: &shader,
-            entry_point: "vs_main",
+            entry_point: Some("vs_main"),
             compilation_options: Default::default(),
             buffers: &[],
         },
         fragment: Some(wgpu::FragmentState {
             module: &shader,
-            entry_point: "fs_main",
+            entry_point: Some("fs_main"),
             compilation_options: Default::default(),
             targets: &[Some(wgpu::ColorTargetState {
                 format: texture_desc.format,
@@ -152,22 +152,27 @@ async fn run() {
 
         // 注意：我们必须在 await future 之前先创建映射，然后再调用 device.poll()。
         // 否则，应用程序将停止响应。
-        let (tx, rx) = futures_intrusive::channel::shared::oneshot_channel();
+        let (tx, rx) = flume::bounded(1);
         buffer_slice.map_async(wgpu::MapMode::Read, move |result| {
             tx.send(result).unwrap();
         });
-        device.poll(wgpu::Maintain::Wait);
-        rx.receive().await.unwrap().unwrap();
+        device.poll(wgpu::Maintain::Wait).panic_on_timeout();
+        if let Ok(Ok(())) = rx.recv_async().await {
+            let data = buffer_slice.get_mapped_range();
 
-        let data = buffer_slice.get_mapped_range();
+            use image::{ImageBuffer, Rgba};
+            let buffer =
+                ImageBuffer::<Rgba<u8>, _>::from_raw(texture_size, texture_size, data).unwrap();
+            buffer.save("image.png").unwrap();
 
-        use image::{ImageBuffer, Rgba};
-        let buffer =
-            ImageBuffer::<Rgba<u8>, _>::from_raw(texture_size, texture_size, data).unwrap();
-        buffer.save("image.png").unwrap();
+            println!("保存图片成功！");
+
+            // 解除缓冲区映射
+            output_buffer.unmap();
+        } else {
+            panic!("从 gpu 读取数据失败！");
+        }
     }
-    // 解除缓冲区映射
-    output_buffer.unmap();
 }
 
 fn main() {

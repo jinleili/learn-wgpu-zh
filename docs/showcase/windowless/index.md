@@ -224,28 +224,32 @@ queue.submit(Some(encoder.finish()));
 
     // 注意：我们必须在 await future 之前先创建映射，然后再调用 device.poll()。
     // 否则，应用程序将停止响应。
-    let (tx, rx) = futures_intrusive::channel::shared::oneshot_channel();
+    let (tx, rx) = flume::bounded(1);
     buffer_slice.map_async(wgpu::MapMode::Read, move |result| {
         tx.send(result).unwrap();
     });
-    device.poll(wgpu::Maintain::Wait);
-    rx.receive().await.unwrap().unwrap();
+    device.poll(wgpu::Maintain::Wait).panic_on_timeout();
+    if let Ok(Ok(())) = rx.recv_async().await {
+        let data = buffer_slice.get_mapped_range();
 
-    let data = buffer_slice.get_mapped_range();
+        use image::{ImageBuffer, Rgba};
+        let buffer =
+            ImageBuffer::<Rgba<u8>, _>::from_raw(texture_size, texture_size, data).unwrap();
+        buffer.save("image.png").unwrap();
+        println!("保存图片成功！");
 
-    use image::{ImageBuffer, Rgba};
-    let buffer =
-        ImageBuffer::<Rgba<u8>, _>::from_raw(texture_size, texture_size, data).unwrap();
-    buffer.save("image.png").unwrap();
-
+        // 解除缓冲区映射
+        output_buffer.unmap();
+    } else {
+        panic!("从 gpu 读取数据失败！");
+    }
 }
-// 解除缓冲区映射
-output_buffer.unmap();
+
 ```
 
 <div class="note">
 
-这个程序使用了 [futures-intrusive](https://docs.rs/futures-intrusive)，那也是 [wgpu 的 demo](https://github.com/gfx-rs/wgpu/tree/master/wgpu/examples/capture) 中使用的**包**。
+这个程序使用了 [flume](https://docs.rs/flume/latest/flume/)，那也是 [wgpu 的 demo](https://github.com/gfx-rs/wgpu/blob/trunk/examples/src/hello_compute/mod.rs) 中使用的**包**。
 
 </div>
 

@@ -7,16 +7,16 @@ edition.workspace = true
 
 [dependencies]
 anyhow.workspace = true
-bytemuck = { version = "1.14", features = ["derive"] }
+bytemuck = { workspace = true, features = ["derive"] }
 glam.workspace = true
-env_logger = "0.11"
-pollster = "0.3"
-image = "0.24.2"
-log = "0.4"
-tobj = "3.1"
+env_logger.workspace = true
+pollster.workspace = true
+image.workspace = true
+log.workspace = true
+tobj.workspace = true
 wgpu.workspace = true
 winit.workspace = true
 gif = "0.11.4"
-futures-intrusive = "0.4"
+flume.workspace = true
 
 framework = { version = "0.1.0", path = "../framework" }

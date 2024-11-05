@@ -1,6 +1,3 @@
-extern crate framework;
-
-// use anyhow::*;
 use std::{iter, mem};
 
 async fn run() {
@@ -134,26 +131,29 @@ async fn run() {
 
         // Create the map request
         let buffer_slice = output_buffer.slice(..);
-        let (tx, rx) = futures_intrusive::channel::shared::oneshot_channel();
+        let (tx, rx) = flume::bounded(1);
         buffer_slice.map_async(wgpu::MapMode::Read, move |result| {
             tx.send(result).unwrap();
         });
         // wait for the GPU to finish
-        device.poll(wgpu::Maintain::Wait);
+        device.poll(wgpu::Maintain::Wait).panic_on_timeout();
 
-        match rx.receive().await {
-            Some(Ok(())) => {
-                let padded_data = buffer_slice.get_mapped_range();
-                let data = padded_data
-                    .chunks(padded_bytes_per_row as _)
-                    .flat_map(|chunk| &chunk[..unpadded_bytes_per_row as _])
-                    .copied()
-                    .collect::<Vec<_>>();
-                drop(padded_data);
-                output_buffer.unmap();
-                frames.push(data);
-            }
-            _ => eprintln!("Something went wrong"),
+        if let Ok(Ok(())) = rx.recv_async().await {
+            let padded_data = buffer_slice.get_mapped_range();
+            let data = padded_data
+                .chunks(padded_bytes_per_row as _)
+                .flat_map(|chunk| &chunk[..unpadded_bytes_per_row as _])
+                .copied()
+                .collect::<Vec<_>>();
+
+            frames.push(data);
+
+            // 必须确保所有映射视图在解除缓冲区映射之前被释放
+            drop(padded_data);
+            // 解除缓冲区映射
+            output_buffer.unmap();
+        } else {
+            panic!("从 gpu 读取数据失败！");
         }
     }
 
@@ -170,6 +170,8 @@ fn save_gif(path: &str, frames: &mut Vec<Vec<u8>>, speed: i32, size: u16) -> any
     for frame in frames {
         encoder.write_frame(&Frame::from_rgba_speed(size, size, frame, speed))?;
     }
+
+    println!("保存 gif 成功！");
 
     Ok(())
 }
@@ -195,13 +197,13 @@ fn create_render_pipeline(
         label: Some("Render Pipeline"),
         vertex: wgpu::VertexState {
             module: &shader,
-            entry_point: "vs_main",
+            entry_point: Some("vs_main"),
             compilation_options: Default::default(),
             buffers: &[],
         },
         fragment: Some(wgpu::FragmentState {
             module: &shader,
-            entry_point: "fs_main",
+            entry_point: Some("fs_main"),
             compilation_options: Default::default(),
             targets: &[Some(wgpu::ColorTargetState {
                 format: target.desc.format,

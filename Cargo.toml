@@ -28,7 +28,7 @@ bytemuck = { version = "1.19", features = ["derive"] }
 cfg-if = "1"
 glam = "0.29"
 env_logger = "0.11"
-futures-intrusive = "0.4"
+flume = "0.11"
 instant = "0.1"
 log = "0.4"
 pollster = "0.3"
