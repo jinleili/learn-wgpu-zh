@@ -17,14 +17,8 @@ pub use texture::*;
 
 use anyhow::*;
 use std::sync::Arc;
-use std::time::Duration;
 use wgpu::util::{BufferInitDescriptor, DeviceExt};
-use winit::event::*;
-use winit::window::{Window, WindowBuilder};
-use winit::{
-    event_loop::{EventLoop, EventLoopWindowTarget},
-    keyboard::{Key, NamedKey},
-};
+use winit::window::Window;
 
 pub struct Display {
     surface: wgpu::Surface<'static>,
@@ -201,73 +195,4 @@ impl UniformBinding {
             label: Some("CameraBinding::bind_group"),
         });
     }
-}
-
-pub trait Demo: 'static + Sized {
-    fn init(display: &Display) -> Result<Self, Error>;
-    fn start(&mut self);
-    fn process_mouse(&mut self, dx: f64, dy: f64);
-    fn resize(&mut self, display: &Display);
-    fn update(&mut self, display: &Display, dt: Duration);
-    fn render(&mut self, display: &mut Display);
-}
-
-pub async fn run<D: Demo>() -> Result<(), anyhow::Error> {
-    let event_loop = EventLoop::new().unwrap();
-    let window = WindowBuilder::new()
-        .with_title(env!("CARGO_PKG_NAME"))
-        .build(&event_loop)?;
-    let mut display = Display::new(Arc::new(window)).await?;
-    let mut demo = D::init(&display)?;
-    let mut last_render_time = instant::Instant::now();
-    cfg_if::cfg_if! {
-        if #[cfg(target_arch = "wasm32")] {
-            use winit::platform::web::EventLoopExtWebSys;
-            let event_loop_function = EventLoop::spawn;
-        } else {
-            let event_loop_function = EventLoop::run;
-        }
-    }
-    let _ = (event_loop_function)(
-        event_loop,
-        move |event: Event<()>, elwt: &EventLoopWindowTarget<()>| {
-            if event == Event::NewEvents(StartCause::Init) {
-                demo.start();
-            }
-            if let Event::WindowEvent { event, .. } = event {
-                match event {
-                    WindowEvent::KeyboardInput {
-                        event:
-                            KeyEvent {
-                                logical_key: Key::Named(NamedKey::Escape),
-                                ..
-                            },
-                        ..
-                    }
-                    | WindowEvent::CloseRequested => elwt.exit(),
-                    WindowEvent::Resized(physical_size) => {
-                        if physical_size.width == 0 || physical_size.height == 0 {
-                            // 处理最小化窗口的事件
-                            println!("Window minimized!");
-                        } else {
-                            display.resize(physical_size.width, physical_size.height);
-                            demo.resize(&display);
-                        }
-                    }
-                    WindowEvent::RedrawRequested => {
-                        let now = instant::Instant::now();
-                        let dt = now - last_render_time;
-                        last_render_time = now;
-                        demo.update(&display, dt);
-                        demo.render(&mut display);
-
-                        // 除非我们手动请求，RedrawRequested 将只会触发一次。
-                        display.window().request_redraw();
-                    }
-                    _ => {}
-                }
-            }
-        },
-    );
-    Ok(())
 }

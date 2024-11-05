@@ -1,12 +1,11 @@
 use app_surface::{AppSurface, SurfaceFrame};
-use std::iter;
-use utils::framework::{run, Action};
+use std::{iter, sync::Arc};
+use utils::framework::{run, WgpuAppAction};
 use wgpu::util::DeviceExt;
 use winit::{
     dpi::PhysicalSize,
     event::*,
-    keyboard::{Key, NamedKey},
-    window::WindowId,
+    keyboard::{KeyCode, PhysicalKey},
 };
 
 #[repr(C)]
@@ -62,10 +61,12 @@ const VERTICES: &[Vertex] = &[
 
 const INDICES: &[u16] = &[0, 1, 4, 1, 2, 4, 2, 3, 4];
 
-struct State {
+struct WgpuApp {
     app: AppSurface,
 
     render_pipeline: wgpu::RenderPipeline,
+    size: PhysicalSize<u32>,
+    size_changed: bool,
 
     vertex_buffer: wgpu::Buffer,
     index_buffer: wgpu::Buffer,
@@ -77,8 +78,22 @@ struct State {
     use_complex: bool,
 }
 
-impl Action for State {
-    fn new(app: AppSurface) -> Self {
+impl WgpuApp {
+    /// 必要的时候调整 surface 大小
+    fn resize_surface_if_needed(&mut self) {
+        if self.size_changed {
+            self.app
+                .resize_surface_by_size((self.size.width, self.size.height));
+            self.size_changed = false;
+        }
+    }
+}
+
+impl WgpuAppAction for WgpuApp {
+    async fn new(window: Arc<winit::window::Window>) -> Self {
+        // 创建 wgpu 应用
+        let app = AppSurface::new(window).await;
+
         let shader = app
             .device
             .create_shader_module(wgpu::ShaderModuleDescriptor {
@@ -101,13 +116,13 @@ impl Action for State {
                 layout: Some(&render_pipeline_layout),
                 vertex: wgpu::VertexState {
                     module: &shader,
-                    entry_point: "vs_main",
+                    entry_point: Some("vs_main"),
                     compilation_options: Default::default(),
                     buffers: &[Vertex::desc()],
                 },
                 fragment: Some(wgpu::FragmentState {
                     module: &shader,
-                    entry_point: "fs_main",
+                    entry_point: Some("fs_main"),
                     compilation_options: Default::default(),
                     targets: &[Some(wgpu::ColorTargetState {
                         format: app.config.format.add_srgb_suffix(),
@@ -192,9 +207,15 @@ impl Action for State {
 
         let use_complex = false;
 
+        let size = PhysicalSize {
+            width: app.config.width,
+            height: app.config.height,
+        };
         Self {
             app,
             render_pipeline,
+            size,
+            size_changed: false,
             vertex_buffer,
             index_buffer,
             num_indices,
@@ -205,48 +226,29 @@ impl Action for State {
         }
     }
 
-    fn start(&mut self) {
-        //  只有在进入事件循环之后，才有可能真正获取到窗口大小。
-        let size = self.app.get_view().inner_size();
-        self.resize(&size);
-    }
-
-    fn get_adapter_info(&self) -> wgpu::AdapterInfo {
-        self.app.adapter.get_info()
-    }
-    fn current_window_id(&self) -> WindowId {
-        self.app.get_view().id()
-    }
-
-    fn resize(&mut self, size: &PhysicalSize<u32>) {
-        if self.app.config.width == size.width && self.app.config.height == size.height {
+    fn set_window_resized(&mut self, new_size: PhysicalSize<u32>) {
+        if self.app.config.width == new_size.width && self.app.config.height == new_size.height {
             return;
         }
-        self.app.resize_surface();
-    }
-    fn request_redraw(&mut self) {
-        self.app.get_view().request_redraw();
+        self.size = new_size;
+        self.size_changed = true;
     }
 
-    fn input(&mut self, event: &WindowEvent) -> bool {
-        match event {
-            WindowEvent::KeyboardInput {
-                event:
-                    KeyEvent {
-                        state,
-                        logical_key: Key::Named(NamedKey::Space),
-                        ..
-                    },
-                ..
-            } => {
-                self.use_complex = *state == ElementState::Pressed;
-                true
-            }
-            _ => false,
+    fn get_size(&self) -> PhysicalSize<u32> {
+        PhysicalSize::new(self.app.config.width, self.app.config.height)
+    }
+
+    fn keyboard_input(&mut self, event: &KeyEvent) -> bool {
+        if event.physical_key == PhysicalKey::Code(KeyCode::Space) {
+            self.use_complex = event.state == ElementState::Pressed;
+            return true;
         }
+        false
     }
 
     fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
+        self.resize_surface_if_needed();
+
         let (output, view) = self.app.get_current_frame_view(None);
 
         let mut encoder = self
@@ -299,6 +301,6 @@ impl Action for State {
     }
 }
 
-fn main() {
-    run::<State>(None, None);
+pub fn main() -> Result<(), impl std::error::Error> {
+    run::<WgpuApp>("tutorial4-challenge")
 }

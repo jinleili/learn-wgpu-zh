@@ -23,5 +23,5 @@ instant.workspace = true
 anyhow.workspace = true
 fs_extra.workspace = true
 glob = "0.3"
-naga = { version = "0.9", features = ["glsl-in", "spv-out", "wgsl-out"] }
+naga = { version = "23", features = ["glsl-in", "spv-out", "wgsl-out"] }
 rayon.workspace = true

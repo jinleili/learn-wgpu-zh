@@ -1,15 +1,9 @@
+use app_surface::{AppSurface, SurfaceFrame};
 use rayon::prelude::*;
 use std::{f32::consts, iter, sync::Arc};
+use utils::framework::WgpuAppAction;
 use wgpu::util::DeviceExt;
-use winit::{
-    event::*,
-    event_loop::{EventLoop, EventLoopWindowTarget},
-    keyboard::{Key, NamedKey},
-    window::Window,
-};
-
-#[cfg(target_arch = "wasm32")]
-use wasm_bindgen::prelude::*;
+use winit::{dpi::PhysicalSize, event::*};
 
 mod camera;
 mod model;
@@ -130,12 +124,9 @@ struct LightUniform {
     _padding2: u32,
 }
 
-struct State {
-    window: Arc<Window>,
-    surface: wgpu::Surface<'static>,
-    device: wgpu::Device,
-    queue: wgpu::Queue,
-    config: wgpu::SurfaceConfiguration,
+pub struct WgpuApp {
+    app: AppSurface,
+    size_changed: bool,
     render_pipeline: wgpu::RenderPipeline,
     obj_model: model::Model,
     camera: camera::Camera,
@@ -158,6 +149,25 @@ struct State {
     mouse_pressed: bool,
 }
 
+impl WgpuApp {
+    /// 必要的时候调整 surface 大小
+    fn resize_surface_if_needed(&mut self) {
+        if self.size_changed {
+            self.app
+                .resize_surface_by_size((self.size.width, self.size.height));
+
+            self.projection.resize(self.size.width, self.size.height);
+            self.depth_texture = texture::Texture::create_depth_texture(
+                &self.app.device,
+                &self.app.config,
+                "depth_texture",
+            );
+
+            self.size_changed = false;
+        }
+    }
+}
+
 fn create_render_pipeline(
     device: &wgpu::Device,
     layout: &wgpu::PipelineLayout,
@@ -173,13 +183,13 @@ fn create_render_pipeline(
         layout: Some(layout),
         vertex: wgpu::VertexState {
             module: &shader,
-            entry_point: "vs_main",
+            entry_point: Some("vs_main"),
             compilation_options: Default::default(),
             buffers: vertex_layouts,
         },
         fragment: Some(wgpu::FragmentState {
             module: &shader,
-            entry_point: "fs_main",
+            entry_point: Some("fs_main"),
             compilation_options: Default::default(),
             targets: &[Some(wgpu::ColorTargetState {
                 format: color_format,
@@ -221,62 +231,13 @@ fn create_render_pipeline(
     })
 }
 
-impl State {
-    async fn new(window: Arc<Window>) -> Self {
-        let size = window.inner_size();
-
-        // The instance is a handle to our GPU
-        // BackendBit::PRIMARY => Vulkan + Metal + DX12 + Browser WebGPU
-        let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
-            backends: wgpu::Backends::all(),
-            ..Default::default()
-        });
-        // # Safety
-        //
-        // The surface needs to live as long as the window that created it.
-        // State owns the window so this should be safe.
-        let surface = instance.create_surface(window.clone()).unwrap();
-
-        let adapter = instance
-            .request_adapter(&wgpu::RequestAdapterOptions {
-                power_preference: wgpu::PowerPreference::default(),
-                compatible_surface: Some(&surface),
-                force_fallback_adapter: false,
-            })
-            .await
-            .unwrap();
-        let (device, queue) = adapter
-            .request_device(
-                &wgpu::DeviceDescriptor {
-                    label: None,
-                    required_features: wgpu::Features::empty(),
-                    // WebGL doesn't support all of wgpu's features, so if
-                    // we're building for the web we'll have to disable some.
-                    required_limits: if cfg!(target_arch = "wasm32") {
-                        wgpu::Limits::downlevel_webgl2_defaults()
-                    } else {
-                        wgpu::Limits::default()
-                    },
-                    memory_hints: wgpu::MemoryHints::Performance,
-                },
-                None, // Trace path
-            )
-            .await
-            .unwrap();
-
-        let caps = surface.get_capabilities(&adapter);
-        let config = wgpu::SurfaceConfiguration {
-            usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
-            format: caps.formats[0],
-            width: size.width,
-            height: size.height,
-            present_mode: caps.present_modes[0],
-            alpha_mode: wgpu::CompositeAlphaMode::Auto,
-            view_formats: vec![],
-            desired_maximum_frame_latency: 2,
-        };
-
-        surface.configure(&device, &config);
+impl WgpuAppAction for WgpuApp {
+    async fn new(window: Arc<winit::window::Window>) -> Self {
+        // 创建 wgpu 应用
+        let app = AppSurface::new(window).await;
+        let device = &app.device;
+        let queue = &app.queue;
+        let config = &app.config;
 
         let texture_bind_group_layout =
             device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
@@ -397,7 +358,7 @@ impl State {
         });
 
         let obj_model =
-            resources::load_model("cube.obj", &device, &queue, &texture_bind_group_layout)
+            resources::load_model("cube.obj", device, queue, &texture_bind_group_layout)
                 .await
                 .unwrap();
 
@@ -438,8 +399,7 @@ impl State {
             label: None,
         });
 
-        let depth_texture =
-            texture::Texture::create_depth_texture(&device, &config, "depth_texture");
+        let depth_texture = texture::Texture::create_depth_texture(device, config, "depth_texture");
 
         let render_pipeline_layout =
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
@@ -458,9 +418,9 @@ impl State {
                 source: wgpu::ShaderSource::Wgsl(include_str!("shader.wgsl").into()),
             };
             create_render_pipeline(
-                &device,
+                device,
                 &render_pipeline_layout,
-                config.format,
+                config.format.add_srgb_suffix(),
                 Some(texture::Texture::DEPTH_FORMAT),
                 &[model::ModelVertex::desc(), InstanceRaw::desc()],
                 shader,
@@ -478,9 +438,9 @@ impl State {
                 source: wgpu::ShaderSource::Wgsl(include_str!("light.wgsl").into()),
             };
             create_render_pipeline(
-                &device,
+                device,
                 &layout,
-                config.format,
+                config.format.add_srgb_suffix(),
                 Some(texture::Texture::DEPTH_FORMAT),
                 &[model::ModelVertex::desc()],
                 shader,
@@ -492,16 +452,16 @@ impl State {
             let normal_bytes = include_bytes!("../res/cobble-normal.png");
 
             let diffuse_texture = texture::Texture::from_bytes(
-                &device,
-                &queue,
+                device,
+                queue,
                 diffuse_bytes,
                 "res/alt-diffuse.png",
                 false,
             )
             .unwrap();
             let normal_texture = texture::Texture::from_bytes(
-                &device,
-                &queue,
+                device,
+                queue,
                 normal_bytes,
                 "res/alt-normal.png",
                 true,
@@ -509,7 +469,7 @@ impl State {
             .unwrap();
 
             model::Material::new(
-                &device,
+                device,
                 "alt-material",
                 diffuse_texture,
                 normal_texture,
@@ -517,12 +477,12 @@ impl State {
             )
         };
 
+        let size = winit::dpi::PhysicalSize::new(config.width, config.height);
+
         Self {
-            window,
-            surface,
-            device,
-            queue,
-            config,
+            app,
+            size_changed: false,
+            size,
             render_pipeline,
             obj_model,
             camera,
@@ -534,7 +494,6 @@ impl State {
             instances,
             instance_buffer,
             depth_texture,
-            size,
             light_uniform,
             light_buffer,
             light_bind_group,
@@ -545,48 +504,44 @@ impl State {
         }
     }
 
-    fn start(&mut self) {
-        //  只有在进入事件循环之后，才有可能真正获取到窗口大小。
-        let size = self.window.inner_size();
-        self.resize(size);
+    fn set_window_resized(&mut self, new_size: PhysicalSize<u32>) {
+        if self.app.config.width == new_size.width && self.app.config.height == new_size.height {
+            return;
+        }
+        self.size = new_size;
+        self.size_changed = true;
     }
 
-    fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
-        if new_size.width > 0 && new_size.height > 0 {
-            self.projection.resize(new_size.width, new_size.height);
-            self.size = new_size;
-            self.config.width = new_size.width;
-            self.config.height = new_size.height;
-            self.surface.configure(&self.device, &self.config);
-            self.depth_texture =
-                texture::Texture::create_depth_texture(&self.device, &self.config, "depth_texture");
+    fn get_size(&self) -> PhysicalSize<u32> {
+        PhysicalSize::new(self.app.config.width, self.app.config.height)
+    }
+
+    fn keyboard_input(&mut self, event: &KeyEvent) -> bool {
+        self.camera_controller.process_keyboard(
+            &event.physical_key,
+            &event.logical_key,
+            event.state,
+        )
+    }
+
+    fn mouse_click(&mut self, state: ElementState, button: MouseButton) -> bool {
+        if button == MouseButton::Left {
+            self.mouse_pressed = state == ElementState::Pressed;
+            true
+        } else {
+            false
         }
     }
 
-    fn input(&mut self, event: &WindowEvent) -> bool {
+    fn mouse_wheel(&mut self, delta: MouseScrollDelta, _phase: TouchPhase) -> bool {
+        self.camera_controller.process_scroll(&delta);
+        true
+    }
+
+    fn device_input(&mut self, event: &DeviceEvent) -> bool {
         match event {
-            WindowEvent::KeyboardInput {
-                event:
-                    KeyEvent {
-                        state,
-                        physical_key,
-                        logical_key,
-                        ..
-                    },
-                ..
-            } => self
-                .camera_controller
-                .process_keyboard(physical_key, logical_key, *state),
-            WindowEvent::MouseWheel { delta, .. } => {
-                self.camera_controller.process_scroll(delta);
-                true
-            }
-            WindowEvent::MouseInput {
-                button: MouseButton::Left,
-                state,
-                ..
-            } => {
-                self.mouse_pressed = *state == ElementState::Pressed;
+            DeviceEvent::MouseMotion { delta } if self.mouse_pressed => {
+                self.camera_controller.process_mouse(delta.0, delta.1);
                 true
             }
             _ => false,
@@ -597,7 +552,7 @@ impl State {
         self.camera_controller.update_camera(&mut self.camera, dt);
         self.camera_uniform
             .update_view_proj(&self.camera, &self.projection);
-        self.queue.write_buffer(
+        self.app.queue.write_buffer(
             &self.camera_buffer,
             0,
             bytemuck::cast_slice(&[self.camera_uniform]),
@@ -607,7 +562,7 @@ impl State {
         let old_position = glam::Vec3::from_array(self.light_uniform.position);
         self.light_uniform.position =
             (glam::Quat::from_axis_angle(glam::Vec3::Y, consts::PI / 180.) * old_position).into();
-        self.queue.write_buffer(
+        self.app.queue.write_buffer(
             &self.light_buffer,
             0,
             bytemuck::cast_slice(&[self.light_uniform]),
@@ -615,12 +570,14 @@ impl State {
     }
 
     fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
-        let output = self.surface.get_current_texture()?;
-        let view = output
-            .texture
-            .create_view(&wgpu::TextureViewDescriptor::default());
+        self.resize_surface_if_needed();
+
+        let (output, view) = self
+            .app
+            .get_current_frame_view(Some(self.app.config.format.remove_srgb_suffix()));
 
         let mut encoder = self
+            .app
             .device
             .create_command_encoder(&wgpu::CommandEncoderDescriptor {
                 label: Some("Render Encoder"),
@@ -669,116 +626,9 @@ impl State {
                 &self.light_bind_group,
             );
         }
-        self.queue.submit(iter::once(encoder.finish()));
+        self.app.queue.submit(iter::once(encoder.finish()));
         output.present();
 
         Ok(())
     }
-}
-
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen(start))]
-pub async fn run() {
-    cfg_if::cfg_if! {
-        if #[cfg(target_arch = "wasm32")] {
-            std::panic::set_hook(Box::new(console_error_panic_hook::hook));
-            console_log::init_with_level(log::Level::Info).expect("Could't initialize logger");
-        } else {
-            env_logger::init();
-        }
-    }
-
-    let event_loop = EventLoop::new().unwrap();
-    let title = env!("CARGO_PKG_NAME");
-    let window = winit::window::WindowBuilder::new()
-        .with_title(title)
-        .build(&event_loop)
-        .unwrap();
-
-    #[cfg(target_arch = "wasm32")]
-    {
-        // Winit prevents sizing with CSS, so we have to set
-        // the size manually when on web.
-        use winit::dpi::PhysicalSize;
-        let _ = window.request_inner_size(PhysicalSize::new(450, 400));
-
-        use winit::platform::web::WindowExtWebSys;
-        web_sys::window()
-            .and_then(|win| win.document())
-            .and_then(|doc| {
-                let dst = doc.get_element_by_id("wasm-example")?;
-                let canvas = web_sys::Element::from(window.canvas());
-                dst.append_child(&canvas).ok()?;
-                Some(())
-            })
-            .expect("Couldn't append canvas to document body.");
-    }
-
-    let mut state = State::new(Arc::new(window)).await; // NEW!
-    let mut last_render_time = instant::Instant::now();
-    cfg_if::cfg_if! {
-        if #[cfg(target_arch = "wasm32")] {
-            use winit::platform::web::EventLoopExtWebSys;
-            let event_loop_function = EventLoop::spawn;
-        } else {
-            let event_loop_function = EventLoop::run;
-        }
-    }
-    let _ = (event_loop_function)(
-        event_loop,
-        move |event: Event<()>, elwt: &EventLoopWindowTarget<()>| {
-            match event {
-                Event::NewEvents(StartCause::Init) => state.start(),
-                Event::DeviceEvent {
-                    event: DeviceEvent::MouseMotion { delta },
-                    ..
-                } => {
-                    if state.mouse_pressed {
-                        state.camera_controller.process_mouse(delta.0, delta.1)
-                    }
-                }
-                _ => {}
-            }
-            if let Event::WindowEvent { event, .. } = event {
-                if !state.input(&event) {
-                    match event {
-                        WindowEvent::KeyboardInput {
-                            event:
-                                KeyEvent {
-                                    logical_key: Key::Named(NamedKey::Escape),
-                                    ..
-                                },
-                            ..
-                        }
-                        | WindowEvent::CloseRequested => elwt.exit(),
-
-                        WindowEvent::Resized(physical_size) => {
-                            // winit bug: https://github.com/rust-windowing/winit/issues/2876
-                            if physical_size.width < u32::MAX && physical_size.height < u32::MAX {
-                                state.resize(physical_size);
-                            }
-                        }
-                        WindowEvent::RedrawRequested => {
-                            let now = instant::Instant::now();
-                            let dt = now - last_render_time;
-                            last_render_time = now;
-                            state.update(dt);
-                            match state.render() {
-                                Ok(_) => {}
-                                // Reconfigure the surface if it's lost or outdated
-                                Err(
-                                    wgpu::SurfaceError::Lost
-                                    | wgpu::SurfaceError::Outdated
-                                    | wgpu::SurfaceError::OutOfMemory,
-                                ) => state.resize(state.size),
-                                // We're ignoring timeouts
-                                Err(wgpu::SurfaceError::Timeout) => log::warn!("Surface timeout"),
-                            }
-                            state.window.request_redraw();
-                        }
-                        _ => {}
-                    }
-                }
-            }
-        },
-    );
 }

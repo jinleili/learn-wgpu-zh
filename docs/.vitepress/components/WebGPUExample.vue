@@ -1,5 +1,5 @@
 <template>
-    <div v-bind:id="example">
+    <div id="wgpu-app-container">
         <div v-if="showAlert" style="color: #353535;margin-top: 20px;">
             <div style="line-height: 40px;">此浏览器版本不支持 WebGPU</div>
             <div style="font-size: 16px;color: #999999;">
@@ -30,6 +30,7 @@ export default {
     props: {
         example: "",
         autoLoad: true,
+        aspectRatio: 1,
     },
     data() {
         return {
@@ -65,19 +66,28 @@ export default {
                 const url = window.location.protocol + '//' + window.location.host + '/learn-wgpu-zh'
                 const module = await import(/* @vite-ignore */`${url}/wasm/${this.example}.js`.replace('_', '-'));
                 module.default().then((instance) => {
-                    this.loading = false;
-                    this.exampleStarted = true;
+                    this.wgpuAppLoaded();
                 }, (e) => {
                     if (!`${e}`.includes("don't mind me. This isn't actually an error!")) {
                         this.showErr(e);
                     } else {
-                        this.exampleStarted = true;
-                        this.loading = false;
+                        this.wgpuAppLoaded();
                     }
                 });
 
             } catch (e) {
                 this.showErr(e);
+            }
+        },
+
+         wgpuAppLoaded() {
+            this.exampleStarted = true;
+            this.loading = false;
+            // 在模块装载成功后调整容器高度
+            const container = document.getElementById('wgpu-app-container');
+            if (container) {
+                let width = container.getBoundingClientRect().width;
+                container.style.height = `${width * this.aspectRatio}px`;
             }
         },
 

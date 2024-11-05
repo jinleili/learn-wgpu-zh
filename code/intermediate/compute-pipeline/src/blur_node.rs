@@ -66,7 +66,7 @@ impl BlurNode {
             .create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
                 layout: Some(&pipeline_layout),
                 module: shader,
-                entry_point: "cs_main",
+                entry_point: Some("cs_main"),
                 compilation_options: Default::default(),
                 label: None,
                 cache: None,

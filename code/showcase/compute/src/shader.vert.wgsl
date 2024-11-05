@@ -13,7 +13,7 @@ struct VertexOutput {
     @location(1) v_position: vec3<f32>,
     @location(2) v_light_position: vec3<f32>,
     @location(3) v_view_position: vec3<f32>,
-    @builtin(position) member: vec4<f32>,
+    @builtin(position) gl_Position: vec4<f32>,
 }
 
 var<private> a_position_1: vec3<f32>;
@@ -47,7 +47,6 @@ fn main_1() {
     var tangent_matrix: mat3x3<f32>;
     var model_space: vec4<f32>;
 
-    _ = (&global_1.light_color);
     let _e24 = model_matrix_0_1;
     let _e25 = model_matrix_1_1;
     let _e26 = model_matrix_2_1;
@@ -61,33 +60,29 @@ fn main_1() {
     normal_matrix = mat3x3<f32>(vec3<f32>(_e51.x, _e51.y, _e51.z), vec3<f32>(_e52.x, _e52.y, _e52.z), vec3<f32>(_e53.x, _e53.y, _e53.z));
     let _e68 = normal_matrix;
     let _e69 = a_normal_1;
-    _ = (_e68 * _e69);
     let _e71 = normal_matrix;
     let _e72 = a_normal_1;
     normal = normalize((_e71 * _e72));
     let _e76 = normal_matrix;
     let _e77 = a_tangent_1;
-    _ = (_e76 * _e77);
     let _e79 = normal_matrix;
     let _e80 = a_tangent_1;
     tangent = normalize((_e79 * _e80));
     let _e84 = normal_matrix;
     let _e85 = a_bitangent_1;
-    _ = (_e84 * _e85);
     let _e87 = normal_matrix;
     let _e88 = a_bitangent_1;
     bitangent = normalize((_e87 * _e88));
     let _e92 = tangent;
     let _e93 = bitangent;
     let _e94 = normal;
-    _ = mat3x3<f32>(vec3<f32>(_e92.x, _e92.y, _e92.z), vec3<f32>(_e93.x, _e93.y, _e93.z), vec3<f32>(_e94.x, _e94.y, _e94.z));
     let _e108 = tangent;
     let _e109 = bitangent;
     let _e110 = normal;
     tangent_matrix = transpose(mat3x3<f32>(vec3<f32>(_e108.x, _e108.y, _e108.z), vec3<f32>(_e109.x, _e109.y, _e109.z), vec3<f32>(_e110.x, _e110.y, _e110.z)));
     let _e126 = model_matrix;
     let _e127 = a_position_1;
-    model_space = (_e126 * vec4<f32>(_e127.x, _e127.y, _e127.z, 1.0));
+    model_space = (_e126 * vec4<f32>(_e127.x, _e127.y, _e127.z, 1f));
     let _e135 = tangent_matrix;
     let _e136 = model_space;
     v_position = (_e135 * _e136.xyz);
@@ -117,9 +112,6 @@ fn main(@location(0) a_position: vec3<f32>, @location(1) a_tex_coords: vec2<f32>
     normal_matrix_0_1 = normal_matrix_0_;
     normal_matrix_1_1 = normal_matrix_1_;
     normal_matrix_2_1 = normal_matrix_2_;
-    _ = (&global.u_view_position);
-    _ = (&global.u_view_proj);
-    _ = (&global_1.light_position);
     main_1();
     let _e65 = v_tex_coords;
     let _e67 = v_position;

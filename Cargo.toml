@@ -22,29 +22,33 @@ version = "0.24"
 default-features = false
 
 [workspace.dependencies]
-app-surface = "1.0"
-bytemuck = { version = "1.16", features = ["derive"] }
+app-surface = "1.2.3"
+# app-surface = { path = "../idroid/wgpu-in-app/app-surface" }
+bytemuck = { version = "1.19", features = ["derive"] }
 cfg-if = "1"
-glam = "0.28"
+glam = "0.29"
 env_logger = "0.11"
-futures-intrusive = "0.4"
+flume = "0.11"
 instant = "0.1"
 log = "0.4"
 pollster = "0.3"
+parking_lot = "0.12"
 rayon = "1.8"
 tobj = "3.2"
-winit = "0.29.15"
-wgpu = { version = "22.0" }
+winit = "0.30.5"
+wgpu = { version = "23" }
 utils = { path = "code/utils" }
 
 # wasm32 dependencies
 console_error_panic_hook = "0.1.7"
 console_log = "1.0"
+fern = "0.6"
 reqwest = { version = "0.11" }
-js-sys = "0.3.70"
-wasm-bindgen = "=0.2.93"
-wasm-bindgen-futures = "0.4.43"
-web-sys = "0.3.70"
+web-sys = "0.3.72"
+wasm-bindgen = "0.2.95"
+js-sys = "0.3.72"
+wasm-bindgen-futures = "0.4.45"
+web-time = "1"
 
 # build-dependencies
 anyhow = "1.0"

@@ -10,20 +10,20 @@ cfg-if.workspace = true
 winit.workspace = true
 env_logger.workspace = true
 log.workspace = true
-wgpu.workspace = true
+parking_lot.workspace = true
 pollster.workspace = true
+wgpu.workspace = true
+utils.workspace = true
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 console_error_panic_hook.workspace = true
 console_log.workspace = true
+fern.workspace = true
 js-sys.workspace = true
 wasm-bindgen.workspace = true
 wasm-bindgen-futures.workspace = true
-web-sys = { workspace = true, features = [
-    "Document",
-    "Window",
-    "Element"
-] }
+web-time.workspace = true
+web-sys = { workspace = true, features = ["Document", "Window", "Element"] }
 
 [[bin]]
 name = "tutorial2-challenge"

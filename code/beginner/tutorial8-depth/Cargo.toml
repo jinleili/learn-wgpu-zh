@@ -14,6 +14,7 @@ app-surface.workspace = true
 bytemuck = { workspace = true, features = ["derive"] }
 cfg-if.workspace = true
 glam.workspace = true
+instant.workspace = true
 env_logger.workspace = true
 log.workspace = true
 pollster.workspace = true
@@ -28,9 +29,11 @@ features = ["png", "jpeg"]
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 console_error_panic_hook.workspace = true
 console_log.workspace = true
+fern.workspace = true
 js-sys.workspace = true
 wasm-bindgen.workspace = true
 wasm-bindgen-futures.workspace = true
+web-time.workspace = true
 web-sys = { workspace = true, features = ["Document", "Window", "Element"] }
 
 [build-dependencies]

@@ -1,9 +1,9 @@
+use std::sync::Arc;
 use std::{f32::consts, iter};
 
 use app_surface::{AppSurface, SurfaceFrame};
-use utils::framework::{run, Action};
+use utils::framework::{run, WgpuAppAction};
 use wgpu::util::DeviceExt;
-use winit::window::WindowId;
 use winit::{
     dpi::PhysicalSize,
     event::*,
@@ -133,46 +133,34 @@ impl CameraController {
         }
     }
 
-    fn process_events(&mut self, event: &WindowEvent) -> bool {
-        match event {
-            WindowEvent::KeyboardInput {
-                event:
-                    KeyEvent {
-                        state,
-                        physical_key,
-                        logical_key,
-                        ..
-                    },
-                ..
-            } => {
-                let is_pressed = *state == ElementState::Pressed;
-                if let Key::Named(NamedKey::Space) = logical_key {
-                    self.is_up_pressed = is_pressed;
-                    return true;
-                }
-                match physical_key {
-                    PhysicalKey::Code(KeyCode::ShiftLeft) => {
-                        self.is_down_pressed = is_pressed;
-                        true
-                    }
-                    PhysicalKey::Code(KeyCode::KeyW) | PhysicalKey::Code(KeyCode::ArrowUp) => {
-                        self.is_forward_pressed = is_pressed;
-                        true
-                    }
-                    PhysicalKey::Code(KeyCode::KeyA) | PhysicalKey::Code(KeyCode::ArrowLeft) => {
-                        self.is_left_pressed = is_pressed;
-                        true
-                    }
-                    PhysicalKey::Code(KeyCode::KeyS) | PhysicalKey::Code(KeyCode::ArrowDown) => {
-                        self.is_backward_pressed = is_pressed;
-                        true
-                    }
-                    PhysicalKey::Code(KeyCode::KeyD) | PhysicalKey::Code(KeyCode::ArrowRight) => {
-                        self.is_right_pressed = is_pressed;
-                        true
-                    }
-                    _ => false,
-                }
+    fn process_events(&mut self, event: &KeyEvent) -> bool {
+        let is_pressed = event.state == ElementState::Pressed;
+
+        if let Key::Named(NamedKey::Space) = event.logical_key {
+            self.is_up_pressed = is_pressed;
+            return true;
+        }
+
+        match event.physical_key {
+            PhysicalKey::Code(KeyCode::ShiftLeft) => {
+                self.is_down_pressed = is_pressed;
+                true
+            }
+            PhysicalKey::Code(KeyCode::KeyW) | PhysicalKey::Code(KeyCode::ArrowUp) => {
+                self.is_forward_pressed = is_pressed;
+                true
+            }
+            PhysicalKey::Code(KeyCode::KeyA) | PhysicalKey::Code(KeyCode::ArrowLeft) => {
+                self.is_left_pressed = is_pressed;
+                true
+            }
+            PhysicalKey::Code(KeyCode::KeyS) | PhysicalKey::Code(KeyCode::ArrowDown) => {
+                self.is_backward_pressed = is_pressed;
+                true
+            }
+            PhysicalKey::Code(KeyCode::KeyD) | PhysicalKey::Code(KeyCode::ArrowRight) => {
+                self.is_right_pressed = is_pressed;
+                true
             }
             _ => false,
         }
@@ -271,12 +259,14 @@ impl InstanceRaw {
     }
 }
 
-struct State {
+struct WgpuApp {
     app: AppSurface,
     render_pipeline: wgpu::RenderPipeline,
     vertex_buffer: wgpu::Buffer,
     index_buffer: wgpu::Buffer,
     num_indices: u32,
+    size: PhysicalSize<u32>,
+    size_changed: bool,
     #[allow(dead_code)]
     diffuse_texture: texture::Texture,
     diffuse_bind_group: wgpu::BindGroup,
@@ -292,8 +282,31 @@ struct State {
     depth_texture: texture::Texture,
 }
 
-impl Action for State {
-    fn new(app: AppSurface) -> Self {
+impl WgpuApp {
+    /// 必要的时候调整 surface 大小
+    fn resize_surface_if_needed(&mut self) {
+        if self.size_changed {
+            self.app
+                .resize_surface_by_size((self.size.width, self.size.height));
+
+            self.camera.aspect = self.app.config.width as f32 / self.app.config.height as f32;
+            // NEW!
+            self.depth_texture = texture::Texture::create_depth_texture(
+                &self.app.device,
+                &self.app.config,
+                "depth_texture",
+            );
+
+            self.size_changed = false;
+        }
+    }
+}
+
+impl WgpuAppAction for WgpuApp {
+    async fn new(window: Arc<winit::window::Window>) -> Self {
+        // 创建 wgpu 应用
+        let app = AppSurface::new(window).await;
+
         let diffuse_bytes = include_bytes!("happy-tree.png");
         let diffuse_texture =
             texture::Texture::from_bytes(&app.device, &app.queue, diffuse_bytes, "happy-tree.png")
@@ -441,13 +454,13 @@ impl Action for State {
                 layout: Some(&render_pipeline_layout),
                 vertex: wgpu::VertexState {
                     module: &shader,
-                    entry_point: "vs_main",
+                    entry_point: Some("vs_main"),
                     compilation_options: Default::default(),
                     buffers: &[Vertex::desc(), InstanceRaw::desc()],
                 },
                 fragment: Some(wgpu::FragmentState {
                     module: &shader,
-                    entry_point: "fs_main",
+                    entry_point: Some("fs_main"),
                     compilation_options: Default::default(),
                     targets: &[Some(wgpu::ColorTargetState {
                         format: app.config.format.add_srgb_suffix(),
@@ -504,12 +517,16 @@ impl Action for State {
             });
         let num_indices = INDICES.len() as u32;
 
+        let size = PhysicalSize::new(app.config.width, app.config.height);
+
         Self {
             app,
             render_pipeline,
             vertex_buffer,
             index_buffer,
             num_indices,
+            size,
+            size_changed: false,
             diffuse_texture,
             diffuse_bind_group,
             camera,
@@ -523,42 +540,23 @@ impl Action for State {
         }
     }
 
-    fn start(&mut self) {
-        //  只有在进入事件循环之后，才有可能真正获取到窗口大小。
-        let size = self.app.get_view().inner_size();
-        self.resize(&size);
-    }
-
-    fn get_adapter_info(&self) -> wgpu::AdapterInfo {
-        self.app.adapter.get_info()
-    }
-    fn current_window_id(&self) -> WindowId {
-        self.app.get_view().id()
-    }
-
-    fn resize(&mut self, size: &PhysicalSize<u32>) {
-        if self.app.config.width == size.width && self.app.config.height == size.height {
+    fn set_window_resized(&mut self, new_size: PhysicalSize<u32>) {
+        if self.app.config.width == new_size.width && self.app.config.height == new_size.height {
             return;
         }
-        self.app.resize_surface();
-        self.camera.aspect = self.app.config.width as f32 / self.app.config.height as f32;
-        // NEW!
-        self.depth_texture = texture::Texture::create_depth_texture(
-            &self.app.device,
-            &self.app.config,
-            "depth_texture",
-        );
+        self.size = new_size;
+        self.size_changed = true;
     }
 
-    fn request_redraw(&mut self) {
-        self.app.get_view().request_redraw();
+    fn get_size(&self) -> PhysicalSize<u32> {
+        PhysicalSize::new(self.app.config.width, self.app.config.height)
     }
 
-    fn input(&mut self, event: &WindowEvent) -> bool {
+    fn keyboard_input(&mut self, event: &KeyEvent) -> bool {
         self.camera_controller.process_events(event)
     }
 
-    fn update(&mut self) {
+    fn update(&mut self, _dt: instant::Duration) {
         self.camera_controller.update_camera(&mut self.camera);
         self.camera_uniform.update_view_proj(&self.camera);
         self.app.queue.write_buffer(
@@ -569,6 +567,8 @@ impl Action for State {
     }
 
     fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
+        self.resize_surface_if_needed();
+
         let (output, view) = self.app.get_current_frame_view(None);
         let mut encoder = self
             .app
@@ -620,6 +620,6 @@ impl Action for State {
     }
 }
 
-pub fn main() {
-    run::<State>(Some(1.4), None);
+pub fn main() -> Result<(), impl std::error::Error> {
+    run::<WgpuApp>("tutorial8-depth")
 }

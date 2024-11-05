@@ -1,16 +1,33 @@
 use app_surface::{AppSurface, SurfaceFrame};
-use std::iter;
-use utils::framework::{run, Action};
-use winit::{dpi::PhysicalSize, window::WindowId};
+use std::{iter, sync::Arc};
+use utils::framework::{run, WgpuAppAction};
+use winit::dpi::PhysicalSize;
 
-struct State {
+struct WgpuApp {
     app: AppSurface,
+    size: PhysicalSize<u32>,
+    size_changed: bool,
     // NEW!
     render_pipeline: wgpu::RenderPipeline,
 }
 
-impl Action for State {
-    fn new(app: AppSurface) -> Self {
+impl WgpuApp {
+    /// 必要的时候调整 surface 大小
+    fn resize_surface_if_needed(&mut self) {
+        if self.size_changed {
+            self.app
+                .resize_surface_by_size((self.size.width, self.size.height));
+            self.size_changed = false;
+        }
+    }
+}
+
+impl WgpuAppAction for WgpuApp {
+    async fn new(window: Arc<winit::window::Window>) -> Self {
+        // 创建 wgpu 应用
+        let app = AppSurface::new(window).await;
+
+        // 创建着色器
         let shader = app
             .device
             .create_shader_module(wgpu::ShaderModuleDescriptor {
@@ -33,13 +50,13 @@ impl Action for State {
                 layout: Some(&render_pipeline_layout),
                 vertex: wgpu::VertexState {
                     module: &shader,
-                    entry_point: "vs_main",
+                    entry_point: Some("vs_main"),
                     compilation_options: Default::default(),
                     buffers: &[],
                 },
                 fragment: Some(wgpu::FragmentState {
                     module: &shader,
-                    entry_point: "fs_main",
+                    entry_point: Some("fs_main"),
                     compilation_options: Default::default(),
                     targets: &[Some(wgpu::ColorTargetState {
                         format: app.config.format.add_srgb_suffix(),
@@ -73,37 +90,34 @@ impl Action for State {
                 cache: None,
             });
 
+        let size = PhysicalSize {
+            width: app.config.width,
+            height: app.config.height,
+        };
+
         Self {
             app,
+            size,
+            size_changed: false,
             render_pipeline,
         }
     }
 
-    fn start(&mut self) {
-        //  只有在进入事件循环之后，才有可能真正获取到窗口大小。
-        let size = self.app.get_view().inner_size();
-        self.resize(&size);
-    }
-
-    fn get_adapter_info(&self) -> wgpu::AdapterInfo {
-        self.app.adapter.get_info()
-    }
-    fn current_window_id(&self) -> WindowId {
-        self.app.get_view().id()
-    }
-
-    fn resize(&mut self, size: &PhysicalSize<u32>) {
-        if self.app.config.width == size.width && self.app.config.height == size.height {
+    fn set_window_resized(&mut self, new_size: PhysicalSize<u32>) {
+        if self.app.config.width == new_size.width && self.app.config.height == new_size.height {
             return;
         }
-        self.app.resize_surface();
+        self.size = new_size;
+        self.size_changed = true;
     }
 
-    fn request_redraw(&mut self) {
-        self.app.get_view().request_redraw();
+    fn get_size(&self) -> PhysicalSize<u32> {
+        PhysicalSize::new(self.app.config.width, self.app.config.height)
     }
 
     fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
+        self.resize_surface_if_needed();
+
         let (output, view) = self.app.get_current_frame_view(None);
         let mut encoder = self
             .app
@@ -142,6 +156,6 @@ impl Action for State {
     }
 }
 
-pub fn main() {
-    run::<State>(Some(1.4), None);
+pub fn main() -> Result<(), impl std::error::Error> {
+    run::<WgpuApp>("tutorial3-pipeline")
 }

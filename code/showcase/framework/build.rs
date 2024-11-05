@@ -1,8 +1,8 @@
 use anyhow::Context;
 use glob::glob;
 use naga::back::wgsl;
+use naga::front::glsl::Frontend;
 use naga::front::glsl::Options;
-use naga::front::glsl::Parser;
 use rayon::prelude::*;
 use std::{fs::read_to_string, path::PathBuf};
 
@@ -22,7 +22,7 @@ pub fn load_shader(src_path: PathBuf) -> anyhow::Result<()> {
     let src = read_to_string(src_path.clone())?;
     let wgsl_path = src_path.with_extension(format!("{extension}.wgsl"));
 
-    let mut parser = Parser::default();
+    let mut parser = Frontend::default();
     let options = Options::from(kind);
     let module = match parser.parse(&options, &src) {
         Ok(it) => it,

@@ -509,7 +509,7 @@ let (device, queue) = adapter
 因此，我们将从 `Cargo.toml` 中删除 WebGL 功能，就是下边这一行：
 
 ```toml
-wgpu = { version = "0.20", features = ["webgl"]}
+wgpu = { version = "23", features = ["webgl"]}
 ```
 
 </div>
@@ -1192,6 +1192,6 @@ A little note on the reflection math. The `view_dir` gives us the direction to t
 
 ## 示例
 
-<WasmExample example="hdr"></WasmExample>
+<WebGPUExample example="hdr" aspectRatio="0.8"></WebGPUExample>
 
 <AutoGithubLink/>

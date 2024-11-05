@@ -1,5 +1,5 @@
 <template>
-  <div id="wasm-example">
+  <div id="wgpu-app-container">
     <div class="error" v-if="error">
       {{ error }}
     </div>
@@ -27,6 +27,7 @@ export default {
   props: {
     example: "",
     autoLoad: false,
+    aspectRatio: 0.7,
   },
   data() {
     return {
@@ -48,19 +49,28 @@ export default {
         const url = window.location.protocol +'//'+ window.location.host + '/learn-wgpu-zh'
         const module = await import(/* @vite-ignore */`${url}/wasm/${this.example}.js`.replace('_', '-'));
         module.default().then((instance) => {
-          this.loading = false;
-          this.exampleStarted = true;
+          this.wgpuAppLoaded();
         }, (e) => {
           if (!`${e}`.includes("don't mind me. This isn't actually an error!")) {
             this.showErr(e);
           } else {
-            this.exampleStarted = true;
-            this.loading = false;
+            this.wgpuAppLoaded();
           }
         });
 
       } catch (e) {
         this.showErr(e);
+      }
+    },
+
+    wgpuAppLoaded() {
+      this.exampleStarted = true;
+      this.loading = false;
+      // 在模块装载成功后调整容器高度
+      const container = document.getElementById('wgpu-app-container');
+      if (container) {
+          let width = container.getBoundingClientRect().width;
+          container.style.height = `${width * this.aspectRatio}px`;
       }
     },
 
@@ -81,11 +91,11 @@ export default {
 </script>
 
 <style>
-#wasm-example canvas {
-  background-color: black;
+#wgpu-app-container {
+  min-height: 60px;
 }
 
-#wasm-example button {
+#wgpu-app-container button {
   height: 33px;
   font-size: 14px;
   padding: 0px 8px;
@@ -93,7 +103,7 @@ export default {
   border-radius: 8px;
 }
 
-#wasm-example button:hover {
+#wgpu-app-container button:hover {
   border-color: #059669;
 }
 </style>

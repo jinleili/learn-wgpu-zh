@@ -1,19 +1,20 @@
 use crate::{particle_ink::ParticleInk, resource, TurningDynamicUniform};
 use app_surface::{AppSurface, SurfaceFrame};
-use std::f32::consts::FRAC_PI_2;
 use std::iter;
-use wgpu::Sampler;
-use winit::{dpi::PhysicalSize, window::WindowId};
-
+use std::{f32::consts::FRAC_PI_2, sync::Arc};
 use utils::{
-    framework::Action,
     node::{BindGroupData, BufferlessFullscreenNode, ViewNode, ViewNodeBuilder},
     vertex::PosTex,
-    AnyTexture, BufferObj, MVPMatUniform, Plane,
+    AnyTexture, BufferObj, MVPMatUniform, Plane, WgpuAppAction,
 };
+use wgpu::Sampler;
+use winit::dpi::PhysicalSize;
 
 pub struct VertexAnimationApp {
     app: AppSurface,
+    // 窗口大小
+    size: PhysicalSize<u32>,
+    size_changed: bool,
     // 背景图节点
     bg_node: BufferlessFullscreenNode,
     // 翻页动画节点
@@ -32,12 +33,14 @@ pub struct VertexAnimationApp {
     draw_count: u32,
 }
 
-impl Action for VertexAnimationApp {
-    fn new(app: AppSurface) -> Self {
-        let mut app = app;
+impl WgpuAppAction for VertexAnimationApp {
+    async fn new(window: Arc<winit::window::Window>) -> Self {
+        // 创建 wgpu 应用
+        let mut app = AppSurface::new(window).await;
+
         // 兼容 web
         let format = app.config.format.remove_srgb_suffix();
-        app.sdq.update_config_format(format);
+        app.ctx.update_config_format(format);
 
         let (p_matrix, mv_matrix) = utils::matrix_helper::perspective_fullscreen_mvp(glam::Vec2 {
             x: app.config.width as f32,
@@ -144,8 +147,12 @@ impl Action for VertexAnimationApp {
             1,
         );
 
+        let size = PhysicalSize::new(app.config.width, app.config.height);
+
         Self {
             app,
+            size,
+            size_changed: true,
             bg_node,
             turning_node,
             particle_ink: None,
@@ -159,52 +166,21 @@ impl Action for VertexAnimationApp {
         }
     }
 
-    fn start(&mut self) {
-        //  只有在进入事件循环之后，才有可能真正获取到窗口大小。
-        let size = self.app.get_view().inner_size();
-        self.resize(&size);
-    }
-
-    fn get_adapter_info(&self) -> wgpu::AdapterInfo {
-        self.app.adapter.get_info()
-    }
-
-    fn current_window_id(&self) -> WindowId {
-        self.app.get_view().id()
-    }
-
-    fn resize(&mut self, size: &PhysicalSize<u32>) {
-        if self.app.config.width == size.width && self.app.config.height == size.height {
+    fn set_window_resized(&mut self, new_size: PhysicalSize<u32>) {
+        if self.app.config.width == new_size.width && self.app.config.height == new_size.height {
             return;
         }
-        self.app.resize_surface();
-
-        // 更新 uniform buffer
-        let (p_matrix, mv_matrix) = utils::matrix_helper::perspective_fullscreen_mvp(glam::Vec2 {
-            x: self.app.config.width as f32,
-            y: self.app.config.height as f32,
-        });
-        let mvp_data = (p_matrix * mv_matrix).to_cols_array_2d();
-        self.app
-            .queue
-            .write_buffer(&self.mvp_buffer.buffer, 0, bytemuck::bytes_of(&mvp_data));
-
-        // 重算深度纹理与粒子节点
-        self.depth_tex_view = Some(crate::create_depth_tex(&self.app));
-        self.particle_ink = Some(ParticleInk::new(
-            &self.app,
-            &self.mvp_buffer,
-            &self.paper_tex,
-            &self.sampler,
-        ));
-        self.is_particle_ink_phase = true;
+        self.size = new_size;
+        self.size_changed = true;
     }
 
-    fn request_redraw(&mut self) {
-        self.app.get_view().request_redraw();
+    fn get_size(&self) -> PhysicalSize<u32> {
+        PhysicalSize::new(self.app.config.width, self.app.config.height)
     }
 
     fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
+        self.resize_surface_if_needed();
+
         if self.depth_tex_view.is_none() {
             return Ok(());
         }
@@ -272,6 +248,38 @@ impl Action for VertexAnimationApp {
 }
 
 impl VertexAnimationApp {
+    /// 必要的时候调整 surface 大小
+    fn resize_surface_if_needed(&mut self) {
+        if self.size_changed {
+            //  需先 resize surface
+            self.app
+                .resize_surface_by_size((self.size.width, self.size.height));
+
+            // 更新 uniform buffer
+            let (p_matrix, mv_matrix) =
+                utils::matrix_helper::perspective_fullscreen_mvp(glam::Vec2 {
+                    x: self.app.config.width as f32,
+                    y: self.app.config.height as f32,
+                });
+            let mvp_data = (p_matrix * mv_matrix).to_cols_array_2d();
+            self.app
+                .queue
+                .write_buffer(&self.mvp_buffer.buffer, 0, bytemuck::bytes_of(&mvp_data));
+
+            // 重算深度纹理与粒子节点
+            self.depth_tex_view = Some(crate::create_depth_tex(&self.app));
+            self.particle_ink = Some(ParticleInk::new(
+                &self.app,
+                &self.mvp_buffer,
+                &self.paper_tex,
+                &self.sampler,
+            ));
+            self.is_particle_ink_phase = true;
+
+            self.size_changed = false;
+        }
+    }
+
     fn step_turning_data(
         radius: f32,
         step: u32,

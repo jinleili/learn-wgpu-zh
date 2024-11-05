@@ -1,16 +1,14 @@
-use std::iter;
-use std::sync::Arc;
+use parking_lot::Mutex;
+use std::{iter, rc::Rc, sync::Arc};
+use winit::dpi::PhysicalSize;
 use winit::{
-    event::*,
-    event_loop::{EventLoop, EventLoopWindowTarget},
-    keyboard::{Key, NamedKey},
-    window::{Window, WindowBuilder},
+    application::ApplicationHandler,
+    event::WindowEvent,
+    event_loop::{ActiveEventLoop, EventLoop},
+    window::{Window, WindowId},
 };
 
-#[cfg(target_arch = "wasm32")]
-use wasm_bindgen::prelude::*;
-
-struct State {
+struct WgpuApp {
     window: Arc<Window>,
     surface: wgpu::Surface<'static>,
     _adapter: wgpu::Adapter,
@@ -18,10 +16,53 @@ struct State {
     queue: wgpu::Queue,
     config: wgpu::SurfaceConfiguration,
     size: winit::dpi::PhysicalSize<u32>,
+    size_changed: bool,
 }
 
-impl State {
+impl WgpuApp {
     async fn new(window: Arc<Window>) -> Self {
+        if cfg!(not(target_arch = "wasm32")) {
+            // 计算一个默认显示高度
+            let height = 700 * window.scale_factor() as u32;
+            let width = (height as f32 * 1.6) as u32;
+            let _ = window.request_inner_size(PhysicalSize::new(width, height));
+        }
+
+        #[cfg(target_arch = "wasm32")]
+        {
+            use winit::platform::web::WindowExtWebSys;
+            let canvas = window.canvas().unwrap();
+
+            // 将 canvas 添加到当前网页中
+            web_sys::window()
+                .and_then(|win| win.document())
+                .map(|doc| {
+                    let _ = canvas.set_attribute("id", "winit-canvas");
+                    match doc.get_element_by_id("wgpu-app-container") {
+                        Some(dst) => {
+                            let _ = dst.append_child(canvas.as_ref());
+                        }
+                        None => {
+                            let container = doc.create_element("div").unwrap();
+                            let _ = container.set_attribute("id", "wgpu-app-container");
+                            let _ = container.append_child(canvas.as_ref());
+
+                            doc.body().map(|body| body.append_child(container.as_ref()));
+                        }
+                    };
+                })
+                .expect("无法将 canvas 添加到当前网页中");
+
+            // 确保画布可以获得焦点
+            // https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/tabindex
+            canvas.set_tab_index(0);
+
+            // 设置画布获得焦点时不显示高亮轮廓
+            let style = canvas.style();
+            style.set_property("outline", "none").unwrap();
+            canvas.focus().expect("画布无法获取焦点");
+        }
+
         // The instance is a handle to our GPU
         // BackendBit::PRIMARY => Vulkan + Metal + DX12 + Browser WebGPU
         let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
@@ -66,6 +107,7 @@ impl State {
             .get_default_config(&adapter, size.width, size.height)
             .unwrap();
         surface.configure(&device, &config);
+
         Self {
             window,
             surface,
@@ -74,30 +116,39 @@ impl State {
             queue,
             config,
             size,
+            size_changed: false,
         }
     }
 
-    pub fn start(&mut self) {
-        //  只有在进入事件循环之后，才有可能真正获取到窗口大小。
-        let size = self.window.inner_size();
-        self.resize(size);
+    /// 记录窗口大小已发生变化
+    ///
+    /// # NOTE:
+    /// 当缩放浏览器窗口时, 窗口大小会以高于渲染帧率的频率发生变化，
+    /// 如果窗口 size 发生变化就立即调整 surface 大小, 会导致缩放浏览器窗口大小时渲染画面闪烁。
+    fn set_window_resized(&mut self, new_size: PhysicalSize<u32>) {
+        if new_size == self.size {
+            return;
+        }
+        self.size = new_size;
+        self.size_changed = true;
     }
 
-    pub fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
-        if new_size.width > 0 && new_size.height > 0 {
-            self.size = new_size;
-            self.config.width = new_size.width;
-            self.config.height = new_size.height;
+    /// 必要的时候调整 surface 大小
+    fn resize_surface_if_needed(&mut self) {
+        if self.size_changed {
+            self.config.width = self.size.width;
+            self.config.height = self.size.height;
             self.surface.configure(&self.device, &self.config);
+            self.size_changed = false;
         }
     }
-
-    fn update(&mut self) {}
 
     fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
         if self.size.width == 0 || self.size.height == 0 {
             return Ok(());
         }
+        self.resize_surface_if_needed();
+
         let output = self.surface.get_current_texture()?;
         let view = output
             .texture
@@ -136,149 +187,136 @@ impl State {
     }
 }
 
-fn start_event_loop(state: State, window: Arc<Window>, event_loop: EventLoop<()>) {
-    let mut state = state;
-    cfg_if::cfg_if! {
-        if #[cfg(target_arch = "wasm32")] {
-            use winit::platform::web::EventLoopExtWebSys;
-            let event_loop_function = EventLoop::spawn;
-        } else {
-            let event_loop_function = EventLoop::run;
-        }
-    }
-    let _ = (event_loop_function)(
-        event_loop,
-        move |event: Event<()>, elwt: &EventLoopWindowTarget<()>| {
-            if event == Event::NewEvents(StartCause::Init) {
-                state.start();
-            }
+#[derive(Default)]
+struct WgpuAppHandler {
+    app: Rc<Mutex<Option<WgpuApp>>>,
+    /// 错失的窗口大小变化
+    ///
+    /// # NOTE：
+    /// 在 web 端，app 的初始化是异步的，当收到 resized 事件时，初始化可能还没有完成从而错过窗口 resized 事件，
+    /// 当 app 初始化完成后会调用 `set_window_resized` 方法来补上错失的窗口大小变化事件。
+    #[allow(dead_code)]
+    missed_resize: Rc<Mutex<Option<PhysicalSize<u32>>>>,
 
-            if let Event::WindowEvent { event, .. } = event {
-                match event {
-                    WindowEvent::KeyboardInput {
-                        event:
-                            KeyEvent {
-                                logical_key: Key::Named(NamedKey::Escape),
-                                ..
-                            },
-                        ..
-                    }
-                    | WindowEvent::CloseRequested => elwt.exit(),
-                    WindowEvent::Resized(physical_size) => {
-                        if physical_size.width == 0 || physical_size.height == 0 {
-                            // 处理最小化窗口的事件
-                            println!("Window minimized!");
-                        } else {
-                            state.resize(physical_size);
-                            window.request_redraw();
-                        }
-                    }
-                    WindowEvent::RedrawRequested => {
-                        state.update();
-                        match state.render() {
-                            Ok(_) => {}
-                            // 当展示平面的上下文丢失，就需重新配置
-                            Err(wgpu::SurfaceError::Lost) => state.resize(state.size),
-                            // 所有其他错误（过期、超时等）应在下一帧解决
-                            Err(e) => eprintln!("{e:?}"),
-                        }
-                        // 除非我们手动请求，RedrawRequested 将只会触发一次。
-                        window.request_redraw();
-                    }
-                    _ => {}
-                }
-            }
-        },
-    );
+    /// 错失的请求重绘事件
+    ///
+    /// # NOTE：
+    /// 在 web 端，app 的初始化是异步的，当收到 redraw 事件时，初始化可能还没有完成从而错过请求重绘事件，
+    /// 当 app 初始化完成后会调用 `request_redraw` 方法来补上错失的请求重绘事件。
+    #[allow(dead_code)]
+    missed_request_redraw: Rc<Mutex<bool>>,
 }
 
-#[cfg_attr(target_arch = "wasm32", wasm_bindgen(start))]
-pub async fn run() {
-    cfg_if::cfg_if! {
-        if #[cfg(target_arch = "wasm32")] {
-            std::panic::set_hook(Box::new(console_error_panic_hook::hook));
-            console_log::init_with_level(log::Level::Warn).expect("Could't initialize logger");
-        } else {
-            env_logger::init();
+impl ApplicationHandler for WgpuAppHandler {
+    fn resumed(&mut self, event_loop: &ActiveEventLoop) {
+        // 恢复事件
+        if self.app.as_ref().lock().is_some() {
+            return;
+        }
+
+        let window_attributes = Window::default_attributes().with_title("tutorial2-surface");
+
+        let window = Arc::new(event_loop.create_window(window_attributes).unwrap());
+        cfg_if::cfg_if! {
+            if #[cfg(target_arch = "wasm32")] {
+                let app = self.app.clone();
+                let missed_resize = self.missed_resize.clone();
+                let missed_request_redraw = self.missed_request_redraw.clone();
+
+                wasm_bindgen_futures::spawn_local(async move {
+                    let window_cloned = window.clone();
+
+                    let wgpu_app = WgpuApp::new(window).await;
+                    let mut app = app.lock();
+                    *app = Some(wgpu_app);
+
+                    if let Some(resize) = *missed_resize.lock() {
+                        app.as_mut().unwrap().set_window_resized(resize);
+                    }
+
+                    if *missed_request_redraw.lock() {
+                        window_cloned.request_redraw();
+                    }
+                });
+            } else {
+                let wgpu_app = pollster::block_on(WgpuApp::new(window));
+                self.app.lock().replace(wgpu_app);
+            }
         }
     }
 
-    let event_loop = EventLoop::new().unwrap();
-    let builder = WindowBuilder::new();
-    let window = Arc::new(builder.build(&event_loop).unwrap());
-
-    #[cfg(target_arch = "wasm32")]
-    {
-        // 在网页中，需要先添加 canvas 再初始化 State
-        use winit::platform::web::WindowExtWebSys;
-        web_sys::window()
-            .and_then(|win| win.document())
-            .map(|doc| {
-                let canvas = window.canvas().unwrap();
-                let mut web_width = 800.0f32;
-                let ratio = 1.0;
-                match doc.get_element_by_id("wasm-example") {
-                    Some(dst) => {
-                        web_width = dst.client_width() as f32;
-                        let _ = dst.append_child(&web_sys::Element::from(canvas));
-                    }
-                    None => {
-                        canvas.style().set_css_text(
-                            "background-color: black; display: block; margin: 20px auto;",
-                        );
-                        doc.body()
-                            .map(|body| body.append_child(&web_sys::Element::from(canvas)));
-                    }
-                };
-                // winit 0.29 开始，通过 request_inner_size, canvas.set_width 都无法设置 canvas 的大小
-                let canvas = window.canvas().unwrap();
-                let web_height = web_width / ratio;
-                let scale_factor = window.scale_factor() as f32;
-                canvas.set_width((web_width * scale_factor) as u32);
-                canvas.set_height((web_height * scale_factor) as u32);
-                canvas.style().set_css_text(
-                    &(canvas.style().css_text()
-                        + &format!("width: {}px; height: {}px", web_width, web_height)),
-                );
-            })
-            .expect("Couldn't append canvas to document body.");
-
-        // 创建 State 实例
-        let state = State::new(window.clone()).await;
-
-        wasm_bindgen_futures::spawn_local(async move {
-            let run_closure =
-                Closure::once_into_js(move || start_event_loop(state, window.clone(), event_loop));
-
-            // 处理运行过程中抛出的 JS 异常。
-            // 否则 wasm_bindgen_futures 队列将中断，且不再处理任何任务。
-            if let Err(error) = call_catch(&run_closure) {
-                let is_control_flow_exception =
-                    error.dyn_ref::<js_sys::Error>().map_or(false, |e| {
-                        e.message().includes("Using exceptions for control flow", 0)
-                    });
-
-                if !is_control_flow_exception {
-                    web_sys::console::error_1(&error);
-                }
-            }
-
-            #[wasm_bindgen]
-            extern "C" {
-                #[wasm_bindgen(catch, js_namespace = Function, js_name = "prototype.call.call")]
-                fn call_catch(this: &JsValue) -> Result<(), JsValue>;
-            }
-        });
+    fn suspended(&mut self, _event_loop: &ActiveEventLoop) {
+        // 暂停事件
     }
 
-    #[cfg(not(target_arch = "wasm32"))]
-    {
-        // 创建 State 实例
-        let state = State::new(window.clone()).await;
-        start_event_loop(state, window.clone(), event_loop);
+    fn window_event(
+        &mut self,
+        event_loop: &ActiveEventLoop,
+        _window_id: WindowId,
+        event: WindowEvent,
+    ) {
+        let mut app = self.app.lock();
+        if app.as_ref().is_none() {
+            // 如果 app 还没有初始化完成，则记录错失的窗口事件
+            match event {
+                WindowEvent::Resized(physical_size) => {
+                    if physical_size.width > 0 && physical_size.height > 0 {
+                        let mut missed_resize = self.missed_resize.lock();
+                        *missed_resize = Some(physical_size);
+                    }
+                }
+                WindowEvent::RedrawRequested => {
+                    let mut missed_request_redraw = self.missed_request_redraw.lock();
+                    *missed_request_redraw = true;
+                }
+                _ => (),
+            }
+            return;
+        }
+
+        let app = app.as_mut().unwrap();
+
+        // 窗口事件
+        match event {
+            WindowEvent::CloseRequested => {
+                event_loop.exit();
+            }
+            WindowEvent::Resized(physical_size) => {
+                if physical_size.width == 0 || physical_size.height == 0 {
+                    // 处理最小化窗口的事件
+                    log::info!("Window minimized!");
+                } else {
+                    log::info!("Window resized: {:?}", physical_size);
+
+                    app.set_window_resized(physical_size);
+                }
+            }
+            WindowEvent::KeyboardInput { .. } => {
+                // 键盘事件
+            }
+            WindowEvent::RedrawRequested => {
+                // surface 重绘事件
+                app.window.pre_present_notify();
+
+                match app.render() {
+                    Ok(_) => {}
+                    // 当展示平面的上下文丢失，就需重新配置
+                    Err(wgpu::SurfaceError::Lost) => eprintln!("Surface is lost"),
+                    // 所有其他错误（过期、超时等）应在下一帧解决
+                    Err(e) => eprintln!("{e:?}"),
+                }
+                // 除非我们手动请求，RedrawRequested 将只会触发一次。
+                app.window.request_redraw();
+            }
+            _ => (),
+        }
     }
 }
 
-fn main() {
-    pollster::block_on(run());
+fn main() -> Result<(), impl std::error::Error> {
+    utils::init_logger();
+
+    let events_loop = EventLoop::new().unwrap();
+    let mut app = WgpuAppHandler::default();
+    events_loop.run_app(&mut app)
 }

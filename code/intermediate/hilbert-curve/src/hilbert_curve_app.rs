@@ -1,11 +1,13 @@
 use crate::{hilbert_curve::HilbertCurve, line::Line};
 use app_surface::{AppSurface, SurfaceFrame};
-use std::iter;
-use utils::{framework::Action, BufferObj, SceneUniform};
-use winit::{dpi::PhysicalSize, window::WindowId};
+use std::{iter, sync::Arc};
+use utils::{BufferObj, SceneUniform, WgpuAppAction};
+use winit::dpi::PhysicalSize;
 
 pub struct HilbertCurveApp {
     app: AppSurface,
+    size: PhysicalSize<u32>,
+    size_changed: bool,
     mvp_buffer: BufferObj,
     line: Line,
     // 当前曲线与目标曲线的顶点缓冲区
@@ -22,12 +24,43 @@ pub struct HilbertCurveApp {
     is_animation_up: bool,
 }
 
-impl Action for HilbertCurveApp {
-    fn new(app: AppSurface) -> Self {
-        let mut app = app;
+impl HilbertCurveApp {
+    /// 必要的时候调整 surface 大小
+    fn resize_surface_if_needed(&mut self) {
+        if self.size_changed {
+            //  需先 resize surface
+            self.app
+                .resize_surface_by_size((self.size.width, self.size.height));
+
+            let viewport = glam::Vec2 {
+                x: self.size.width as f32,
+                y: self.size.height as f32,
+            };
+            // 更新 uniform
+            let (p_matrix, mv_matrix, _) = utils::matrix_helper::perspective_mvp(viewport);
+            let resized_uniform = SceneUniform {
+                mvp: (p_matrix * mv_matrix).to_cols_array_2d(),
+                viewport_pixels: viewport.to_array(),
+                padding: [0., 0.],
+            };
+            self.app.queue.write_buffer(
+                &self.mvp_buffer.buffer,
+                0,
+                bytemuck::bytes_of(&resized_uniform),
+            );
+            self.size_changed = false;
+        }
+    }
+}
+
+impl WgpuAppAction for HilbertCurveApp {
+    async fn new(window: Arc<winit::window::Window>) -> Self {
+        // 创建 wgpu 应用
+        let mut app = AppSurface::new(window).await;
+
         // 兼容 web
         let format = app.config.format.remove_srgb_suffix();
-        app.sdq.update_config_format(format);
+        app.ctx.update_config_format(format);
 
         let viewport = glam::Vec2 {
             x: app.config.width as f32,
@@ -86,8 +119,12 @@ impl Action for HilbertCurveApp {
 
         let line = Line::new(&app, &mvp_buffer, &hilbert_buf);
 
+        let size = PhysicalSize::new(app.config.width, app.config.height);
+
         Self {
             app,
+            size,
+            size_changed: false,
             mvp_buffer,
             line,
             vertex_buffers,
@@ -99,50 +136,21 @@ impl Action for HilbertCurveApp {
         }
     }
 
-    fn start(&mut self) {
-        //  只有在进入事件循环之后，才有可能真正获取到窗口大小。
-        let size = self.app.get_view().inner_size();
-        self.resize(&size);
-    }
-
-    fn get_adapter_info(&self) -> wgpu::AdapterInfo {
-        self.app.adapter.get_info()
-    }
-
-    fn current_window_id(&self) -> WindowId {
-        self.app.get_view().id()
-    }
-
-    fn resize(&mut self, size: &PhysicalSize<u32>) {
-        let app = &mut self.app;
-        if app.config.width == size.width && app.config.height == size.height {
+    fn set_window_resized(&mut self, new_size: PhysicalSize<u32>) {
+        if self.app.config.width == new_size.width && self.app.config.height == new_size.height {
             return;
         }
-        app.resize_surface();
-
-        let viewport = glam::Vec2 {
-            x: app.config.width as f32,
-            y: app.config.height as f32,
-        };
-        // 更新 uniform
-        let (p_matrix, mv_matrix, _) = utils::matrix_helper::perspective_mvp(viewport);
-        let resized_uniform = SceneUniform {
-            mvp: (p_matrix * mv_matrix).to_cols_array_2d(),
-            viewport_pixels: viewport.to_array(),
-            padding: [0., 0.],
-        };
-        app.queue.write_buffer(
-            &self.mvp_buffer.buffer,
-            0,
-            bytemuck::bytes_of(&resized_uniform),
-        );
+        self.size = new_size;
+        self.size_changed = true;
     }
 
-    fn request_redraw(&mut self) {
-        self.app.get_view().request_redraw();
+    fn get_size(&self) -> PhysicalSize<u32> {
+        PhysicalSize::new(self.app.config.width, self.app.config.height)
     }
 
     fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
+        self.resize_surface_if_needed();
+
         // 循环执行动画
         self.animate_index += 1;
         if self.animate_index == self.draw_count {

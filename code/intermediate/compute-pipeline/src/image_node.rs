@@ -53,13 +53,13 @@ impl ImageNode {
                 layout: Some(&pipeline_layout),
                 vertex: wgpu::VertexState {
                     module: shader,
-                    entry_point: "vs_main",
+                    entry_point: Some("vs_main"),
                     compilation_options: Default::default(),
                     buffers: &[],
                 },
                 fragment: Some(wgpu::FragmentState {
                     module: shader,
-                    entry_point: fs_entry_point,
+                    entry_point: Some(fs_entry_point),
                     compilation_options: Default::default(),
                     targets: &[Some(target.into())],
                 }),

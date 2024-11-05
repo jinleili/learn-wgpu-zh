@@ -1,9 +1,8 @@
 use app_surface::{AppSurface, SurfaceFrame};
-use std::{f32::consts, iter};
+use std::{f32::consts, iter, sync::Arc};
+use utils::{run, WgpuAppAction};
 use wgpu::util::DeviceExt;
-use winit::event::*;
-mod framework;
-use framework::run;
+use winit::{dpi::PhysicalSize, event::*};
 mod camera;
 mod model;
 mod resources;
@@ -123,8 +122,10 @@ struct LightUniform {
     _padding2: u32,
 }
 
-struct State {
+struct WgpuApp {
     app: AppSurface,
+    size: PhysicalSize<u32>,
+    size_changed: bool,
     render_pipeline: wgpu::RenderPipeline,
     obj_model: model::Model,
     camera: camera::Camera,                      // UPDATED!
@@ -147,6 +148,26 @@ struct State {
     mouse_pressed: bool,
 }
 
+impl WgpuApp {
+    /// 必要的时候调整 surface 大小
+    fn resize_surface_if_needed(&mut self) {
+        if self.size_changed {
+            //  需先 resize surface
+            self.app
+                .resize_surface_by_size((self.size.width, self.size.height));
+
+            self.projection.resize(self.size.width, self.size.height);
+            self.depth_texture = texture::Texture::create_depth_texture(
+                &self.app.device,
+                &self.app.config,
+                "depth_texture",
+            );
+
+            self.size_changed = false;
+        }
+    }
+}
+
 fn create_render_pipeline(
     device: &wgpu::Device,
     layout: &wgpu::PipelineLayout,
@@ -162,13 +183,13 @@ fn create_render_pipeline(
         layout: Some(layout),
         vertex: wgpu::VertexState {
             module: &shader,
-            entry_point: "vs_main",
+            entry_point: Some("vs_main"),
             compilation_options: Default::default(),
             buffers: vertex_layouts,
         },
         fragment: Some(wgpu::FragmentState {
             module: &shader,
-            entry_point: "fs_main",
+            entry_point: Some("fs_main"),
             compilation_options: Default::default(),
             targets: &[Some(wgpu::ColorTargetState {
                 format: color_format.add_srgb_suffix(),
@@ -210,8 +231,11 @@ fn create_render_pipeline(
     })
 }
 
-impl State {
-    async fn new(app: AppSurface) -> Self {
+impl WgpuAppAction for WgpuApp {
+    async fn new(window: Arc<winit::window::Window>) -> Self {
+        // 创建 wgpu 应用
+        let app = AppSurface::new(window).await;
+
         let texture_bind_group_layout =
             app.device
                 .create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
@@ -455,8 +479,12 @@ impl State {
             )
         };
 
+        let size = PhysicalSize::new(app.config.width, app.config.height);
+
         Self {
             app,
+            size,
+            size_changed: false,
             render_pipeline,
             obj_model,
             camera,
@@ -479,62 +507,50 @@ impl State {
         }
     }
 
-    fn start(&mut self) {
-        //  只有在进入事件循环之后，才有可能真正获取到窗口大小。
-        let size = self.app.get_view().inner_size();
-        self.resize(size);
-    }
-
-    fn get_adapter_info(&self) -> wgpu::AdapterInfo {
-        self.app.adapter.get_info()
-    }
-
-    fn request_redraw(&mut self) {
-        self.app.get_view().request_redraw();
-    }
-
-    fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
-        // UPDATED!
-        if new_size.width > 0 && new_size.height > 0 {
-            self.projection.resize(new_size.width, new_size.height);
-            self.app.resize_surface();
-            self.depth_texture = texture::Texture::create_depth_texture(
-                &self.app.device,
-                &self.app.config,
-                "depth_texture",
-            );
+    fn set_window_resized(&mut self, new_size: PhysicalSize<u32>) {
+        if self.app.config.width == new_size.width && self.app.config.height == new_size.height {
+            return;
         }
+        self.size = new_size;
+        self.size_changed = true;
+    }
+
+    fn get_size(&self) -> PhysicalSize<u32> {
+        PhysicalSize::new(self.app.config.width, self.app.config.height)
     }
 
     // UPDATED!
-    fn input(&mut self, event: &WindowEvent) -> bool {
-        match event {
-            WindowEvent::KeyboardInput {
-                event:
-                    KeyEvent {
-                        state,
-                        physical_key,
-                        logical_key,
-                        ..
-                    },
-                ..
-            } => self
-                .camera_controller
-                .process_keyboard(physical_key, logical_key, *state),
-            WindowEvent::MouseWheel { delta, .. } => {
-                self.camera_controller.process_scroll(delta);
-                true
-            }
-            WindowEvent::MouseInput {
-                button: MouseButton::Left,
-                state,
-                ..
-            } => {
-                self.mouse_pressed = *state == ElementState::Pressed;
-                true
-            }
-            _ => false,
+    fn keyboard_input(&mut self, event: &KeyEvent) -> bool {
+        self.camera_controller.process_keyboard(
+            &event.physical_key,
+            &event.logical_key,
+            event.state,
+        );
+        true
+    }
+
+    fn mouse_click(&mut self, state: ElementState, button: MouseButton) -> bool {
+        if button == MouseButton::Left {
+            self.mouse_pressed = state == ElementState::Pressed;
+            true
+        } else {
+            false
         }
+    }
+
+    fn mouse_wheel(&mut self, delta: MouseScrollDelta, _phase: TouchPhase) -> bool {
+        self.camera_controller.process_scroll(&delta);
+        true
+    }
+
+    fn device_input(&mut self, event: &DeviceEvent) -> bool {
+        if let DeviceEvent::MouseMotion { delta } = event {
+            if self.mouse_pressed {
+                self.camera_controller.process_mouse(delta.0, delta.1);
+                return true;
+            }
+        }
+        false
     }
 
     fn update(&mut self, dt: std::time::Duration) {
@@ -560,6 +576,8 @@ impl State {
     }
 
     fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
+        self.resize_surface_if_needed();
+
         let (output, view) = self.app.get_current_frame_view(None);
         let mut encoder = self
             .app
@@ -618,6 +636,6 @@ impl State {
     }
 }
 
-fn main() {
-    run(Some(1.4));
+pub fn main() -> Result<(), impl std::error::Error> {
+    run::<WgpuApp>("tutorial12-camera")
 }

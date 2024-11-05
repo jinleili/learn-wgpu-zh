@@ -1,9 +1,8 @@
 use app_surface::{AppSurface, SurfaceFrame};
-use std::iter;
+use std::{iter, sync::Arc};
+use utils::framework::{run, WgpuAppAction};
 use wgpu::{TextureUsages, TextureView};
-use winit::{dpi::PhysicalSize, window::WindowId};
-
-use utils::framework::{run, Action};
+use winit::dpi::PhysicalSize;
 
 mod blur_node;
 mod image_node;
@@ -13,8 +12,10 @@ use image_node::ImageNode;
 
 const SWAP_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Rgba8Unorm;
 
-struct State {
+struct WgpuApp {
     app: AppSurface,
+    size: PhysicalSize<u32>,
+    size_changed: bool,
     blur_x: BlurNode,
     blur_y: BlurNode,
     blur_xy_tv: TextureView,
@@ -23,8 +24,23 @@ struct State {
     frame_count: u64,
 }
 
-impl Action for State {
-    fn new(app: AppSurface) -> Self {
+impl WgpuApp {
+    /// 必要的时候调整 surface 大小
+    fn resize_surface_if_needed(&mut self) {
+        if self.size_changed {
+            self.app
+                .resize_surface_by_size((self.size.width, self.size.height));
+
+            self.size_changed = false;
+        }
+    }
+}
+
+impl WgpuAppAction for WgpuApp {
+    async fn new(window: Arc<winit::window::Window>) -> Self {
+        // 创建 wgpu 应用
+        let app = AppSurface::new(window).await;
+
         let (tex, size) = resource::load_a_texture(&app);
         let original_tv = tex.create_view(&wgpu::TextureViewDescriptor {
             format: Some(SWAP_FORMAT),
@@ -117,8 +133,12 @@ impl Action for State {
             app.config.format.remove_srgb_suffix(),
         );
 
+        let size = PhysicalSize::new(app.config.width, app.config.height);
+
         Self {
             app,
+            size,
+            size_changed: false,
             blur_x,
             blur_y,
             blur_xy_tv,
@@ -128,29 +148,21 @@ impl Action for State {
         }
     }
 
-    fn start(&mut self) {
-        //  只有在进入事件循环之后，才有可能真正获取到窗口大小。
-        let size = self.app.get_view().inner_size();
-        self.resize(&size);
-    }
-
-    fn get_adapter_info(&self) -> wgpu::AdapterInfo {
-        self.app.adapter.get_info()
-    }
-    fn current_window_id(&self) -> WindowId {
-        self.app.get_view().id()
-    }
-    fn resize(&mut self, size: &PhysicalSize<u32>) {
-        if self.app.config.width == size.width && self.app.config.height == size.height {
+    fn set_window_resized(&mut self, new_size: PhysicalSize<u32>) {
+        if self.app.config.width == new_size.width && self.app.config.height == new_size.height {
             return;
         }
-        self.app.resize_surface();
+        self.size = new_size;
+        self.size_changed = true;
     }
-    fn request_redraw(&mut self) {
-        self.app.get_view().request_redraw();
+
+    fn get_size(&self) -> PhysicalSize<u32> {
+        PhysicalSize::new(self.app.config.width, self.app.config.height)
     }
 
     fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
+        self.resize_surface_if_needed();
+
         // 此处与其它示例不同，主动使用了非 sRGB 格式的纹理视图
         // 使用 remove_srgb_suffix 之后的线性纹理格式，避免手动做 gamma 运算
         let (output, view) = self
@@ -187,6 +199,6 @@ impl Action for State {
     }
 }
 
-pub fn main() {
-    run::<State>(Some(1.6), Some("compute_pipeline"));
+pub fn main() -> Result<(), impl std::error::Error> {
+    run::<WgpuApp>("compute-pipeline")
 }
