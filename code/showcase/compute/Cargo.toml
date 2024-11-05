@@ -5,23 +5,24 @@ authors = ["Ben Hansen <bhbenjaminhansen@gmail.com>"]
 edition.workspace = true
 
 [dependencies]
+app-surface.workspace = true
 anyhow.workspace = true
 bytemuck = { workspace = true, features = ["derive"] }
 glam.workspace = true
 env_logger.workspace = true
 pollster.workspace = true
-image = "0.24"
-log = "0.4"
+image.workspace = true
+log.workspace = true
 rayon.workspace = true
 tobj = "2.0"
 wgpu.workspace = true
 winit.workspace = true
 cfg-if.workspace = true
+utils.workspace = true
 
 [build-dependencies]
 anyhow.workspace = true
 fs_extra.workspace = true
 glob.workspace = true
 rayon.workspace = true
-# naga 的接口有变化，用新版本得修改 build.rs
-naga = { version = "0.11", features = ["glsl-in", "spv-out", "wgsl-out"] }
+naga = { version = "23", features = ["glsl-in", "wgsl-out"] }

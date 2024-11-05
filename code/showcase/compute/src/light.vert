@@ -22,6 +22,5 @@ float scale = 0.25;
 void main() {
     vec3 v_position = a_position * scale + u_position;
     gl_Position = u_view_proj * vec4(v_position, 1);
-
     v_color = u_color;
 }
