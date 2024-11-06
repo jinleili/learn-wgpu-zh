@@ -73,7 +73,7 @@ struct WgpuAppHandler<A: WgpuAppAction> {
     ///
     /// # NOTE：
     /// 在 web 端，app 的初始化是异步的，当收到 redraw 事件时，初始化可能还没有完成从而错过请求重绘事件，
-    /// 当 app 初始化完成后会调用 `request_redraw` 方法来补上错失的请求重绘事件。
+    /// 当 app 初始化完成后会调用 `request_redraw` 方法来补上错失的请求重绘事件, 启用 requestAnimationFrame 帧循环。
     #[allow(dead_code)]
     missed_request_redraw: Rc<Mutex<bool>>,
 

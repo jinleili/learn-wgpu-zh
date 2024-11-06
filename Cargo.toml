@@ -3,6 +3,7 @@ resolver = "2"
 members = [
     "code/beginner/*",
     "code/intermediate/*",
+    "code/integration-and-debugging/*",
     "code/utils",
     # showcase
     "code/showcase/*",
@@ -22,7 +23,7 @@ version = "0.24"
 default-features = false
 
 [workspace.dependencies]
-app-surface = "1.2.3"
+app-surface = "1.3.0"
 # app-surface = { path = "../idroid/wgpu-in-app/app-surface" }
 bytemuck = { version = "1.19", features = ["derive"] }
 cfg-if = "1"

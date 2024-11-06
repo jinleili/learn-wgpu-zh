@@ -41,6 +41,9 @@ fn main() {
                     res_dir = res_dir.join("intermediate/hdr/res");
                     is_need_copy = true;
                 }
+                Some("wgpu_in_web") | Some("wgpu-in-web") => {
+                    panic!("wgpu_in_web 示例用到了自定义的 html 文件，\n 需要在 code/integration-and-debugging/wgpu_in_web 目录下执行\n `sh ./run-wasm.sh` \n运行");
+                }
                 _ => {}
             }
 

@@ -1,0 +1,153 @@
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <style>
+    body {
+      background: linear-gradient(135deg,
+          white 0%,
+          white 49%,
+          black 49%,
+          black 51%,
+          white 51%,
+          white 100%) repeat;
+      background-size: 20px 20px;
+      font-size: 14px;
+    }
+
+    a {
+      color: darkcyan;
+    }
+
+    div {
+      margin: 0;
+      padding: 0;
+    }
+
+    button {
+      height: 30px;
+    }
+
+    #page {
+      display: block;
+      margin: 0 auto;
+      padding: 0px;
+      width: 1200px;
+    }
+
+    #nav {
+      position: relative;
+      height: 217px;
+      width: 100%;
+      background-color: #fafafa;
+    }
+
+    #container {
+      display: flex;
+      position: relative;
+      width: 100%;
+      height: 600px;
+    }
+
+    #container div {
+      width: 50%;
+      height: 100%;
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      background-color: gainsboro;
+    }
+
+    #rotate {
+      width: 33px;
+      height: 33px;
+      border: 1px solid crimson;
+      transform-origin: center;
+    }
+
+    .child {
+      flex: 1;
+      height: 33px;
+    }
+
+    #loading {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 20px;
+      animation: colorChange 1s infinite;
+    }
+
+    @keyframes colorChange {
+
+      0%,
+      100% {
+        color: gray;
+      }
+
+      50% {
+        color: black;
+      }
+    }
+
+    .numberInput {
+      width: 50px;
+    }
+
+    .div33px {
+      height: 33px;
+      line-height: 33px;
+    }
+
+    #app-setting {
+      position: absolute;
+      top: 108px;
+      left: 700px;
+      width: 200px;
+      height: 77px;
+      border: 1px solid lightblue;
+      border-radius: 12px;
+      background-color: azure;
+      padding: 10px;
+    }
+  </style>
+  <title>Web Worker</title>
+</head>
+
+<body>
+  <div id="page">
+    <div id="main-thread-container">
+      <canvas id="main-thread-canvas" raw-window-handle="1"></canvas>
+    </div>
+  </div>
+
+  <script type="module">
+   import init, { create_wgpu_app, enter_frame } from "./wgpu_in_web.js";
+
+    let appHandle = 0;
+
+    async function launchMainApp() {
+      await init();
+      appHandle = await create_wgpu_app("main-thread-canvas", 1);
+
+      // 开始动画
+      requestAnimationFrame(enterFrame);
+    }
+    launchMainApp();
+
+    function enterFrame(_dt) {
+      // 当 app 准备好时，执行 app 的帧循环
+      if (appHandle === 0) return;
+
+      enter_frame(appHandle);
+
+      requestAnimationFrame(enterFrame);
+    }
+  </script>
+</body>
+
+</html>
