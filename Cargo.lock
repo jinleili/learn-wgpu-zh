@@ -217,9 +217,9 @@ checksum = "74f37166d7d48a0284b99dd824694c26119c700b53bf0d1540cdb147dbdaaf13"
 
 [[package]]
 name = "app-surface"
-version = "1.2.3"
+version = "1.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "811fd23b787742d4a6f2dd0e6305ec8ed97739647e3a6b381ddd252d4fd836f1"
+checksum = "ba48b20dd2890b52c0046dbd1f62460614fa5a063b59bbfbb65d9530521029df"
 dependencies = [
  "android_logger",
  "ash 0.38.0+1.3.281",
@@ -5601,6 +5601,28 @@ dependencies = [
  "wgpu-types 23.0.0",
  "windows 0.58.0",
  "windows-core",
+]
+
+[[package]]
+name = "wgpu-in-web"
+version = "0.1.0"
+dependencies = [
+ "app-surface",
+ "cfg-if",
+ "console_error_panic_hook",
+ "console_log",
+ "env_logger",
+ "fern",
+ "js-sys",
+ "log",
+ "pollster",
+ "utils",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "web-sys",
+ "web-time",
+ "wgpu 23.0.0",
+ "winit 0.30.5",
 ]
 
 [[package]]
