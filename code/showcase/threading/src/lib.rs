@@ -420,7 +420,7 @@ impl WgpuAppAction for WgpuApp {
             create_render_pipeline(
                 device,
                 &render_pipeline_layout,
-                config.format.add_srgb_suffix(),
+                config.format,
                 Some(texture::Texture::DEPTH_FORMAT),
                 &[model::ModelVertex::desc(), InstanceRaw::desc()],
                 shader,
@@ -440,7 +440,7 @@ impl WgpuAppAction for WgpuApp {
             create_render_pipeline(
                 device,
                 &layout,
-                config.format.add_srgb_suffix(),
+                config.format,
                 Some(texture::Texture::DEPTH_FORMAT),
                 &[model::ModelVertex::desc()],
                 shader,
@@ -574,7 +574,7 @@ impl WgpuAppAction for WgpuApp {
 
         let (output, view) = self
             .app
-            .get_current_frame_view(Some(self.app.config.format.remove_srgb_suffix()));
+            .get_current_frame_view(Some(self.app.config.format));
 
         let mut encoder = self
             .app
