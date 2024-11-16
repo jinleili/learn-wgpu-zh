@@ -3,7 +3,7 @@
     "version": "1.2.0",
     "description": "学习 wgpu：下一代跨平台图形接口 WebGPU 的 Rust 实现",
     "engines": {
-        "node": ">=18.0"
+        "node": ">=20.0"
     },
     "scripts": {
         "dev": "./build-wasm.sh && vitepress dev docs",
@@ -19,9 +19,9 @@
         "package.json": "sort-package-json"
     },
     "devDependencies": {
-        "sass": "^1.79.4",
-        "vite": "^5.4.8",
-        "vitepress": "^1.4.0",
-        "vue": "^3.5.11"
+        "sass": "^1.81.0",
+        "vite": "^5.4.10",
+        "vitepress": "^1.5.0",
+        "vue": "^3.5.12"
     }
 }

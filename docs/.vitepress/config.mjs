@@ -132,7 +132,7 @@ function sidebarConfig() {
           link: "/intermediate/hdr/",
         },
         {
-          text: "实现 iOS iMessage 中的隐形墨水特效",
+          text: "🆕 实现 iOS iMessage 中的隐形墨水特效",
           link: "/intermediate/invisible-ink/",
         },
       ],
