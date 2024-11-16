@@ -2,7 +2,7 @@ name: Deploy to GH Pages
 
 on:
   push:
-    branches: [ master ]
+    branches: [master]
 env:
   RUST_VERSION: 1.79
   CARGO_TERM_COLOR: always
@@ -17,6 +17,12 @@ jobs:
 
       - name: Install wasm-bindgen-cli
         run: cargo install wasm-bindgen-cli --version=0.2.95
+
+      - name: Download Binaryen
+        run: |
+          wget https://github.com/WebAssembly/binaryen/releases/download/version_120_b/binaryen-version_120_b-x86_64-linux.tar.gz
+          tar -xzf binaryen-version_120_b-x86_64-linux.tar.gz
+          sudo mv binaryen-version_120_b/bin/* /usr/local/bin/
 
       - name: Build WASM
         run: |
