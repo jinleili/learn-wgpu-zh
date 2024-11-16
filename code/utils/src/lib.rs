@@ -51,7 +51,7 @@ pub(crate) fn application_root_dir() -> String {
                 "/"
             }
     } else if host.contains("jinleili.github.io") {
-        href
+        String::from("https://jinleili.github.io/learn-wgpu-zh/")
     } else {
         String::from("https://cannot.access/")
     }

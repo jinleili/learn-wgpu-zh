@@ -48,14 +48,24 @@ impl ParticleInk {
     pub fn new(app: &AppSurface, gen: &ParticleGen) -> Self {
         let particle_count = gen.count as usize;
         let scale_factor = app.scale_factor;
-        let tex_size = gen.text_tex.size;
+
+        let surface_size = vec2(app.config.width as f32, app.config.height as f32);
+        let mut tex_size = vec2(
+            gen.text_tex.size.width as f32,
+            gen.text_tex.size.height as f32,
+        );
+        // 如果 tex_size 的 x 或 y 大于 surface_size，则等比缩放 tex_size
+        if tex_size.x > surface_size.x || tex_size.y > surface_size.y {
+            let scale_factor = (surface_size.x / tex_size.x).min(surface_size.y / tex_size.y);
+            tex_size *= scale_factor;
+        }
 
         // 视口位置与大小
         let viewport = Vec4::new(
-            (app.config.width as f32 - tex_size.width as f32) / 2.0,
-            (app.config.height as f32 - tex_size.height as f32) / 2.0,
-            tex_size.width as f32,
-            tex_size.height as f32,
+            (app.config.width as f32 - tex_size.x as f32) / 2.0,
+            (app.config.height as f32 - tex_size.y as f32) / 2.0,
+            tex_size.x,
+            tex_size.y,
         );
 
         // 粒子像素尺寸
