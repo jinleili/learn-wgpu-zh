@@ -41,10 +41,17 @@ pub struct SceneUniform {
 pub(crate) fn application_root_dir() -> String {
     let location = web_sys::window().unwrap().location();
     let host = location.host().unwrap();
+    let href = location.href().unwrap();
     if host.contains("localhost") || host.contains("127.0.0.1") {
-        String::from("http://") + &host + "/"
+        String::from("http://")
+            + &host
+            + if href.contains("learn-wgpu-zh") {
+                "learn-wgpu-zh/"
+            } else {
+                "/"
+            }
     } else if host.contains("jinleili.github.io") {
-        location.href().unwrap()
+        href
     } else {
         String::from("https://cannot.access/")
     }

@@ -35,20 +35,20 @@ fn cs_main(@builtin(global_invocation_id) global_invocation_id: vec3<u32>) {
   // 0，找出对应编号的粒子
   var particle: Particle = particles[index];
   
-      // 检查粒子是否在鼠标影响范围内
-    let distance_to_cursor = distance(particle.target_pos.xy, params.cursor_pos);
-    let in_influence_range = distance_to_cursor <= params.influence_radius;
-   
-     // 检查当前位置是否接近目标位置（允许一定误差）
-    let distance_to_target = distance(particle.pos, particle.target_pos);
-    let at_target_pos = distance_to_target < 1.5; 
-    
-    // 如果在影响范围内且已经到达目标位置，则保持在目标位置
-    if (in_influence_range && at_target_pos) {
-        particle.pos = particle.target_pos;
-        particles[index] = particle;
-        return;
-    }
+  // 检查粒子是否在鼠标影响范围内
+  let distance_to_cursor = distance(particle.target_pos.xy, params.cursor_pos);
+  let in_influence_range = distance_to_cursor <= params.influence_radius;
+  
+    // 检查当前位置是否接近目标位置（允许一定误差）
+  let distance_to_target = distance(particle.pos, particle.target_pos);
+  let at_target_pos = distance_to_target < 1.5; 
+  
+  // 如果在影响范围内且已经到达目标位置，则保持在目标位置
+  if (in_influence_range && at_target_pos) {
+      particle.pos = particle.target_pos;
+      particles[index] = particle;
+      return;
+  }
 
   // 更新粒子的位置
 
@@ -59,13 +59,12 @@ fn cs_main(@builtin(global_invocation_id) global_invocation_id: vec3<u32>) {
   particle.angle += particle.axis_and_angular_speed.w;
   if (particle.angle > PI * 2.0) {
       particle.angle -= PI * 2.0;
- // 如果完成一次完整旋转且在影响范围内，则停止在目标位置
-        if (in_influence_range) {
-            particle.pos = particle.target_pos;
-            particles[index] = particle;
-            return;
-        }
-       
+      // 如果完成一次完整旋转且在影响范围内，则停止在目标位置
+      if (in_influence_range) {
+          particle.pos = particle.target_pos;
+          particles[index] = particle;
+          return;
+      }
   }
   
   // 3. 构建一个垂直于旋转轴的基准向量

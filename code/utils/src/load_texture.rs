@@ -14,6 +14,7 @@ pub struct AnyTexture {
 
 #[cfg(target_arch = "wasm32")]
 pub async fn get_web_img(img_name: &str) -> Result<Vec<u8>, reqwest::Error> {
+    log::info!("super::application_root_dir(): {}", super::application_root_dir());
     let url =
         reqwest::Url::parse(&format!("{}{}", super::application_root_dir(), img_name,)).unwrap();
     let data = reqwest::get(url).await?.bytes().await?.to_vec();

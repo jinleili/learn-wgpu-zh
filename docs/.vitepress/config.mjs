@@ -131,7 +131,10 @@ function sidebarConfig() {
           text: "渲染 HDR 场景",
           link: "/intermediate/hdr/",
         },
-        // '/intermediate/tutorial13-terrain/',
+        {
+          text: "实现 iOS iMessage 中的隐形墨水特效",
+          link: "/intermediate/invisible-ink/",
+        },
       ],
     },
     {

@@ -220,6 +220,6 @@ workgroup_count = ((1000 + (32 -1)) / 32, (768 + (16 -1)) / 16, 1);
 
 _此示例可在桌面端及 Chrome / Edge 113+、Arc、Safari 18、Firefox Nightly、Safari Technology Preview 浏览器中运行（[如何开启浏览器 WebGPU 功能支持](../../#如何开启浏览器-webgpu-功能支持))_
 
-<WebGPUExample example="compute_pipeline" aspectRatio="0.6"></WebGPUExample>
+<WebGPUExample example="compute_pipeline" :aspectRatio="0.6"></WebGPUExample>
 
 <AutoGithubLink/>

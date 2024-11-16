@@ -1,5 +1,5 @@
 <template>
-    <div id="wgpu-app-container">
+    <div ref="container" id="wgpu-app-container">
         <div v-if="showAlert" style="color: #353535;margin-top: 20px;">
             <div style="line-height: 40px;">此浏览器版本不支持 WebGPU</div>
             <div style="font-size: 16px;color: #999999;">
@@ -12,6 +12,8 @@
         <button class="webgpu_example_button" v-if="!exampleStarted" @click="detectWebGPUThenLoad()"
             :disabled="loading">点击运行
             {{ exampleName }}</button>
+        
+        <canvas v-if="useRawWindowHandle" ref="canvas" id="wgpu-app-canvas" raw-window-handle="1"></canvas>
     </div>
 </template>
 
@@ -30,7 +32,11 @@ export default {
     props: {
         example: "",
         autoLoad: true,
-        aspectRatio: 1,
+        useRawWindowHandle: false,
+        aspectRatio: {
+            type: Number,
+            default: 1 
+        },
     },
     data() {
         return {
@@ -83,12 +89,10 @@ export default {
          wgpuAppLoaded() {
             this.exampleStarted = true;
             this.loading = false;
-            // 在模块装载成功后调整容器高度
-            const container = document.getElementById('wgpu-app-container');
-            if (container) {
-                let width = container.getBoundingClientRect().width;
-                container.style.height = `${width * this.aspectRatio}px`;
-            }
+
+            const container = this.$refs.container;
+            const width = container.offsetWidth;
+            container.style.height = `${width * this.aspectRatio}px`;
         },
 
         showErr(err) {
@@ -102,7 +106,7 @@ export default {
     async mounted() {
         if (this.autoLoad) {
             this.detectWebGPUThenLoad();
-        }        
+        }   
     }
 };
 </script>

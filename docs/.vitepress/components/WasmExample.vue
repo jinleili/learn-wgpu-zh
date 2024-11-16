@@ -27,7 +27,10 @@ export default {
   props: {
     example: "",
     autoLoad: false,
-    aspectRatio: 0.7,
+    aspectRatio: {
+      type: Number,
+      default: 0.7 
+    },
   },
   data() {
     return {

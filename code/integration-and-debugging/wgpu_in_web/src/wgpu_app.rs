@@ -17,9 +17,8 @@ pub struct WgpuApp {
 impl WgpuApp {
     pub async fn new(app: AppSurface) -> Self {
         let size = uvec2(app.config.width, app.config.height);
-        let fovy: f32 = 45.0_f32.to_radians();
 
-        let gen_node = ParticleGen::new(&app, fovy).await;
+        let gen_node = ParticleGen::new(&app, 45.0_f32.to_radians()).await;
 
         let particle_ink = ParticleInk::new(&app, &gen_node);
 

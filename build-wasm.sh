@@ -21,6 +21,10 @@ cargo build --no-default-features --profile wasm-release --target wasm32-unknown
 --bin hilbert-curve \
 --bin hdr
 
+# 使用 raw window handle 的示例程序
+cargo build --no-default-features --features web_rwh --profile wasm-release --target wasm32-unknown-unknown \
+--bin wgpu-in-web
+
 # 创建 wasm 目录
 mkdir -p "docs/public/wasm"
 
@@ -36,5 +40,11 @@ do
 
     cp wasm/"$name_no_extension".js docs/public/wasm/"$name_no_extension".js
 done
+
+# 创建 assets 目标目录（如果不存在）
+mkdir -p docs/public/assets
+
+# 拷贝 wgpu-in-web 的 assets 目录下的所有文件
+cp -r code/integration-and-debugging/wgpu_in_web/assets/* docs/public/assets/
 
 

@@ -6,7 +6,7 @@ import JoinWeiChatGroup from "../components/JoinWeiChatGroup.vue";
 import WasmExample from "../components/WasmExample.vue";
 import WasmFullScreen from "../components/WasmFullScreen.vue";
 import WebGPUExample from "../components/WebGPUExample.vue";
-
+import RawWindowHandleExample from "../components/RawWindowHandleExample.vue";
 export default {
   ...DefaultTheme,
   enhanceApp({ app }) {
@@ -15,5 +15,6 @@ export default {
     app.component("WasmExample", WasmExample);
     app.component("WebGPUExample", WebGPUExample);
     app.component("WasmFullScreen", WasmFullScreen);
+    app.component("RawWindowHandleExample", RawWindowHandleExample);
   },
 };
