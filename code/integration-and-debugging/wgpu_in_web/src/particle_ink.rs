@@ -58,12 +58,16 @@ impl ParticleInk {
         if tex_size.x > surface_size.x || tex_size.y > surface_size.y {
             let scale_factor = (surface_size.x / tex_size.x).min(surface_size.y / tex_size.y);
             tex_size *= scale_factor;
+
+            // 向下取整以处理边界情况
+            tex_size.x = tex_size.x.floor();
+            tex_size.y = tex_size.y.floor();
         }
 
         // 视口位置与大小
         let viewport = Vec4::new(
-            (app.config.width as f32 - tex_size.x as f32) / 2.0,
-            (app.config.height as f32 - tex_size.y as f32) / 2.0,
+            ((app.config.width as f32 - tex_size.x as f32) / 2.0).max(0.0),
+            ((app.config.height as f32 - tex_size.y as f32) / 2.0).max(0.0),
             tex_size.x,
             tex_size.y,
         );
