@@ -167,7 +167,9 @@ async fn run() {
             buffer.save("image.png").unwrap();
 
             println!("保存图片成功！");
-
+            
+            // 须确保在解除缓冲区映射之前已删除所有已映射的视图
+            drop(buffer);
             // 解除缓冲区映射
             output_buffer.unmap();
         } else {
