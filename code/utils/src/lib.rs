@@ -46,7 +46,7 @@ pub(crate) fn application_root_dir() -> String {
         String::from("http://")
             + &host
             + if href.contains("learn-wgpu-zh") {
-                "learn-wgpu-zh/"
+                "/learn-wgpu-zh/"
             } else {
                 "/"
             }

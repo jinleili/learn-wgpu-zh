@@ -17,8 +17,9 @@
 import { ref, onMounted } from 'vue'
 const appHandle = ref(0)
 
-let showAlert = false
-let loading = true
+const showAlert = ref(false);
+const loading = ref(true);
+
 let contentWidth = 0;
 let contentHeight = 0;
 let wgpuAppModule = null;
@@ -46,7 +47,7 @@ onMounted(async () => {
             canvas.width = contentWidth;
             canvas.height = contentHeight;
         }
-        wgpuAppModule.resize_app(appHandle, contentWidth, contentHeight);
+        wgpuAppModule.resize_app(appHandle.value, contentWidth, contentHeight);
     }
 
     if ('navigator' in window && 'gpu' in navigator) {
@@ -62,38 +63,35 @@ onMounted(async () => {
     }
 
     const notSupportWebGPU = () => {
-        showAlert = true;
-        loading = false;
+        showAlert.value = true;
+        loading.value = false;
     }
 
     const loadWgpuApp = async () => {
-        loading = true;
-
         // 导入 wgpu app 模块
         const url = window.location.protocol + '//' + window.location.host + '/learn-wgpu-zh'
-        wgpuAppModule = await import(/* @vite-ignore */`${url}/wasm/wgpu_in_web.js`);
+        wgpuAppModule = await import(/* @vite-ignore */`${url}/wasm/wgpu-in-web.js`);
 
         // 初始化 WASM 模块
-        await wgpuAppModule.default()
+        await wgpuAppModule.default();
 
-        resizeObserver.observe(canvas)
+        resizeObserver.observe(canvas);
 
         // 创建 WGPU 应用
-        appHandle.value = await wgpuAppModule.create_wgpu_app('wgpu-canvas', 1)
+        appHandle.value = await wgpuAppModule.create_wgpu_app('wgpu-canvas', 1);
         if (contentWidth !== 0 && contentHeight !== 0) {
             resizeApp(contentWidth, contentHeight);
         }
+        loading.value = false;
 
         // 开始动画
         requestAnimationFrame(enterFrame);
 
-        document.body.addEventListener('mousemove', updatePosition)
-        document.body.addEventListener('touchmove', updatePosition)
+        document.body.addEventListener('mousemove', updatePosition);
+        document.body.addEventListener('touchmove', updatePosition);
         document.body.addEventListener('touchmove', (e) => e.preventDefault(), {
             passive: false,
-        })
-
-        loading = false;
+        });
     }
 
     // 添加动画循环

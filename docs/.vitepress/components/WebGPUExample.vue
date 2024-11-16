@@ -1,5 +1,8 @@
 <template>
     <div ref="container" id="wgpu-app-container">
+        <div class="error" v-if="error">
+            {{ error }}
+        </div>
         <div v-if="showAlert" style="color: #353535;margin-top: 20px;">
             <div style="line-height: 40px;">此浏览器版本不支持 WebGPU</div>
             <div style="font-size: 16px;color: #999999;">
@@ -12,8 +15,6 @@
         <button class="webgpu_example_button" v-if="!exampleStarted" @click="detectWebGPUThenLoad()"
             :disabled="loading">点击运行
             {{ exampleName }}</button>
-        
-        <canvas v-if="useRawWindowHandle" ref="canvas" id="wgpu-app-canvas" raw-window-handle="1"></canvas>
     </div>
 </template>
 
@@ -32,10 +33,9 @@ export default {
     props: {
         example: "",
         autoLoad: true,
-        useRawWindowHandle: false,
         aspectRatio: {
             type: Number,
-            default: 1 
+            default: 1
         },
     },
     data() {
@@ -53,6 +53,8 @@ export default {
     },
     methods: {
         detectWebGPUThenLoad() {
+            this.exampleStarted = true;
+
             if ('navigator' in window && 'gpu' in navigator) {
                 navigator.gpu.requestAdapter().then(adapter => {
                     // 浏览器支持 WebGPU
@@ -65,9 +67,10 @@ export default {
                 this.showAlert = true;
             }
         },
+
         async loadExample() {
             this.loading = true;
-            this.exampleStarted = true;
+
             try {
                 const url = window.location.protocol + '//' + window.location.host + '/learn-wgpu-zh'
                 const module = await import(/* @vite-ignore */`${url}/wasm/${this.example}.js`.replace('_', '-'));
@@ -86,8 +89,7 @@ export default {
             }
         },
 
-         wgpuAppLoaded() {
-            this.exampleStarted = true;
+        wgpuAppLoaded() {
             this.loading = false;
 
             const container = this.$refs.container;
@@ -100,13 +102,12 @@ export default {
             console.error(err);
             this.exampleStarted = false;
             this.loading = false;
-            this.showAlert = true;
         }
     },
     async mounted() {
         if (this.autoLoad) {
             this.detectWebGPUThenLoad();
-        }   
+        }
     }
 };
 </script>

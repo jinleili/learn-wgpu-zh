@@ -22,12 +22,12 @@ export default {
     mounted() {
         const GITHUB_REPO = "https://github.com/jinleili/learn-wgpu-zh/tree/master/code/"
         const { page } = useData()
-        
-       if (!this.customCodePath || this.customCodePath == "") {
+
+        if (!this.customCodePath || this.customCodePath == "") {
             this.codePath = GITHUB_REPO + page.value.relativePath.replace("index.md", "").replace(".md", "");
-       }  else {
+        } else {
             this.codePath = GITHUB_REPO + this.customCodePath;
-       }  
+        }
     }
 };
 </script>
