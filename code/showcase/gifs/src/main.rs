@@ -41,21 +41,18 @@ async fn run() {
 
     // create a texture to render to
     let texture_size = 256u32;
-    let rt_desc = wgpu::TextureDescriptor {
-        size: wgpu::Extent3d {
+    let render_target = utils::load_texture::empty(
+        &device,
+        wgpu::TextureFormat::Rgba8UnormSrgb,
+        wgpu::Extent3d {
             width: texture_size,
             height: texture_size,
             depth_or_array_layers: 1,
         },
-        mip_level_count: 1,
-        sample_count: 1,
-        dimension: wgpu::TextureDimension::D2,
-        format: wgpu::TextureFormat::Rgba8UnormSrgb,
-        view_formats: &[],
-        usage: wgpu::TextureUsages::COPY_SRC | wgpu::TextureUsages::RENDER_ATTACHMENT,
-        label: None,
-    };
-    let render_target = framework::Texture::from_descriptor(&device, rt_desc);
+        None,
+        wgpu::TextureUsages::COPY_SRC | wgpu::TextureUsages::RENDER_ATTACHMENT,
+        None,
+    );
 
     // wgpu requires texture -> buffer copies to be aligned using
     // wgpu::COPY_BYTES_PER_ROW_ALIGNMENT. Because of this we'll
@@ -89,7 +86,7 @@ async fn run() {
         let mut rpass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: Some("GIF Pass"),
             color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                view: &render_target.view,
+                view: &render_target.tex_view,
                 resolve_target: None,
                 ops: wgpu::Operations {
                     load: wgpu::LoadOp::Clear(wgpu::Color {
@@ -112,7 +109,7 @@ async fn run() {
         encoder.copy_texture_to_buffer(
             wgpu::ImageCopyTexture {
                 aspect: wgpu::TextureAspect::All,
-                texture: &render_target.texture,
+                texture: &render_target.tex,
                 mip_level: 0,
                 origin: wgpu::Origin3d::ZERO,
             },
@@ -124,7 +121,7 @@ async fn run() {
                     rows_per_image: Some(texture_size),
                 },
             },
-            render_target.desc.size,
+            render_target.size,
         );
 
         queue.submit(iter::once(encoder.finish()));
@@ -178,7 +175,7 @@ fn save_gif(path: &str, frames: &mut Vec<Vec<u8>>, speed: i32, size: u16) -> any
 
 fn create_render_pipeline(
     device: &wgpu::Device,
-    target: &framework::Texture,
+    target: &utils::AnyTexture,
 ) -> wgpu::RenderPipeline {
     // let vs_src = wgpu::include_spirv!("shader.vert.spv");
     // let fs_src = wgpu::include_spirv!("shader.frag.spv");
@@ -206,7 +203,7 @@ fn create_render_pipeline(
             entry_point: Some("fs_main"),
             compilation_options: Default::default(),
             targets: &[Some(wgpu::ColorTargetState {
-                format: target.desc.format,
+                format: target.format,
                 blend: Some(wgpu::BlendState::REPLACE),
                 write_mask: wgpu::ColorWrites::ALL,
             })],

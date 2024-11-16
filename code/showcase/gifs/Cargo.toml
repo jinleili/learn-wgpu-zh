@@ -18,5 +18,4 @@ wgpu.workspace = true
 winit.workspace = true
 gif = "0.11.4"
 flume.workspace = true
-
-framework = { version = "0.1.0", path = "../framework" }
+utils.workspace = true
