@@ -18,6 +18,6 @@ jobs:
       - name: Install Alsa
         run: sudo apt-get install libasound2-dev
       - name: Build
-        run: cargo build --verbose --workspace --exclude tutorial13-terrain
+        run: cargo build --verbose --workspace --exclude tutorial13-terrain --exclude wgpu_in_web
       - name: Run tests
-        run: cargo test --verbose --workspace --exclude tutorial13-terrain
+        run: cargo test --verbose --workspace --exclude tutorial13-terrain --exclude wgpu_in_web

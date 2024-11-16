@@ -5,8 +5,11 @@ authors = ["Jinlei Li <jinleili0@outlook.com>"]
 edition.workspace = true
 rust-version.workspace = true
 
+[features]
+default = []
+
 [dependencies]
-app-surface.workspace = true
+app-surface = { workspace = true }
 bytemuck.workspace = true
 cfg-if.workspace = true
 env_logger.workspace = true

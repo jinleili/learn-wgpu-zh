@@ -157,6 +157,7 @@ async fn run() {
             tx.send(result).unwrap();
         });
         device.poll(wgpu::Maintain::Wait).panic_on_timeout();
+
         if let Ok(Ok(())) = rx.recv_async().await {
             let data = buffer_slice.get_mapped_range();
 

@@ -42,10 +42,14 @@ impl WgpuAppAction for VertexAnimationApp {
         let format = app.config.format.remove_srgb_suffix();
         app.ctx.update_config_format(format);
 
-        let (p_matrix, mv_matrix) = utils::matrix_helper::perspective_fullscreen_mvp(glam::Vec2 {
-            x: app.config.width as f32,
-            y: app.config.height as f32,
-        });
+        let fovy: f32 = 45.0_f32.to_radians();
+        let (p_matrix, mv_matrix) = utils::matrix_helper::perspective_fullscreen_mvp(
+            glam::Vec2 {
+                x: app.config.width as f32,
+                y: app.config.height as f32,
+            },
+            fovy,
+        );
         let mvp_buffer = BufferObj::create_uniform_buffer(
             &app.device,
             &MVPMatUniform {
@@ -256,11 +260,13 @@ impl VertexAnimationApp {
                 .resize_surface_by_size((self.size.width, self.size.height));
 
             // 更新 uniform buffer
-            let (p_matrix, mv_matrix) =
-                utils::matrix_helper::perspective_fullscreen_mvp(glam::Vec2 {
+            let (p_matrix, mv_matrix) = utils::matrix_helper::perspective_fullscreen_mvp(
+                glam::Vec2 {
                     x: self.app.config.width as f32,
                     y: self.app.config.height as f32,
-                });
+                },
+                45.0_f32.to_radians(),
+            );
             let mvp_data = (p_matrix * mv_matrix).to_cols_array_2d();
             self.app
                 .queue

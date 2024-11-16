@@ -37,7 +37,8 @@ impl HilbertCurveApp {
                 y: self.size.height as f32,
             };
             // 更新 uniform
-            let (p_matrix, mv_matrix, _) = utils::matrix_helper::perspective_mvp(viewport);
+            let (p_matrix, mv_matrix, _) =
+                utils::matrix_helper::perspective_mvp(viewport, 45.0_f32.to_radians());
             let resized_uniform = SceneUniform {
                 mvp: (p_matrix * mv_matrix).to_cols_array_2d(),
                 viewport_pixels: viewport.to_array(),
@@ -68,7 +69,8 @@ impl WgpuAppAction for HilbertCurveApp {
         };
 
         // 投影
-        let (p_matrix, mv_matrix, _) = utils::matrix_helper::perspective_mvp(viewport);
+        let (p_matrix, mv_matrix, _) =
+            utils::matrix_helper::perspective_mvp(viewport, 45.0_f32.to_radians());
         let mvp_buffer = BufferObj::create_uniform_buffer(
             &app.device,
             &SceneUniform {

@@ -14,12 +14,8 @@ pub struct AnyTexture {
 
 #[cfg(target_arch = "wasm32")]
 pub async fn get_web_img(img_name: &str) -> Result<Vec<u8>, reqwest::Error> {
-    let url = reqwest::Url::parse(&format!(
-        "{}assets/{}",
-        super::application_root_dir(),
-        img_name,
-    ))
-    .unwrap();
+    let url =
+        reqwest::Url::parse(&format!("{}{}", super::application_root_dir(), img_name,)).unwrap();
     let data = reqwest::get(url).await?.bytes().await?.to_vec();
 
     Ok(data)
@@ -35,11 +31,20 @@ pub async fn from_path(
     #[cfg(target_arch = "wasm32")]
     let img = {
         let bytes = get_web_img(image_path).await;
-        image::load_from_memory_with_format(&bytes.unwrap(), image::ImageFormat::Png).unwrap()
+        let format = if image_path.to_lowercase().ends_with(".png") {
+            image::ImageFormat::Png
+        } else if image_path.to_lowercase().ends_with(".jpg")
+            || image_path.to_lowercase().ends_with(".jpeg")
+        {
+            image::ImageFormat::Jpeg
+        } else {
+            panic!("不支持的图片格式，仅支持 PNG 和 JPEG/JPG")
+        };
+        image::load_from_memory_with_format(&bytes.unwrap(), format).unwrap()
     };
     #[cfg(not(target_arch = "wasm32"))]
     let img = {
-        let path = if image_path.split('/').count() > 5 {
+        let path = if image_path.split('/').count() > 1 {
             // is already a full path
             PathBuf::from(image_path)
         } else {
@@ -56,7 +61,7 @@ pub async fn from_path(
         sample_count: 1,
         dimension: wgpu::TextureDimension::D2,
         format,
-        usage,
+        usage: usage | wgpu::TextureUsages::COPY_DST,
         label: None,
         view_formats: &[format.remove_srgb_suffix()],
     });

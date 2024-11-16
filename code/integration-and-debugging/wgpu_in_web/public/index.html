@@ -1,153 +1,141 @@
 <html lang="en">
-
-<head>
-  <meta charset="UTF-8" />
-  <style>
-    body {
-      background: linear-gradient(135deg,
-          white 0%,
-          white 49%,
-          black 49%,
-          black 51%,
-          white 51%,
-          white 100%) repeat;
-      background-size: 20px 20px;
-      font-size: 14px;
-    }
-
-    a {
-      color: darkcyan;
-    }
-
-    div {
-      margin: 0;
-      padding: 0;
-    }
-
-    button {
-      height: 30px;
-    }
-
-    #page {
-      display: block;
-      margin: 0 auto;
-      padding: 0px;
-      width: 1200px;
-    }
-
-    #nav {
-      position: relative;
-      height: 217px;
-      width: 100%;
-      background-color: #fafafa;
-    }
-
-    #container {
-      display: flex;
-      position: relative;
-      width: 100%;
-      height: 600px;
-    }
-
-    #container div {
-      width: 50%;
-      height: 100%;
-    }
-
-    canvas {
-      width: 100%;
-      height: 100%;
-      display: block;
-      background-color: gainsboro;
-    }
-
-    #rotate {
-      width: 33px;
-      height: 33px;
-      border: 1px solid crimson;
-      transform-origin: center;
-    }
-
-    .child {
-      flex: 1;
-      height: 33px;
-    }
-
-    #loading {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      font-size: 20px;
-      animation: colorChange 1s infinite;
-    }
-
-    @keyframes colorChange {
-
-      0%,
-      100% {
-        color: gray;
+  <head>
+    <meta charset="UTF-8" />
+    <style>
+      body {
+        background: linear-gradient(
+            135deg,
+            white 0%,
+            white 49%,
+            black 49%,
+            black 51%,
+            white 51%,
+            white 100%
+          )
+          repeat;
+        background-size: 20px 20px;
+        font-size: 14px;
       }
 
-      50% {
-        color: black;
+      #app-container {
+        display: flex;
+        position: relative;
+        width: 50vw;
+        height: 35vw;
+        min-width: 600px;
+        min-height: 300px;
+        margin: auto auto;
       }
-    }
 
-    .numberInput {
-      width: 50px;
-    }
+      canvas {
+        width: 100%;
+        height: 100%;
+        display: block;
+        background-color: gainsboro;
+      }
+    </style>
+    <title>wgpu in web</title>
+  </head>
 
-    .div33px {
-      height: 33px;
-      line-height: 33px;
-    }
-
-    #app-setting {
-      position: absolute;
-      top: 108px;
-      left: 700px;
-      width: 200px;
-      height: 77px;
-      border: 1px solid lightblue;
-      border-radius: 12px;
-      background-color: azure;
-      padding: 10px;
-    }
-  </style>
-  <title>Web Worker</title>
-</head>
-
-<body>
-  <div id="page">
-    <div id="main-thread-container">
-      <canvas id="main-thread-canvas" raw-window-handle="1"></canvas>
+  <body>
+    <div id="app-container">
+      <canvas id="wgpu-canvas" raw-window-handle="1"></canvas>
     </div>
-  </div>
 
-  <script type="module">
-   import init, { create_wgpu_app, enter_frame } from "./wgpu_in_web.js";
+    <script type="module">
+      import init, {
+        create_wgpu_app,
+        enter_frame,
+        resize_app,
+        on_mouse_move,
+      } from "./wgpu_in_web.js";
 
-    let appHandle = 0;
+      let appHandle = 0;
+      let contentWidth = 0;
+      let contentHeight = 0;
 
-    async function launchMainApp() {
-      await init();
-      appHandle = await create_wgpu_app("main-thread-canvas", 1);
+      const canvas = document.getElementById("wgpu-canvas");
+      const container = document.getElementById("app-container");
 
-      // 开始动画
-      requestAnimationFrame(enterFrame);
-    }
-    launchMainApp();
+      // 设置 ResizeObserver
+      const resizeObserver = new ResizeObserver((entries) => {
+        for (const entry of entries) {
+          if (entry.target === canvas) {
+            const width = entry.contentRect.width * window.devicePixelRatio;
+            const height = entry.contentRect.height * window.devicePixelRatio;
+            if (appHandle !== 0) {
+              resizeApp(width, height);
+            } else {
+              contentWidth = width;
+              contentHeight = height;
+            }
+          }
+        }
+      });
 
-    function enterFrame(_dt) {
-      // 当 app 准备好时，执行 app 的帧循环
-      if (appHandle === 0) return;
+      async function launchMainApp() {
+        await init();
 
-      enter_frame(appHandle);
+        // 开始观察画布大小变化
+        resizeObserver.observe(canvas);
 
-      requestAnimationFrame(enterFrame);
-    }
-  </script>
-</body>
+        appHandle = await create_wgpu_app("wgpu-canvas", 1);
+        if (contentWidth !== 0 && contentHeight !== 0) {
+          resizeApp(contentWidth, contentHeight);
+        }
 
+        // 开始动画
+        requestAnimationFrame(enterFrame);
+
+        // 添加鼠标事件监听
+        document.body.addEventListener("mousemove", updatePosition);
+        // 添加触摸事件监听
+        document.body.addEventListener("touchmove", updatePosition);
+        // 防止触摸时出现默认的滚动行为
+        document.body.addEventListener("touchmove", (e) => e.preventDefault(), {
+          passive: false,
+        });
+      }
+      launchMainApp();
+
+      function resizeApp(contentWidth, contentHeight) {
+        if (devicePixelRatio !== 1) {
+          canvas.width = contentWidth;
+          canvas.height = contentHeight;
+        }
+        resize_app(appHandle, contentWidth, contentHeight);
+      }
+
+      function updatePosition(event) {
+        if (!appHandle) return;
+
+        const rect = canvas.getBoundingClientRect();
+        let clientX, clientY;
+
+        // 处理触摸事件
+        if (event.touches) {
+          event.preventDefault(); // 防止触摸时页面滚动
+          clientX = event.touches[0].clientX;
+          clientY = event.touches[0].clientY;
+        } else {
+          // 处理鼠标事件
+          clientX = event.clientX;
+          clientY = event.clientY;
+        }
+
+        const x = (clientX - rect.left) * window.devicePixelRatio;
+        const y = (clientY - rect.top) * window.devicePixelRatio;
+        on_mouse_move(appHandle, x, y);
+      }
+
+      function enterFrame(_dt) {
+        // 当 app 准备好时，执行 app 的帧循环
+        if (appHandle === 0) return;
+
+        enter_frame(appHandle);
+
+        requestAnimationFrame(enterFrame);
+      }
+    </script>
+  </body>
 </html>

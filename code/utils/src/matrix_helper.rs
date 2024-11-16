@@ -7,15 +7,17 @@ pub struct FullscreenFactor {
 
 // 将[-1, 1]的矩形空间映射到刚好填充整个视口
 #[allow(dead_code)]
-pub fn perspective_fullscreen_mvp(viewport: glam::Vec2) -> (glam::Mat4, glam::Mat4) {
-    let (p_matrix, vm_matrix, factor) = perspective_mvp(viewport);
+pub fn perspective_fullscreen_mvp(viewport: glam::Vec2, fovy: f32) -> (glam::Mat4, glam::Mat4) {
+    let (p_matrix, vm_matrix, factor) = perspective_mvp(viewport, fovy);
     let scale_matrix = glam::Mat4::from_scale(glam::Vec3::new(factor.sx, factor.sy, 1.0));
 
     (p_matrix, vm_matrix * scale_matrix)
 }
 
-pub fn perspective_mvp(viewport: glam::Vec2) -> (glam::Mat4, glam::Mat4, FullscreenFactor) {
-    let fovy: f32 = 45.0_f32.to_radians();
+pub fn perspective_mvp(
+    viewport: glam::Vec2,
+    fovy: f32,
+) -> (glam::Mat4, glam::Mat4, FullscreenFactor) {
     let p_matrix = glam::Mat4::perspective_rh(fovy, viewport.x / viewport.y, 0.1, 100.0);
     let factor = fullscreen_factor(viewport, fovy);
     let vm_matrix = glam::Mat4::from_translation(glam::vec3(0.0, 0.0, factor.translate_z));

@@ -6,28 +6,40 @@ edition.workspace = true
 rust-version.workspace = true
 
 [lib]
-crate-type = ["cdylib"]
+crate-type = ["cdylib", "rlib"]
+
+[features]
+default = []
+web_rwh = ["app-surface/web_rwh"]
 
 [dependencies]
+# 为何这里的 web_rwh features 会影响其他 package 中的 app-surface 也开启此配置？
+app-surface = { workspace = true, features = [
+    # "web_rwh",
+] }
+bytemuck.workspace = true
 cfg-if.workspace = true
-winit.workspace = true
 env_logger.workspace = true
+flume.workspace = true
+glam.workspace = true
 log.workspace = true
-wgpu = { workspace = true }
-pollster.workspace = true
-app-surface = { workspace = true }
+rand = "0.8"
+# 使 rand 支持 wasm 环境
+# https://github.com/rust-random/rand/blob/585b29f2a9b21170c56fc9a0e29cff664491561c/README.md?plain=1#L113
+getrandom = { version = "*", features = ["js"] }
 utils.workspace = true
-wasm-bindgen = { workspace = true, optional = true }
-wasm-bindgen-futures = { workspace = true, optional = true }
+wgpu.workspace = true
+
+# web 环境不使用 winit
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+winit.workspace = true
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 console_error_panic_hook.workspace = true
 console_log.workspace = true
-fern.workspace = true
 js-sys.workspace = true
 wasm-bindgen.workspace = true
 wasm-bindgen-futures.workspace = true
-web-time.workspace = true
 web-sys = { workspace = true, features = [
     "Document",
     "Window",

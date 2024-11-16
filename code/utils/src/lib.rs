@@ -43,12 +43,10 @@ pub(crate) fn application_root_dir() -> String {
     let host = location.host().unwrap();
     if host.contains("localhost") || host.contains("127.0.0.1") {
         String::from("http://") + &host + "/"
+    } else if host.contains("jinleili.github.io") {
+        location.href().unwrap()
     } else {
-        if host.contains("jinleili.github.io") {
-            location.href().unwrap()
-        } else {
-            String::from("https://cannot.access/")
-        }
+        String::from("https://cannot.access/")
     }
 }
 

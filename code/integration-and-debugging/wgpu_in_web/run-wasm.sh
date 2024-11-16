@@ -1,15 +1,14 @@
 set -e 
 
-cargo build --no-default-features \
---target wasm32-unknown-unknown 
+cargo build --no-default-features --features web_rwh --target wasm32-unknown-unknown 
 
 # Generate bindings
-for i in ../../../target/wasm32-unknown-unknown/debug/*.wasm;
-do
-    wasm-bindgen --no-typescript --out-dir wasm --web "$i";
-done
+wasm-bindgen --no-typescript --out-dir wasm --web "../../../target/wasm32-unknown-unknown/debug/wgpu_in_web.wasm";
 
 cp wasm/wgpu_in_web.js public/wgpu_in_web.js
 cp wasm/wgpu_in_web_bg.wasm public/wgpu_in_web_bg.wasm
+
+# 复制 assets 目录到 public
+cp -r assets public/
 
 basic-http-server public

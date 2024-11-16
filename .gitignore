@@ -16,6 +16,8 @@ wasm/
 *.wasm
 *.js
 
+**/public/assets/
+
 /docs/.vitepress/components/wasm/*
 /docs/.vitepress/dist/*
 /docs/.vitepress/cache/*
