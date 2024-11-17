@@ -208,8 +208,9 @@ struct WgpuAppHandler {
 }
 
 impl ApplicationHandler for WgpuAppHandler {
+    /// 恢复事件
     fn resumed(&mut self, event_loop: &ActiveEventLoop) {
-        // 恢复事件
+        // 如果 app 已经初始化完成，则直接返回
         if self.app.as_ref().lock().is_some() {
             return;
         }
@@ -230,10 +231,12 @@ impl ApplicationHandler for WgpuAppHandler {
                     let mut app = app.lock();
                     *app = Some(wgpu_app);
 
+                    // 如果错失了窗口大小变化事件，则补上
                     if let Some(resize) = *missed_resize.lock() {
                         app.as_mut().unwrap().set_window_resized(resize);
                     }
 
+                    // 如果错失了请求重绘事件，则补上
                     if *missed_request_redraw.lock() {
                         window_cloned.request_redraw();
                     }
@@ -241,6 +244,7 @@ impl ApplicationHandler for WgpuAppHandler {
             } else {
                 let wgpu_app = pollster::block_on(WgpuApp::new(window));
                 self.app.lock().replace(wgpu_app);
+                // NOTE: 在非 web 端，不会错失窗口大小变化事件和请求重绘事件
             }
         }
     }

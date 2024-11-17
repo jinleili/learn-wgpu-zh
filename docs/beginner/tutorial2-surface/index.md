@@ -1,6 +1,6 @@
 # 展示平面 (Surface)
 
-## 封装 State
+## 封装 WgpuApp
 
 为方便起见，我们将所有**字段**封装在一个**结构体**内，并在其上添加一些函数：
 
@@ -8,29 +8,33 @@
 // lib.rs
 use winit::window::Window;
 
-struct State {
+struct WgpuApp {
+    window: Arc<Window>,
     surface: wgpu::Surface<'static>,
     device: wgpu::Device,
     queue: wgpu::Queue,
     config: wgpu::SurfaceConfiguration,
     size: winit::dpi::PhysicalSize<u32>,
+    size_changed: bool,
 }
 
-impl State {
-    // 创建某些 wgpu 类型需要使用异步代码
+impl WgpuApp {
     async fn new(window: Arc<Window>) -> Self {
+        // 初始化代码...
         todo!()
     }
 
-    fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
+    /// 记录窗口大小已发生变化
+    ///
+    /// # NOTE:
+    /// 当缩放浏览器窗口时, 窗口大小会以高于渲染帧率的频率发生变化，
+    /// 如果窗口 size 发生变化就立即调整 surface 大小, 会导致缩放浏览器窗口大小时渲染画面闪烁。
+    fn set_window_resized(&mut self, new_size: PhysicalSize<u32>) {
         todo!()
     }
 
-    fn input(&mut self, event: &WindowEvent) -> bool {
-        todo!()
-    }
-
-    fn update(&mut self) {
+    /// 必要的时候调整 surface 大小
+    fn resize_surface_if_needed(&mut self) {
         todo!()
     }
 
@@ -40,41 +44,53 @@ impl State {
 }
 ```
 
-此处省略了 `State` 的字段概述，在后续章节中解释这些函数背后的代码时，它们才会变得更有意义。
+ `WgpuApp::new()` 函数是异步的，我们可以使用 [tokio](https://docs.rs/tokio) 或 [async-std](https://docs.rs/async-std) 等异步**包**，但我打算使用更轻量级的 [pollster](https://docs.rs/pollster) 提供的 `block_on` 函数来等待异步任务执行完成。在 "Cargo.toml" 中添加以下依赖：
+
+```toml
+[dependencies]
+# 其他依赖...
+pollster = "0.3"
+```
+
+此处省略了 `WgpuApp` 的字段概述，在后续章节中解释这些函数背后的代码时，它们才会变得更有意义。
 
 <div class="note">
 
 `surface`、`device`、`queue`、`config` 等对象是每个 wgpu 程序都需要的，且它们的创建过程涉及到很多模板代码，所以，从第 3 章开始，我将它们统一封装到了 [AppSurface](https://github.com/jinleili/wgpu-in-app/tree/master/app-surface) 对象中。
 
-`State` 中的这些函数在所有章节示例中都有用到，所以，在第 3 ～ 8 章，我将其抽象为了 `Action` trait:
+`WgpuApp` 中的这些函数在所有章节示例中都有用到，所以，在第 3 ～ 8 章，我将其抽象为了 `WgpuAppAction` trait:
 
 ```rust
-pub trait Action {
-    fn new(app: app_surface::AppSurface) -> Self;
-    fn get_adapter_info(&self) -> wgpu::AdapterInfo;
-    fn current_window_id(&self) -> WindowId;
-    fn resize(&mut self);
-    fn request_redraw(&mut self);
-    fn input(&mut self, _event: &WindowEvent) -> bool {
-        false
-    }
-    fn update(&mut self) {}
+pub trait WgpuAppAction {
+    fn new(window: Arc<Window>) -> impl std::future::Future<Output = Self> + WasmNotSend;
+    /// 记录窗口大小已发生变化
+    fn set_window_resized(&mut self, new_size: PhysicalSize<u32>);
+    /// 获取窗口大小
+    fn get_size(&self) -> PhysicalSize<u32>;
+    /// 键盘事件
+    fn keyboard_input(&mut self, _event: &KeyEvent) -> bool;
+    fn mouse_click(&mut self, _state: ElementState, _button: MouseButton) -> bool;
+    fn mouse_wheel(&mut self, _delta: MouseScrollDelta, _phase: TouchPhase) -> bool;
+    fn cursor_move(&mut self, _position: PhysicalPosition<f64>) -> bool;
+    /// 鼠标移动/触摸事件
+    fn device_input(&mut self, _event: &DeviceEvent) -> bool;
+    /// 更新渲染数据
+    fn update(&mut self, _dt: instant::Duration) {}
+    /// 提交渲染
     fn render(&mut self) -> Result<(), wgpu::SurfaceError>;
 }
 ```
 
 </div>
 
-## 实例化 State
+## 实例化 WgpuApp
 
 这段代码很简单，但还是值得好好讲讲：
 
 ```rust
-impl State {
+impl WgpuApp {
     // ...
     async fn new(Arc<Window>) -> Self {
-        let size = window.inner_size();
-
         // instance 变量是 GPU 实例
         // Backends::all 对应 Vulkan、Metal、DX12、WebGL 等所有后端图形驱动
         let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
@@ -82,11 +98,15 @@ impl State {
             ..Default::default()
         });
         let surface = instance.create_surface(window.clone()).unwrap();
+
         let adapter = instance
             .request_adapter(&wgpu::RequestAdapterOptions {
+                power_preference: wgpu::PowerPreference::default(),
                 compatible_surface: Some(&surface),
-                ..Default::default()
-            }).await.unwrap();
+                force_fallback_adapter: false,
+            })
+            .await
+            .unwrap();
 ```
 
 ### GPU 实例与适配器
@@ -205,6 +225,7 @@ let modes = surface.get_capabilities(&adapter).present_modes;
 
 ```rust
         Self {
+            window,
             surface,
             device,
             queue,
@@ -216,31 +237,70 @@ let modes = surface.get_capabilities(&adapter).present_modes;
 }
 ```
 
-由于 `State::new()` 函数是异步的，因此需要把 `run()` 也改成异步的，以便可以在函数调用处等待它。
+由于 `WgpuApp::new()` 函数是异步的，因此在 `WgpuAppHandler` 中它是 `Option` 类型的字段。
 
 ```rust
-pub async fn run() {
-    // 窗口设置...
+struct WgpuAppHandler {
+    app: Rc<Mutex<Option<WgpuApp>>>,
+    /// 错失的窗口大小变化
+    ///
+    /// # NOTE：
+    /// 在 web 端，app 的初始化是异步的，当收到 resized 事件时，初始化可能还没有完成从而错过窗口 resized 事件，
+    /// 当 app 初始化完成后会调用 `set_window_resized` 方法来补上错失的窗口大小变化事件。
+    #[allow(dead_code)]
+    missed_resize: Rc<Mutex<Option<PhysicalSize<u32>>>>,
 
-    let mut state = State::new(&window).await;
-
-    // 事件遍历...
+    /// 错失的请求重绘事件
+    ///
+    /// # NOTE：
+    /// 在 web 端，app 的初始化是异步的，当收到 redraw 事件时，初始化可能还没有完成从而错过请求重绘事件，
+    /// 当 app 初始化完成后会调用 `request_redraw` 方法来补上错失的请求重绘事件。
+    #[allow(dead_code)]
+    missed_request_redraw: Rc<Mutex<bool>>,
 }
-```
 
-现在 `run()` 是异步的了，`main()` 需要某种方式来等待它执行完成。我们可以使用 [tokio](https://docs.rs/tokio) 或 [async-std](https://docs.rs/async-std) 等异步**包**，但我打算使用更轻量级的 [pollster](https://docs.rs/pollster)。在 "Cargo.toml" 中添加以下依赖：
+impl ApplicationHandler for WgpuAppHandler {
+    /// 恢复事件
+    fn resumed(&mut self, event_loop: &ActiveEventLoop) {
+        // 如果 app 已经初始化完成，则直接返回
+        if self.app.as_ref().lock().is_some() {
+            return;
+        }
 
-```toml
-[dependencies]
-# 其他依赖...
-pollster = "0.3"
-```
+        let window_attributes = Window::default_attributes().with_title("tutorial2-surface");
+        let window = Arc::new(event_loop.create_window(window_attributes).unwrap());
+        cfg_if::cfg_if! {
+            if #[cfg(target_arch = "wasm32")] {
+                let app = self.app.clone();
+                let missed_resize = self.missed_resize.clone();
+                let missed_request_redraw = self.missed_request_redraw.clone();
 
-然后我们使用 pollster 提供的 `block_on` 函数来等待异步任务执行完成：
+                wasm_bindgen_futures::spawn_local(async move {
+                    let window_cloned = window.clone();
 
-```rust
-fn main() {
-    pollster::block_on(run());
+                    let wgpu_app = WgpuApp::new(window).await;
+                    let mut app = app.lock();
+                    *app = Some(wgpu_app);
+
+                    // 如果错失了窗口大小变化事件，则补上
+                    if let Some(resize) = *missed_resize.lock() {
+                        app.as_mut().unwrap().set_window_resized(resize);
+                    }
+
+                    // 如果错失了请求重绘事件，则补上
+                    if *missed_request_redraw.lock() {
+                        window_cloned.request_redraw();
+                    }
+                });
+            } else {
+                // 使用 pollster 提供的 `block_on` 函数来等待异步任务执行完成
+                let wgpu_app = pollster::block_on(WgpuApp::new(window));
+                self.app.lock().replace(wgpu_app);
+                // NOTE: 在非 web 端，不会错失窗口大小变化事件和请求重绘事件
+            }
+        }
+    }
+    // ...
 }
 ```
 
@@ -278,85 +338,78 @@ web-sys = { version = "0.3.72", features = [
 如果要在应用程序中支持调整**展示平面**的宽高，将需要在每次窗口的大小改变时重新配置 `surface`。这就是我们存储物理 `size` 和用于配置 `surface` 的 `config` 的原因。有了这些，实现 resize 函数就非常简单了。
 
 ```rust
-// impl State
-pub fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
-    if new_size.width > 0 && new_size.height > 0 {
-        self.size = new_size;
-        self.config.width = new_size.width;
-        self.config.height = new_size.height;
+// impl WgpuApp
+
+/// 记录窗口大小已发生变化
+///
+/// # NOTE:
+/// 当缩放浏览器窗口时, 窗口大小会以高于渲染帧率的频率发生变化，
+/// 如果窗口 size 发生变化就立即调整 surface 大小, 会导致缩放浏览器窗口大小时渲染画面闪烁。
+fn set_window_resized(&mut self, new_size: PhysicalSize<u32>) {
+    if new_size == self.size {
+        return;
+    }
+    self.size = new_size;
+    self.size_changed = true;
+}
+
+/// 必要的时候调整 surface 大小
+fn resize_surface_if_needed(&mut self) {
+    if self.size_changed {
+        self.config.width = self.size.width;
+        self.config.height = self.size.height;
         self.surface.configure(&self.device, &self.config);
+        self.size_changed = false;
     }
 }
 ```
 
 这里和最初的 `surface` 配置没什么不同，所以就不再赘述。
 
-在 `run()` 函数的事件循环中，我们在以下事件中调用 `resize()` 函数。
+在 `WgpuAppHandler` 的 `window_event` 事件循环中，我们在以下事件中调用 `set_window_resized()` 函数。
 
 ```rust
 match event {
+    WindowEvent::Resized(physical_size) => {
+        if physical_size.width == 0 || physical_size.height == 0 {
+            // 处理最小化窗口的事件
+        } else {
+            app.set_window_resized(physical_size);
+        }
+    }
     // ...
-
-    } if window_id == window.id() => if !state.input(event) {
-        match event {
-            // ...
-
-            WindowEvent::Resized(physical_size) => {
-                state.resize(*physical_size);
-            }
-            // ...
 }
 ```
 
 ## 事件输入
 
-`input()` 函数返回一个 `bool`（布尔值），表示一个事件是否已经被处理。如果该函数返回 `true`，主循环就不再继续处理该事件。
+事件输入函数返回一个 `bool`（布尔值），表示一个事件是否已经被处理。如果该函数返回 `true`，主循环就不再继续处理该事件。
 
 我们现在没有任何想要捕获的事件，只需要返回 false。
 
 ```rust
-// impl State
-fn input(&mut self, event: &WindowEvent) -> bool {
+// impl WgpuApp
+/// 键盘事件
+fn keyboard_input(&mut self, _event: &KeyEvent) -> bool {
     false
 }
-```
 
-还需要在事件循环中多做一点工作，我们希望 `State` 在 `run()` 函数内的事件处理中拥有第一优先级。修改后（加上之前的修改）的代码看起来像是这样的：
+fn mouse_click(&mut self, _state: ElementState, _button: MouseButton) -> bool {
+    false
+}
 
-```rust
-// run()
-cfg_if::cfg_if! {
-        if #[cfg(target_arch = "wasm32")] {
-            use winit::platform::web::EventLoopExtWebSys;
-            let event_loop_function = EventLoop::spawn;
-        } else {
-            let event_loop_function = EventLoop::run;
-        }
-    }
-let _ = (event_loop_function)(event_loop, move |event: Event<()>, elwt: &EventLoopWindowTarget<()>| {
-    match event {
-        Event::WindowEvent {
-            ref event,
-            window_id,
-        } if window_id == window.id() => if !state.input(event) { // 更新!
-            match event {
-                WindowEvent::KeyboardInput {
-                        event:
-                            KeyEvent {
-                                logical_key: Key::Named(NamedKey::Escape),
-                                ..
-                            },
-                        ..
-                    } | WindowEvent::CloseRequested => elwt.exit(),
-                WindowEvent::Resized(physical_size) => {
-                    state.resize(*physical_size);
-                }
-                _ => {}
-            }
-        }
-        _ => {}
-    }
-});
+fn mouse_wheel(&mut self, _delta: MouseScrollDelta, _phase: TouchPhase) -> bool {
+    false
+}
+
+fn cursor_move(&mut self, _position: PhysicalPosition<f64>) -> bool {
+    false
+}
+
+/// 鼠标移动/触摸事件
+fn device_input(&mut self, _event: &DeviceEvent) -> bool {
+    false
+}
 ```
 
 ## 更新
@@ -376,7 +429,7 @@ fn update(&mut self) {
 这里就是奇迹发生的地方。首先，我们需要获取一个**帧**（Frame）对象以供渲染：
 
 ```rust
-// impl State
+// impl WgpuApp
 
 fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
     let output = self.surface.get_current_texture()?;
@@ -401,60 +454,60 @@ let mut encoder = self.device.create_command_encoder(&wgpu::CommandEncoderDescri
 现在可以开始执行期盼已久的**清屏**（用统一的颜色填充指定渲染区域）了。我们需要使用 `encoder` 来创建**渲染通道**（`RenderPass`）。**渲染通道**编码所有实际绘制的**命令**。创建渲染通道的代码嵌套层级有点深，所以在谈论它之前，我先把代码全部复制到这里：
 
 ```rust
-    {
-        let _render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-            label: Some("Render Pass"),
-            color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                view: &view,
-                resolve_target: None,
-                ops: wgpu::Operations {
-                    load: wgpu::LoadOp::Clear(wgpu::Color {
-                        r: 0.1,
-                        g: 0.2,
-                        b: 0.3,
-                        a: 1.0,
-                    }),
-                    store: wgpu::StoreOp::Store
-                },
-            })],
-            ..Default::default()
-        });
-    }
-
-    // submit 命令能接受任何实现了 IntoIter trait 的参数
-    self.queue.submit(std::iter::once(encoder.finish()));
-    output.present();
-
-    Ok(())
+{
+    let _render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+        label: Some("Render Pass"),
+        color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+            view: &view,
+            resolve_target: None,
+            ops: wgpu::Operations {
+                load: wgpu::LoadOp::Clear(wgpu::Color {
+                    r: 0.1,
+                    g: 0.2,
+                    b: 0.3,
+                    a: 1.0,
+                }),
+                store: wgpu::StoreOp::Store
+            },
+        })],
+        ..Default::default()
+    });
 }
+
+// submit 命令能接受任何实现了 IntoIter trait 的参数
+self.queue.submit(std::iter::once(encoder.finish()));
+output.present();
+
+Ok(())
+
 ```
 
 首先，我们来谈谈 `encoder.begin_render_pass(...)` 周围用 `{}` 开辟出来的块空间。`begin_render_pass()` 以可变方式借用了`encoder`（又称 `&mut self`），在释放这个可变借用之前，我们不能调用 `encoder.finish()`。这个块空间告诉 rust，当代码离开这个范围时，丢弃其中的任何变量，从而释放 `encoder` 上的可变借用，并允许我们 `finish()` 它。如果你不喜欢 `{}`，也可以使用 `drop(render_pass)` 来达到同样的效果。
 
 代码的最后几行告诉 `wgpu` 完成**命令缓冲区**，并将其提交给 gpu 的**渲染队列**。
 
-我们需再次更新事件循环以调用 `render()` 函数，还会在它之前先调用 `update()`。
+我们需再次更新事件循环以调用 `render()` 函数。
 
 ```rust
-// run()
-let _ = (event_loop_function)(event_loop, move |event: Event<()>, elwt: &EventLoopWindowTarget<()>| {
-    match event {
-        // ...
-        WindowEvent::RedrawRequested => {
-            state.update();
-            match state.render() {
-                Ok(_) => {}
-                // 当展示平面的上下文丢失，就需重新配置
-                Err(wgpu::SurfaceError::Lost) => state.resize(state.size),
-                // 所有其他错误（过期、超时等）应在下一帧解决
-                Err(e) => eprintln!("{:?}", e),
-            }
-            // 除非我们手动请求，RedrawRequested 将只会触发一次。
-            state.request_redraw();
+// window_event()
+match event {
+    // ...
+    WindowEvent::RedrawRequested => {
+        // surface 重绘事件
+        app.window.pre_present_notify();
+
+        match app.render() {
+            Ok(_) => {}
+            // 当展示平面的上下文丢失，就需重新配置
+            Err(wgpu::SurfaceError::Lost) => eprintln!("Surface is lost"),
+            // 所有其他错误（过期、超时等）应在下一帧解决
+            Err(e) => eprintln!("{e:?}"),
         }
-        // ...
+        // 除非我们手动请求，RedrawRequested 将只会触发一次。
+        app.window.request_redraw();
     }
-});
+    // ...
+}
 ```
 
 基于以上这些，你就能获得如下渲染效果：
