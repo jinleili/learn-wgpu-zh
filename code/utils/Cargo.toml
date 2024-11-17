@@ -18,7 +18,7 @@ winit.workspace = true
 wgpu.workspace = true
 glam.workspace = true
 png = "0.17"
-image = { version = "*" }
+image.workspace = true
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 console_error_panic_hook.workspace = true

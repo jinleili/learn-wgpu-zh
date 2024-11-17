@@ -27,12 +27,12 @@ features = ["png", "jpeg"]
 
 </div>
 
-在 `State` 的 `new()` 函数中，于 `surface.configure()` 之后添加以下代码：
+在 `WgpuApp` 的 `new()` 函数中，于 `AppSurface::new(window).await` 之后添加以下代码：
 
 ```rust
-surface.configure(&device, &config);
-// 新添加!
+let app = AppSurface::new(window).await;
 
+// 新添加!
 let diffuse_bytes = include_bytes!("happy-tree.png");
 let diffuse_image = image::load_from_memory(diffuse_bytes).unwrap();
 let diffuse_rgba = diffuse_image.to_rgba8();
@@ -183,29 +183,29 @@ Mipmaps 是一个复杂的话题，需要在未来单独写一个章节。现在
 
 ```rust
 let texture_bind_group_layout =
-            device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
-                entries: &[
-                    wgpu::BindGroupLayoutEntry {
-                        binding: 0,
-                        visibility: wgpu::ShaderStages::FRAGMENT,
-                        ty: wgpu::BindingType::Texture {
-                            multisampled: false,
-                            view_dimension: wgpu::TextureViewDimension::D2,
-                            sample_type: wgpu::TextureSampleType::Float { filterable: true },
-                        },
-                        count: None,
-                    },
-                    wgpu::BindGroupLayoutEntry {
-                        binding: 1,
-                        visibility: wgpu::ShaderStages::FRAGMENT,
-                        // This should match the filterable field of the
-                        // corresponding Texture entry above.
-                        ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering),
-                        count: None,
-                    },
-                ],
-                label: Some("texture_bind_group_layout"),
-            });
+    device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+        entries: &[
+            wgpu::BindGroupLayoutEntry {
+                binding: 0,
+                visibility: wgpu::ShaderStages::FRAGMENT,
+                ty: wgpu::BindingType::Texture {
+                    multisampled: false,
+                    view_dimension: wgpu::TextureViewDimension::D2,
+                    sample_type: wgpu::TextureSampleType::Float { filterable: true },
+                },
+                count: None,
+            },
+            wgpu::BindGroupLayoutEntry {
+                binding: 1,
+                visibility: wgpu::ShaderStages::FRAGMENT,
+                // This should match the filterable field of the
+                // corresponding Texture entry above.
+                ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering),
+                count: None,
+            },
+        ],
+        label: Some("texture_bind_group_layout"),
+    });
 ```
 
 `texture_bind_group_layout` 有两个条目：一个是绑定到 0 资源槽的**纹理**，另一个是绑定到 1 资源槽的**采样器**。这两个绑定只对由 `visibility` 字段指定的片元着色器可见。这个字段的可选值是 `NONE`、`VERTEX`、`FRAGMENT` 或 `COMPUTE` 的任意按位或（`|`）组合。
@@ -233,15 +233,13 @@ let diffuse_bind_group = device.create_bind_group(
 
 看着这个，你可能会有一点似曾相识的感觉! 这是因为**绑定组**是**绑定组布局**的一个更具体的声明。它们分开的原因是，只要是共享同一个绑定组布局的绑定组，就能在运行时实时切换。创建的每个纹理和采样器都需要添加到一个绑定组中。为了达成目的，我们将为每个纹理创建一个新的绑定组。
 
-让我们把 `diffuse_bind_group` 添加到 `State` 结构体中：
+让我们把 `diffuse_bind_group` 添加到 `WgpuApp` 结构体中：
 
 ```rust
-struct State {
-    surface: wgpu::Surface,
-    device: wgpu::Device,
-    queue: wgpu::Queue,
-    config: wgpu::SurfaceConfiguration,
-    size: winit::dpi::PhysicalSize<u32>,
+struct WgpuApp {
+    app: AppSurface,
+    size: PhysicalSize<u32>,
+    size_changed: bool,
     render_pipeline: wgpu::RenderPipeline,
     vertex_buffer: wgpu::Buffer,
     index_buffer: wgpu::Buffer,
@@ -253,7 +251,7 @@ struct State {
 确保我们在 `new()` 函数中返回这个字段：
 
 ```rust
-impl State {
+impl WgpuApp {
     async fn new() -> Self {
         // ...
         Self {
@@ -431,14 +429,14 @@ const VERTICES: &[Vertex] = &[
 
 ```toml
 [dependencies]
-image = "0.24"
+image = "0.25"
 glam = "0.29"
 winit = "0.30"
 env_logger = "0.11"
 log = "0.4"
 pollster = "0.3"
 wgpu = "23"
-bytemuck = { version = "1.14", features = [ "derive" ] }
+bytemuck = { version = "1.19", features = [ "derive" ] }
 anyhow = "1.0" # NEW!
 ```
 
@@ -569,10 +567,10 @@ let diffuse_bind_group = device.create_bind_group(
 );
 ```
 
-最后，需要更新 `State` 中的字段以使用全新 `Texture` 结构体，在未来的教程中还会用到它：
+最后，需要更新 `WgpuApp` 中的字段以使用全新 `Texture` 结构体，在未来的教程中还会用到它：
 
 ```rust
-struct State {
+struct WgpuApp {
     // ...
     diffuse_bind_group: wgpu::BindGroup,
     diffuse_texture: texture::Texture, // NEW
@@ -580,8 +578,8 @@ struct State {
 ```
 
 ```rust
-impl State {
-    async fn new() -> Self {
+impl WgpuApp {
+    async fn new(window: Arc<winit::window::Window>) -> Self {
         // ...
         Self {
             // ...

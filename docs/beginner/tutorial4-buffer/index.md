@@ -39,17 +39,15 @@ const VERTICES: &[Vertex] = &[
 
 按逆时针顺序排列顶点：上、左下、右下。这样做的部分理由是出于惯例，但主要是因为我们在 `render_pipeline` 的 `primitive` 中指定了三角形的 `front_face` 是 `Ccw`（counter-clockwise），这样就可以做背面剔除。这意味着任何面向我们的三角形的顶点都应该是按逆时针顺序排列。
 
-现在有了顶点数据，需要将其存储在一个缓冲区中。让我们给 `State` 添加再一个 `vertex_buffer` 字段:
+现在有了顶点数据，需要将其存储在一个缓冲区中。让我们给 `WgpuApp` 添加再一个 `vertex_buffer` 字段:
 
 ```rust
 // lib.rs
-struct State {
+struct WgpuApp {
     // ...
     render_pipeline: wgpu::RenderPipeline,
-
     // 新添加!
     vertex_buffer: wgpu::Buffer,
-
     // ...
 }
 ```
@@ -78,7 +76,7 @@ use wgpu::util::DeviceExt;
 你应该注意到我们使用了 [bytemuck](https://docs.rs/bytemuck/1.2.0/bytemuck/) 来将 `VERTICES` 转换为 `&[u8]`。`create_buffer_init()` 函数的参数类型是 `&[u8]`，而 `bytemuck::cast_slice` 为我们实现了此类型转换。为此需在 `Cargo.toml` 中添加以下依赖项：
 
 ```toml
-bytemuck = { version = "1.14", features = [ "derive" ] }
+bytemuck = { version = "1.19", features = [ "derive" ] }
 ```
 
 我们还需要实现两个 trait 来使 `bytemuck` 工作。它们是 [bytemuck::Pod](https://docs.rs/bytemuck/1.3.0/bytemuck/trait.Pod.html) 和 [bytemuck::Zeroable](https://docs.rs/bytemuck/1.3.0/bytemuck/trait.Zeroable.html)。 `Pod` 表示 `Vertex` 是 ["Plain Old Data"](<https://zh.wikipedia.org/wiki/POD_(程序设计)>) 数据类型，因此可以被解释为 `&[u8]` 类型。`Zeroable` 表示可以对其使用 `std::mem::zeroed()`。下面修改 `Vertex` 结构体来派生这些 trait：
@@ -103,15 +101,11 @@ unsafe impl bytemuck::Zeroable for Vertex {}
 
 </div>
 
-最终，我们可以把 `vertex_buffer` 添加到 `State` 结构体中了：
+最终，我们可以把 `vertex_buffer` 添加到 `WgpuApp` 结构体中了：
 
 ```rust
 Self {
-    surface,
-    device,
-    queue,
-    config,
-    size,
+    // ...
     render_pipeline,
     vertex_buffer,
 }
@@ -243,31 +237,32 @@ render_pass.draw(0..3, 0..1);
 
 第二个参数是要使用的缓冲区的数据片断。你可以在硬件允许的情况下在一个缓冲区中存储尽可能多的对象，所以 `slice` 允许我们指定使用缓冲区的哪一部分。我们用 `..` 来指定整个缓冲区。
 
-在继续之前，我们需要修改 `render_pass.draw()` 的调用来使用 `VERTICES` 所指定的顶点数量。在 `State` 中添加一个`num_vertices`，令其值等于 `VERTICES.len()`：
+在继续之前，我们需要修改 `render_pass.draw()` 的调用来使用 `VERTICES` 所指定的顶点数量。在 `WgpuApp` 中添加一个`num_vertices`，令其值等于 `VERTICES.len()`：
 
 ```rust
 // lib.rs
 
-struct State {
+struct WgpuApp {
     // ...
     num_vertices: u32,
 }
 
-impl State {
-    // ...
-    fn new(...) -> Self {
+impl WgpuApp {
+    async fn new(
+        window: Arc<winit::window::Window>,
+    ) -> Self {
+        // 创建 wgpu 应用
+        let app = AppSurface::new(window).await;
         // ...
         let num_vertices = VERTICES.len() as u32;
 
         Self {
-            surface,
-            device,
-            queue,
-            config,
+            app,
+            size,
+            size_changed: false,
             render_pipeline,
             vertex_buffer,
             num_vertices,
-            size,
         }
     }
 }
@@ -366,7 +361,7 @@ const INDICES: &[u16] = &[
 
 现在这种设置下，`VERTICES` 占用了 120 个字节，而 `INDICES` 只有 18 个字节，因为 `u16` 类型是 2 个字节长。在这种情况下，wgpu 会自动增加 2 个字节的填充，以确保缓冲区被对齐到 4 个字节，但它仍然只有 20 个字节。五边形总共是 140 字节，这意味着我们节省了 76 个字节! 这可能看起来不多，但当处理数十万的三角形时，索引可以节省大量的内存。
 
-为了使用索引，有几处我们需要修改。首先需要创建一个缓冲区来存储索引。在 `State` 的 `new()` 函数中，创建了 `vertex_buffer` 之后创建 `index_buffer`。同时将 `num_vertices` 改为`num_indices`，令其值等于 `INDICES.len()`。
+为了使用索引，有几处我们需要修改。首先需要创建一个缓冲区来存储索引。在 `WgpuApp` 的 `new()` 函数中，创建了 `vertex_buffer` 之后创建 `index_buffer`。同时将 `num_vertices` 改为`num_indices`，令其值等于 `INDICES.len()`。
 
 ```rust
 let vertex_buffer = device.create_buffer_init(
@@ -387,15 +382,14 @@ let index_buffer = device.create_buffer_init(
 let num_indices = INDICES.len() as u32;
 ```
 
-我们不需要为索引实现 `Pod` 和 `Zeroable`，因为 `bytemuck` 已经为 `u16` 等基本类型实现了它们。只需将 `index_buffer` 和 `num_indices` 添加到 `State` 结构体中。
+我们不需要为索引实现 `Pod` 和 `Zeroable`，因为 `bytemuck` 已经为 `u16` 等基本类型实现了它们。只需将 `index_buffer` 和 `num_indices` 添加到 `WgpuApp` 结构体中。
 
 ```rust
-struct State {
-    surface: wgpu::Surface,
-    device: wgpu::Device,
-    queue: wgpu::Queue,
-    config: wgpu::SurfaceConfiguration,
-    size: winit::dpi::PhysicalSize<u32>,
+struct WgpuApp {
+    app: AppSurface,
+    render_pipeline: wgpu::RenderPipeline,
+    size: PhysicalSize<u32>,
+    size_changed: bool,
     render_pipeline: wgpu::RenderPipeline,
     vertex_buffer: wgpu::Buffer,
     // 新添加!
@@ -408,11 +402,9 @@ struct State {
 
 ```rust
 Self {
-    surface,
-    device,
-    queue,
-    config,
+    app,
     size,
+    size_changed: false,
     render_pipeline,
     vertex_buffer,
     // 新添加!

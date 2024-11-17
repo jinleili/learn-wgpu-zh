@@ -71,7 +71,7 @@ impl Texture {
 3. 由于要对这个纹理进行渲染，我们需要给它添加 `RENDER_ATTACHMENT` 使用范围标志。
 4. 从技术的角度来看，我们不需要深度纹理的**采样器**，是我们的 `Texture` 结构体需要它。
 
-现在在 `State::new()` 中创建我们的 `depth_texture`：
+现在在 `WgpuApp::new()` 中创建我们的 `depth_texture`：
 
 ```rust
 let depth_texture = texture::Texture::create_depth_texture(&device, &config, "depth_texture");
@@ -114,22 +114,30 @@ pub enum CompareFunction {
 
 2. 还有一种类型的缓冲区叫做**模版缓冲区**（Stencil Buffer）。模版缓冲区和深度缓冲区通常被存储在同一个**纹理**中。这些字段控制着**模版测试**的数值。目前我们没有使用模版缓冲区，这里就使用默认值。在以后教程中再详情介绍模版缓冲区。
 
-不要忘了在 `State` 中存储 `depth_texture`：
+不要忘了在 `WgpuApp` 中存储 `depth_texture`：
 
 ```rust
 Self {
-// ...
-depth_texture,
+    // ...
+    depth_texture,
 }
 ```
 
-还要记得修改 `resize()` 函数来更新**深度纹理**及它的**纹理视图**：
+还要记得修改 `resize_surface_if_needed()` 函数来更新**深度纹理**及它的**纹理视图**：
 
 ```rust
-fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
-    // ...
-    self.depth_texture = texture::Texture::create_depth_texture(&self.device, &self.config, "depth_texture");
-    // ...
+/// 必要的时候调整 surface 大小
+fn resize_surface_if_needed(&mut self) {
+    if self.size_changed {
+        //...
+        // NEW!
+        self.depth_texture = texture::Texture::create_depth_texture(
+            &self.app.device,
+            &self.app.config,
+            "depth_texture",
+        );
+        // ...
+    }
 }
 ```
 

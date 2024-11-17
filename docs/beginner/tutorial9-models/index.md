@@ -136,10 +136,8 @@ glob = "0.3"
 
 ```rust
 use std::io::{BufReader, Cursor};
-
 use cfg_if::cfg_if;
 use wgpu::util::DeviceExt;
-
 use crate::{model, texture};
 
 #[cfg(target_arch = "wasm32")]
@@ -150,7 +148,8 @@ fn format_url(file_name: &str) -> reqwest::Url {
         "{}/{}/",
         location.origin().unwrap(),
         option_env!("RES_PATH").unwrap_or("res"),
-    )).unwrap();
+    ))
+    .unwrap();
     base.join(file_name).unwrap()
 }
 
@@ -227,12 +226,12 @@ mod resources;
 
 ## 使用 TOBJ 加载模型
 
-加载模型是使用的 [tobj](https://docs.rs/tobj/3.0/tobj/) **包**。让我们将其添加到 `Cargo.toml` 中：
+加载模型是使用的 [tobj](https://docs.rs/tobj/3.2.5/tobj/) **包**。让我们将其添加到 `Cargo.toml` 中：
 
 ```toml
 [dependencies]
 # other dependencies...
-tobj = { version = "3.2.1", features = [
+tobj = { version = "3.2", features = [
     "async",
 ]}
 ```
@@ -428,7 +427,7 @@ use model::DrawModel;
 render_pass.draw_mesh_instanced(&self.obj_model.meshes[0], 0..self.instances.len() as u32);
 ```
 
-在开始绘制之前，需要实际加载模型并将其保存到 `State` 实例。请在 `State::new()` 中加入以下代码：
+在开始绘制之前，需要实际加载模型并将其保存到 `WgpuApp` 实例。请在 `WgpuApp::new()` 中加入以下代码：
 
 ```rust
 let obj_model = resources::load_model(

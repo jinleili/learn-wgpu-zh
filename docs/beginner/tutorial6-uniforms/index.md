@@ -12,7 +12,7 @@
 glam = "0.29"
 ```
 
-现在让我们开始使用此数学**包**！在 `State` 结构体上方创建**摄像机**结构体：
+现在让我们开始使用此数学**包**！在 `WgpuApp` 结构体上方创建**摄像机**结构体：
 
 ```rust
 struct Camera {
@@ -44,13 +44,12 @@ impl Camera {
 2. **投影**矩阵变换场景空间，以产生景深的效果。如果没有它，近处的物**对象**将与远处的大小相同。
 3. wgpu 的坐标系统是基于 DirectX 和 Metal 的坐标系，在[归一化设备坐标](https://github.com/gfx-rs/gfx/tree/master/src/backend/dx12#normalized-coordinates)中，x 轴和 y 轴的范围是 [-1.0, 1.0]，而 z 轴是 [0.0, 1.0]。 移植 OpenGL 程序时需要注意：在 OpenGL 的归一化设备坐标中 z 轴的范围是 [-1.0, 1.0]。
 
-现在我们来给 `State` 添加上 `camera` 字段：
+现在我们来给 `WgpuApp` 添加上 `camera` 字段：
 
 ```rust
-struct State {
+struct WgpuApp {
     // ...
     camera: Camera,
-    // ...
 }
 
 async fn new(window: Arc<Window>) -> Self {
@@ -73,7 +72,6 @@ async fn new(window: Arc<Window>) -> Self {
     Self {
         // ...
         camera,
-        // ...
     }
 }
 ```
@@ -180,10 +178,10 @@ let render_pipeline_layout = device.create_pipeline_layout(
 );
 ```
 
-现在，需要将 `camera_buffer` 和 `camera_bind_group` 添加到 `State` 中：
+现在，需要将 `camera_buffer` 和 `camera_bind_group` 添加到 `WgpuApp` 中：
 
 ```rust
-struct State {
+struct WgpuApp {
     // ...
     camera: Camera,
     camera_uniform: CameraUniform,
@@ -361,18 +359,17 @@ impl CameraController {
 
 这段代码并不完美。当你旋转**摄像机**时，摄像机会慢慢向后移动。虽然已达到了我们的目的，但你还是可以自由地改进它！
 
-我们仍然需要把它插入到现有的代码中使其生效。将**控制器**添加到 `State` 中，并在 `new()` 函数中创建它的实例：
+我们仍然需要把它插入到现有的代码中使其生效。将**控制器**添加到 `WgpuApp` 中，并在 `new()` 函数中创建它的实例：
 
 ```rust
-struct State {
+struct WgpuApp {
     // ...
     camera: Camera,
     // 新添加!
     camera_controller: CameraController,
-    // ...
 }
 // ...
-impl State {
+impl WgpuApp {
     async fn new(window: Arc<Window>) -> Self {
         // ...
         let camera_controller = CameraController::new(0.2);
@@ -381,7 +378,6 @@ impl State {
         Self {
             // ...
             camera_controller,
-            // ...
         }
     }
 }

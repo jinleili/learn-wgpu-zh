@@ -118,16 +118,14 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4f {
 
 ## 使用着色器
 
-终于要用到本章节标题提到的概念 **管线**（Pipeline）了。首先，我们来修改 `State` 以包括以下代码。
+终于要用到本章节标题提到的概念 **管线**（Pipeline）了。首先，我们来修改 `WgpuApp` 以包括以下代码。
 
 ```rust
 // lib.rs
-struct State {
-    surface: wgpu::Surface,
-    device: wgpu::Device,
-    queue: wgpu::Queue,
-    config: wgpu::SurfaceConfiguration,
-    size: winit::dpi::PhysicalSize<u32>,
+struct WgpuApp {
+    app: AppSurface,
+    size: PhysicalSize<u32>,
+    size_changed: bool,
     // 新添加!
     render_pipeline: wgpu::RenderPipeline,
 }
@@ -239,16 +237,14 @@ primitive: wgpu::PrimitiveState {
 
 <!-- https://gamedev.stackexchange.com/questions/22507/what-is-the-alphatocoverage-blend-state-useful-for -->
 
-现在我们要做的就是把 `render_pipeline` 添加到 `State`，然后就可以使用它了!
+现在我们要做的就是把 `render_pipeline` 添加到 `WgpuApp`，然后就可以使用它了!
 
 ```rust
 // new()
 Self {
-    surface,
-    device,
-    queue,
-    config,
+    app,
     size,
+    size_changed: false,
     // 新添加!
     render_pipeline,
 }

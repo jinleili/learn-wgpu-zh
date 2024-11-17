@@ -71,10 +71,10 @@ impl Instance {
 }
 ```
 
-现在需要给 `State` 添加两个字段：`instances` 和 `instance_buffer`：
+现在需要给 `WgpuApp` 添加两个字段：`instances` 和 `instance_buffer`：
 
 ```rust
-struct State {
+struct WgpuApp {
     instances: Vec<Instance>,
     instance_buffer: wgpu::Buffer,
 }
@@ -90,7 +90,7 @@ const INSTANCE_DISPLACEMENT: glam::Vec3 = glam::Vec3::new(NUM_INSTANCES_PER_ROW 
 我们将创建一组 10 行 10 列空间排列均匀的实例数据，下边是具体代码：
 
 ```rust
-impl State {
+impl WgpuApp {
     async fn new(window: Arc<Window>) -> Self {
         // ...
         let instances = (0..NUM_INSTANCES_PER_ROW).flat_map(|z| {

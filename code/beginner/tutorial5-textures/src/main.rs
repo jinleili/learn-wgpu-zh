@@ -63,15 +63,13 @@ const INDICES: &[u16] = &[0, 1, 4, 1, 2, 4, 2, 3, 4];
 
 struct WgpuApp {
     app: AppSurface,
+    size: PhysicalSize<u32>,
+    size_changed: bool,
     render_pipeline: wgpu::RenderPipeline,
     vertex_buffer: wgpu::Buffer,
     index_buffer: wgpu::Buffer,
     num_indices: u32,
-    size: PhysicalSize<u32>,
-    size_changed: bool,
     // NEW!
-    #[allow(dead_code)]
-    diffuse_texture: texture::Texture,
     diffuse_bind_group: wgpu::BindGroup,
 }
 
@@ -226,7 +224,6 @@ impl WgpuAppAction for WgpuApp {
             num_indices,
             size,
             size_changed: false,
-            diffuse_texture,
             diffuse_bind_group,
         }
     }
