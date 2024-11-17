@@ -574,8 +574,8 @@ where
 
 ```rust
 // lib.rs
-impl State {
-    async fn new(window: Arc<Window>) -> Result<Self> {
+impl WgpuAppAction for WgpuApp {
+    async fn new(window: Arc<winit::window::Window>) -> Self {
         // ...
         let debug_material = {
             let diffuse_bytes = include_bytes!("../res/cobble-diffuse.png");

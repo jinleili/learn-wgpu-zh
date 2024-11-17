@@ -90,8 +90,8 @@ const INSTANCE_DISPLACEMENT: glam::Vec3 = glam::Vec3::new(NUM_INSTANCES_PER_ROW 
 我们将创建一组 10 行 10 列空间排列均匀的实例数据，下边是具体代码：
 
 ```rust
-impl WgpuApp {
-    async fn new(window: Arc<Window>) -> Self {
+impl WgpuAppAction for WgpuApp {
+    async fn new(window: Arc<winit::window::Window>) -> Self {
         // ...
         let instances = (0..NUM_INSTANCES_PER_ROW).flat_map(|z| {
             (0..NUM_INSTANCES_PER_ROW).map(move |x| {

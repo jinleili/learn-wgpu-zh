@@ -369,8 +369,8 @@ struct WgpuApp {
     camera_controller: CameraController,
 }
 // ...
-impl WgpuApp {
-    async fn new(window: Arc<Window>) -> Self {
+impl WgpuAppAction for WgpuApp {
+    async fn new(window: Arc<winit::window::Window>) -> Self {
         // ...
         let camera_controller = CameraController::new(0.2);
         // ...
@@ -383,10 +383,10 @@ impl WgpuApp {
 }
 ```
 
-将下边这行代码添加到 `input()` 函数中。
+将下边这行代码添加到 `keyboard_input()` 函数中。
 
 ```rust
-fn input(&mut self, event: &WindowEvent) -> bool {
+fn keyboard_input(&mut self, event: &KeyEvent) -> bool {
     self.camera_controller.process_events(event)
 }
 ```
@@ -403,7 +403,7 @@ fn input(&mut self, event: &WindowEvent) -> bool {
 fn update(&mut self) {
     self.camera_controller.update_camera(&mut self.camera);
     self.camera_uniform.update_view_proj(&self.camera);
-    self.queue.write_buffer(&self.camera_buffer, 0, bytemuck::cast_slice(&[self.camera_uniform]));
+    self.app.queue.write_buffer(&self.camera_buffer, 0, bytemuck::cast_slice(&[self.camera_uniform]));
 }
 ```
 

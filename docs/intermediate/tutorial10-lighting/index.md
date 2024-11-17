@@ -68,7 +68,7 @@ let light_buffer = device.create_buffer_init(
 );
 ```
 
-别忘记把 `light_uniform` 和 `light_buffer` 添加到 `State`。之后，我们为光源创建一个绑定组的**布局**及**绑定组**：
+别忘记把 `light_uniform` 和 `light_buffer` 添加到 `WgpuApp`。之后，我们为光源创建一个绑定组的**布局**及**绑定组**：
 
 ```rust
 let light_bind_group_layout =
@@ -96,7 +96,7 @@ let light_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
 });
 ```
 
-把它们添加到 `State` 中，同时更新 `render_pipeline_layout`：
+把它们添加到 `WgpuApp` 中，同时更新 `render_pipeline_layout`：
 
 ```rust
 let render_pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
@@ -186,7 +186,7 @@ fn create_render_pipeline(
 }
 ```
 
-修改 `State::new()` 中的代码来调用 `create_render_pipeline` 函数：
+修改 `WgpuApp::new()` 中的代码来调用 `create_render_pipeline` 函数：
 
 ```rust
 let render_pipeline = {
@@ -455,9 +455,9 @@ where
 最后，在渲染通道中加入光源的渲染：
 
 ```rust
-impl State {
+impl WgpuAppAction for WgpuApp {
     // ...
-   fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
+    fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
         // ...
         render_pass.set_vertex_buffer(1, self.instance_buffer.slice(..));
 

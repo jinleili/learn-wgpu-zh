@@ -251,8 +251,8 @@ struct WgpuApp {
 确保我们在 `new()` 函数中返回这个字段：
 
 ```rust
-impl WgpuApp {
-    async fn new() -> Self {
+impl WgpuAppAction for WgpuApp {
+    async fn new(window: Arc<winit::window::Window>) -> Self {
         // ...
         Self {
             // ...
@@ -578,7 +578,7 @@ struct WgpuApp {
 ```
 
 ```rust
-impl WgpuApp {
+impl WgpuAppAction for WgpuApp {
     async fn new(window: Arc<winit::window::Window>) -> Self {
         // ...
         Self {

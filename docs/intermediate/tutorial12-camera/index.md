@@ -261,10 +261,10 @@ impl CameraUniform {
 }
 ```
 
-我们还要修改 `State` 来使用新的 `Camera`、`CameraProjection` 和 `Projection`，再添加一个`mouse_pressed` 字段来存储鼠标是否被按下：
+我们还要修改 `WgpuApp` 来使用新的 `Camera`、`CameraProjection` 和 `Projection`，再添加一个`mouse_pressed` 字段来存储鼠标是否被按下：
 
 ```rust
-struct State {
+struct WgpuApp {
     // ...
     camera: camera::Camera, // 更新!
     projection: camera::Projection, // 新增!
@@ -280,8 +280,8 @@ struct State {
 然后更新 `new()` 函数：
 
 ```rust
-impl State {
-    async fn new(window: Arc<Window>) -> Self {
+impl WgpuAppAction for WgpuApp {
+    async fn new(window: Arc<winit::window::Window>) -> Self {
         // ...
 
         // 更新!
@@ -307,90 +307,55 @@ impl State {
 }
 ```
 
-接着在 `resize` 函数中更新投影矩阵 `projection`：
+接着在 `resize_surface_if_needed` 函数中更新投影矩阵 `projection`：
 
 ```rust
-fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
+fn resize_surface_if_needed(&mut self) {
     // 更新!
-    self.projection.resize(new_size.width, new_size.height);
+    self.projection.resize(self.size.width, self.size.height);
     // ...
 }
 ```
 
-事件输入函数 `input()` 也需要被更新。
-到目前为止，我们一直在使用 `WindowEvent` 来控制摄像机，这很有效，但它并不是最好的解决方案。[winit 文档](https://docs.rs/winit/0.24.0/winit/event/enum.WindowEvent.html?search=#variant.CursorMoved)告诉我们，操作系统通常会对 `CursorMoved` 事件的数据进行转换，以实现光标加速等效果。
+事件输入函数也需要被更新。
+到目前为止，我们一直在使用 `WindowEvent` 来控制摄像机，这很有效，但它并不是最好的解决方案。[winit 文档](https://docs.rs/winit/0.30.5/wasm32-unknown-unknown/winit/event/enum.WindowEvent.html#variant.CursorMoved)告诉我们，操作系统通常会对 `CursorMoved` 事件的数据进行转换，以实现光标加速等效果。
 
-现在为了解决这个问题，可以修改 `input()` 函数来处理 `DeviceEvent` 而不是 `WindowEvent`，但是在 macOS 和 WASM 上，键盘和按键事件不会被当作 `DeviceEvent` 发送出来。
-做为替代方案，我们删除 `input()` 中的 `CursorMoved` 检查，并在 `run()` 函数中手动调用 `camera_controller.process_mouse()`：
+现在为了解决这个问题，可以修改输入函数函数来处理 `DeviceEvent` 而不是 `WindowEvent`：
 
 ```rust
 // 更新!
-fn input(&mut self, event: &WindowEvent) -> bool {
-    match event {
-        WindowEvent::KeyboardInput {
-            input:
-                KeyboardInput {
-                    virtual_keycode: Some(key),
-                    state,
-                    ..
-                },
-            ..
-        } => self.camera_controller.process_keyboard(*key, *state),
-        WindowEvent::MouseWheel { delta, .. } => {
-            self.camera_controller.process_scroll(delta);
-            true
-        }
-        WindowEvent::MouseInput {
-            button: MouseButton::Left,
-            state,
-            ..
-        } => {
-            self.mouse_pressed = *state == ElementState::Pressed;
-            true
-        }
-        _ => false,
+// UPDATED!
+fn keyboard_input(&mut self, event: &KeyEvent) -> bool {
+    self.camera_controller.process_keyboard(
+        &event.physical_key,
+        &event.logical_key,
+        event.state,
+    );
+    true
+}
+
+fn mouse_click(&mut self, state: ElementState, button: MouseButton) -> bool {
+    if button == MouseButton::Left {
+        self.mouse_pressed = state == ElementState::Pressed;
+        true
+    } else {
+        false
     }
 }
-```
 
-下面是对事件循环代理（event_loop）的 `run()` 函数的修改：
+fn mouse_wheel(&mut self, delta: MouseScrollDelta, _phase: TouchPhase) -> bool {
+    self.camera_controller.process_scroll(&delta);
+    true
+}
 
-```rust
-fn main() {
-    // ...
-    let _ = (event_loop_function)(event_loop, move |event: Event<()>, elwt: &EventLoopWindowTarget<()>| {
-        match event {
-            // ...
-            // 新增!
-            Event::DeviceEvent {
-                event: DeviceEvent::MouseMotion{ delta, },
-                .. // 我们现在没有用到 device_id
-            } => if state.mouse_pressed {
-                state.camera_controller.process_mouse(delta.0, delta.1)
-            }
-            // 更新!
-            Event::WindowEvent {
-                ref event,
-                window_id,
-            } if window_id == state.app.view.id() && !state.input(event) => {
-                match event {
-                     WindowEvent::KeyboardInput {
-                        event:
-                            KeyEvent {
-                                logical_key: Key::Named(NamedKey::Escape),
-                                ..
-                            },
-                        ..
-                    } | WindowEvent::CloseRequested => elwt.exit(),
-                    WindowEvent::Resized(physical_size) => {
-                        state.resize(*physical_size);
-                    }
-                    _ => {}
-                }
-            }
-            // ...
+fn device_input(&mut self, event: &DeviceEvent) -> bool {
+    if let DeviceEvent::MouseMotion { delta } = event {
+        if self.mouse_pressed {
+            self.camera_controller.process_mouse(delta.0, delta.1);
+            return true;
         }
-    });
+    }
+    false
 }
 ```
 
@@ -414,28 +379,38 @@ self.light_uniform.position =
     * old_position).into(); // 更新!
 ```
 
-让我们在 `main` 函数中来实现 `dt` 的具体计算：
+让我们在 `WgpuAppHandler` 的 `window_event` 函数中来实现 `dt` 的具体计算：
 
 ```rust
-fn main() {
+struct WgpuAppHandler<A: WgpuAppAction> {
     // ...
-    let mut state = State::new(&window).await;
-    let mut last_render_time = instant::Instant::now();  // 新增!
-    let _ = (event_loop_function)(event_loop, move |event: Event<()>, elwt: &EventLoopWindowTarget<()>| {
-        *control_flow = ControlFlow::Poll;
+
+    /// 上次执行渲染的时间
+    last_render_time: instant::Instant,
+}
+
+impl<A: WgpuAppAction + 'static> ApplicationHandler for WgpuAppHandler<A> {
+    // ...
+
+    fn window_event(
+        &mut self,
+        event_loop: &ActiveEventLoop,
+        _window_id: WindowId,
+        event: WindowEvent,
+    ) {
         match event {
             // ...
             // 更新!
             WindowEvent::RedrawRequested => {
                 let now = instant::Instant::now();
-                let dt = now - last_render_time;
-                last_render_time = now;
-                state.update(dt);
+                let dt = now - self.last_render_time;
+                self.last_render_time = now;
+                app.update(dt);
                 // ...
             }
             _ => {}
         }
-    });
+    }
 }
 ```
 

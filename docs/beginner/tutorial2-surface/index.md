@@ -574,7 +574,7 @@ Some(wgpu::RenderPassColorAttachment {
 
 ## 挑战
 
-修改 `input()` 函数以捕获鼠标事件，并使用该函数来更新**清屏**的颜色。_提示：你可能需要用到 `WindowEvent::CursorMoved`_。
+修改 `xx_input()` 函数以捕获鼠标事件，并使用该函数来更新**清屏**的颜色。_提示：你可能需要用到 `WindowEvent::CursorMoved`_。
 
 <WasmExample example="tutorial2_surface"></WasmExample>
 

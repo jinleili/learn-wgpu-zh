@@ -297,21 +297,21 @@ fn fs_main(vs: VertexOutput) -> @location(0) vec4<f32> {
 }
 ```
 
-准备好上面这些，就可以开始在核心渲染管线中使用我们的 HDR 纹理了。首先，需要将新的 `HdrPipeline` 添加到 `State` 中：
+准备好上面这些，就可以开始在核心渲染管线中使用我们的 HDR 纹理了。首先，需要将新的 `HdrPipeline` 添加到 `WgpuApp` 中：
 
 ```rust
 // lib.rs
 
 mod hdr; // NEW!
 
-struct State {
+struct WgpuApp {
     // ...
     // NEW!
     hdr: hdr::HdrPipeline,
 }
 
-impl State {
-    pub fn new(window: Arc<Window>) -> anyhow::Result<Self> {
+impl WgpuAppAction for WgpuApp {
+    async fn new(window: Arc<winit::window::Window>) -> Self {
         // ...
         // NEW!
         let hdr = hdr::HdrPipeline::new(&device, &config);
@@ -327,12 +327,11 @@ impl State {
 当窗口大小发生变化时，还需要在 `HdrPipeline` 上调用 `resize()` 函数：
 
 ```rust
-fn resize(&mut self, new_size: winit::dpi::PhysicalSize<u32>) {
-    // UPDATED!
-    if new_size.width > 0 && new_size.height > 0 {
-        // ...
+fn resize_surface_if_needed(&mut self) {
+    if self.size_changed {
+        //...
         self.hdr
-            .resize(&self.device, new_size.width, new_size.height);
+            .resize(&self.device, self.size.width, self.size.height);
         // ...
     }
 }
@@ -909,10 +908,10 @@ fn create_render_pipeline(
 }
 ```
 
-不要忘记将新的绑定组和渲染管线添加到 `State` 中：
+不要忘记将新的绑定组和渲染管线添加到 `WgpuApp` 中：
 
 ```rust
-struct State {
+struct WgpuApp {
     // ...
     // NEW!
     hdr: hdr::HdrPipeline,

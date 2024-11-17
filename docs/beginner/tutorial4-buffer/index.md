@@ -247,10 +247,8 @@ struct WgpuApp {
     num_vertices: u32,
 }
 
-impl WgpuApp {
-    async fn new(
-        window: Arc<winit::window::Window>,
-    ) -> Self {
+impl WgpuAppAction for WgpuApp {
+    async fn new(window: Arc<winit::window::Window>) -> Self {
         // 创建 wgpu 应用
         let app = AppSurface::new(window).await;
         // ...
