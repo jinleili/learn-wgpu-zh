@@ -210,26 +210,6 @@ function notDefined(what) { return () => { throw new Error(`${what} is not defin
 function isLikeNone(x) {
     return x === undefined || x === null;
 }
-/**
- * Chroma subsampling format
- */
-export const ChromaSampling = Object.freeze({
-/**
- * Both vertically and horizontally subsampled.
- */
-Cs420:0,"0":"Cs420",
-/**
- * Horizontally subsampled.
- */
-Cs422:1,"1":"Cs422",
-/**
- * Not subsampled.
- */
-Cs444:2,"2":"Cs444",
-/**
- * Monochrome.
- */
-Cs400:3,"3":"Cs400", });
 
 const __wbindgen_enum_AudioContextState = ["suspended", "running", "closed"];
 
@@ -940,7 +920,7 @@ function __wbg_get_imports() {
         const ret = arg0.repeat;
         return ret;
     };
-    imports.wbg.__wbindgen_closure_wrapper990 = function(arg0, arg1, arg2) {
+    imports.wbg.__wbindgen_closure_wrapper989 = function(arg0, arg1, arg2) {
         const ret = makeMutClosure(arg0, arg1, 55, __wbg_adapter_22);
         return ret;
     };

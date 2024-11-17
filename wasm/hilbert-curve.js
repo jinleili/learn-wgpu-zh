@@ -224,26 +224,6 @@ function getArrayU32FromWasm0(ptr, len) {
     ptr = ptr >>> 0;
     return getUint32ArrayMemory0().subarray(ptr / 4, ptr / 4 + len);
 }
-/**
- * Chroma subsampling format
- */
-export const ChromaSampling = Object.freeze({
-/**
- * Both vertically and horizontally subsampled.
- */
-Cs420:0,"0":"Cs420",
-/**
- * Horizontally subsampled.
- */
-Cs422:1,"1":"Cs422",
-/**
- * Not subsampled.
- */
-Cs444:2,"2":"Cs444",
-/**
- * Monochrome.
- */
-Cs400:3,"3":"Cs400", });
 
 const __wbindgen_enum_AudioContextState = ["suspended", "running", "closed"];
 

@@ -201,7 +201,7 @@ function handleError(f, args) {
     }
 }
 function __wbg_adapter_101(arg0, arg1, arg2, arg3) {
-    wasm.closure60_externref_shim(arg0, arg1, arg2, arg3);
+    wasm.closure61_externref_shim(arg0, arg1, arg2, arg3);
 }
 
 function notDefined(what) { return () => { throw new Error(`${what} is not defined`); }; }
@@ -266,27 +266,6 @@ export function on_mouse_move(ptr, x, y) {
 export function drop_wgpu_app(ptr) {
     wasm.drop_wgpu_app(ptr);
 }
-
-/**
- * Chroma subsampling format
- */
-export const ChromaSampling = Object.freeze({
-/**
- * Both vertically and horizontally subsampled.
- */
-Cs420:0,"0":"Cs420",
-/**
- * Horizontally subsampled.
- */
-Cs422:1,"1":"Cs422",
-/**
- * Not subsampled.
- */
-Cs444:2,"2":"Cs444",
-/**
- * Monochrome.
- */
-Cs400:3,"3":"Cs400", });
 
 const __wbindgen_enum_AudioContextState = ["suspended", "running", "closed"];
 
