@@ -25,7 +25,7 @@ WebGPU 成员花了 2 年半的时间来争论 WebGPU 是否应该有自己的�
 
 **WGSL** 的目标不是要与 **GLSL** 兼容，它是对现代着色器语言的重新设计。
 
-2020 年 4 月 27 日，WGSL 标准有了第一次提交。自此开始，wgpu 和 dawn 都摆脱了对 shaderc 之类复杂繁重的着色器转译工具的依赖。wgpu 里使用的 WGSL 转译工具叫 [naga](https://github.com/gfx-rs/naga), kvark 有一篇博客（[Shader translation benchmark](http://kvark.github.io/naga/shader/2022/02/17/shader-translation-benchmark.html)）对比了 naga 相比于其它转译工具的性能优化，总体来说，有 10 倍以上的性能优势。
+2020 年 4 月 27 日，WGSL 标准有了第一次提交。自此开始，wgpu 和 dawn 都摆脱了对 shaderc 之类复杂繁重的着色器转译工具的依赖。wgpu 里使用的 WGSL 转译工具叫 [naga](https://github.com/gfx-rs/wgpu/tree/trunk/naga), kvark 有一篇博客（[Shader translation benchmark](http://kvark.github.io/naga/shader/2022/02/17/shader-translation-benchmark.html)）对比了 naga 相比于其它转译工具的性能优化，总体来说，有 10 倍以上的性能优势。
 
 2023 年之前，WGSL 的学习资源不多，唯一好的参考是 [WGSL 规范](https://www.w3.org/TR/WGSL/)，但它是对语言实现细节的规范，对普通用户来说有点难以理解。
 我从 2018 年开始使用 wgpu (那时还是 使用 GLSL 做为着色器语言)，2021 年底完成了个人作品 [字习 Pro](https://apps.apple.com/cn/app/字习-pro/id1507339788) 及其他几个练手作品从 GLSL 到 WGSL 的 100 多个着色器的移植工作，在这个过程中对这两个着色器语言有了比较深入的了解。这个增补章节旨在介绍 WGSL 的一些基础知识，希望这对从 OpenGL / WebGL 迁移到 WebGPU 的朋友带来一点有益的经验（下边的所有 GLSL 代码均是按照 **GLSL450** 标准编写的）。

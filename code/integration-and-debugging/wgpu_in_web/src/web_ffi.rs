@@ -4,7 +4,7 @@ use glam::{uvec2, vec2};
 use utils::init_logger;
 use wasm_bindgen::prelude::*;
 
-// 创建 wgpu app 窗口
+// 创建 wgpu app 实例
 #[wasm_bindgen]
 pub async fn create_wgpu_app(canvas_id: &str, handle: u32) -> u64 {
     init_logger();

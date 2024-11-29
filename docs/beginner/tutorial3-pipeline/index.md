@@ -27,7 +27,7 @@
 **WGSL** (WebGPU Shading Language) 是 WebGPU 的着色器语言。
 WGSL 的开发重点是让它轻松转换为与后端对应的着色器语言；例如，Vulkan 的 SPIR-V、Metal 的 MSL、DX12 的 HLSL 和 OpenGL 的 GLSL。
 这种转换是在内部完成的，我们不需要关心这些细节。
-就 wgpu 而言，它是由名为 [naga](https://github.com/gfx-rs/naga) 的**包**完成的。
+就 wgpu 而言，它是由名为 [naga](https://github.com/gfx-rs/wgpu/tree/trunk/naga) 的**包**完成的。
 
 在 [WGSL 着色器语言](../wgsl) 一章中，有对 WGSL 的由来及语法的更详细介绍。
 
