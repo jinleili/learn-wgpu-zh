@@ -44,7 +44,7 @@ impl WgpuApp {
 }
 ```
 
- `WgpuApp::new()` 函数是异步的，我们可以使用 [tokio](https://docs.rs/tokio) 或 [async-std](https://docs.rs/async-std) 等异步**包**，但我打算使用更轻量级的 [pollster](https://docs.rs/pollster) 提供的 `block_on` 函数来等待异步任务执行完成。在 "Cargo.toml" 中添加以下依赖：
+`WgpuApp::new()` 函数是异步的，我们可以使用 [tokio](https://docs.rs/tokio) 或 [async-std](https://docs.rs/async-std) 等异步**包**，但我打算使用更轻量级的 [pollster](https://docs.rs/pollster) 提供的 `block_on` 函数来等待异步任务执行完成。在 "Cargo.toml" 中添加以下依赖：
 
 ```toml
 [dependencies]
@@ -326,7 +326,7 @@ console_error_panic_hook = "0.1.7"
 console_log = "1.0"
 wasm-bindgen = "0.2.97"
 wasm-bindgen-futures = "0.4.47"
-web-sys = { version = "0.3.74", features = [
+ { version = "0.3.74", features = [
     "Document",
     "Window",
     "Element",
