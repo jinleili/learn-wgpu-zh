@@ -1,5 +1,5 @@
-use tutorial13_terrain::run;
+use utils::run;
 
-fn main() {
-    pollster::block_on(run());
+pub fn main() -> Result<(), impl std::error::Error> {
+    run::<tutorial13_terrain::WgpuApp>("tutorial13-terrain")
 }
