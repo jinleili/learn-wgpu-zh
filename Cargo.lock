@@ -590,7 +590,7 @@ dependencies = [
  "fs_extra",
  "glam",
  "glob",
- "image",
+ "image 0.25.5",
  "log",
  "naga",
  "pollster",
@@ -1118,7 +1118,7 @@ dependencies = [
  "flume",
  "gif",
  "glam",
- "image",
+ "image 0.25.5",
  "log",
  "pollster",
  "tobj 3.2.5",
@@ -1308,7 +1308,7 @@ dependencies = [
  "fs_extra",
  "glam",
  "glob",
- "image",
+ "image 0.24.6",
  "instant",
  "js-sys",
  "log",
@@ -1589,6 +1589,21 @@ dependencies = [
 
 [[package]]
 name = "image"
+version = "0.24.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "527909aa81e20ac3a44803521443a765550f09b5130c2c2fa1ea59c2f8f50a3a"
+dependencies = [
+ "bytemuck",
+ "byteorder",
+ "color_quant",
+ "jpeg-decoder",
+ "num-rational",
+ "num-traits",
+ "png",
+]
+
+[[package]]
+name = "image"
 version = "0.25.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cd6f44aed642f18953a158afeb30206f4d50da59fbc66ecb53c66488de73563b"
@@ -1679,6 +1694,12 @@ checksum = "48d1dbcbbeb6a7fec7e059840aa538bd62aaccf972c7346c4d9d2059312853d0"
 dependencies = [
  "libc",
 ]
+
+[[package]]
+name = "jpeg-decoder"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f5d4a7da358eff58addd2877a45865158f0d78c911d43a5784ceb7bbf52833b0"
 
 [[package]]
 name = "js-sys"
@@ -1937,6 +1958,25 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ee6cda3051665f1fb8d9e08fc35c96d5a244fb1be711a03b71118828afc9a873"
 dependencies = [
  "jni-sys",
+]
+
+[[package]]
+name = "num-integer"
+version = "0.1.46"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7969661fd2958a5cb096e56c8e1ad0444ac2bbcd0061bd28660485a44879858f"
+dependencies = [
+ "num-traits",
+]
+
+[[package]]
+name = "num-rational"
+version = "0.4.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f83d14da390562dca69fc84082e73e548e1ad308d24accdedd2720017cb37824"
+dependencies = [
+ "num-integer",
+ "num-traits",
 ]
 
 [[package]]
@@ -2995,7 +3035,7 @@ dependencies = [
  "fs_extra",
  "glam",
  "glob",
- "image",
+ "image 0.25.5",
  "instant",
  "log",
  "pollster",
@@ -3190,7 +3230,7 @@ dependencies = [
  "fs_extra",
  "glam",
  "glob",
- "image",
+ "image 0.25.5",
  "instant",
  "js-sys",
  "log",
@@ -3221,7 +3261,7 @@ dependencies = [
  "fs_extra",
  "glam",
  "glob",
- "image",
+ "image 0.25.5",
  "instant",
  "js-sys",
  "log",
@@ -3252,7 +3292,7 @@ dependencies = [
  "fs_extra",
  "glam",
  "glob",
- "image",
+ "image 0.25.5",
  "instant",
  "js-sys",
  "log",
@@ -3282,7 +3322,7 @@ dependencies = [
  "fs_extra",
  "glam",
  "glob",
- "image",
+ "image 0.25.5",
  "instant",
  "log",
  "pollster",
@@ -3381,7 +3421,7 @@ dependencies = [
  "fern",
  "fs_extra",
  "glob",
- "image",
+ "image 0.25.5",
  "js-sys",
  "log",
  "pollster",
@@ -3409,7 +3449,7 @@ dependencies = [
  "fs_extra",
  "glam",
  "glob",
- "image",
+ "image 0.25.5",
  "instant",
  "js-sys",
  "log",
@@ -3438,7 +3478,7 @@ dependencies = [
  "fs_extra",
  "glam",
  "glob",
- "image",
+ "image 0.25.5",
  "instant",
  "js-sys",
  "log",
@@ -3467,7 +3507,7 @@ dependencies = [
  "fs_extra",
  "glam",
  "glob",
- "image",
+ "image 0.25.5",
  "instant",
  "js-sys",
  "log",
@@ -3496,7 +3536,7 @@ dependencies = [
  "fs_extra",
  "glam",
  "glob",
- "image",
+ "image 0.25.5",
  "instant",
  "js-sys",
  "log",
@@ -3577,7 +3617,7 @@ dependencies = [
  "env_logger",
  "fern",
  "glam",
- "image",
+ "image 0.25.5",
  "instant",
  "js-sys",
  "log",
@@ -4155,7 +4195,7 @@ name = "windowless"
 version = "0.1.0"
 dependencies = [
  "flume",
- "image",
+ "image 0.25.5",
  "pollster",
  "wgpu",
 ]

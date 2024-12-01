@@ -18,7 +18,8 @@ cfg-if = "1"
 anyhow = "1.0"
 tobj = { version = "3.2", features = ["async"] }
 instant = "0.1"
-image = { workspace = true, default_features = false, features = [
+# image 0.25.5 版本中, read_image_transform 被改成了私有方法, 所以使用 0.24 版本
+image = { version = "=0.24.6", default_features = false, features = [
     "png",
     "jpeg",
     "hdr",

@@ -352,7 +352,7 @@ impl WgpuAppAction for WgpuApp {
         });
 
         let obj_model =
-            resources::load_model("cube.obj", &device, &queue, &texture_bind_group_layout)
+            resources::load_model("cube.obj", device, queue, &texture_bind_group_layout)
                 .await
                 .unwrap();
 
@@ -394,7 +394,7 @@ impl WgpuAppAction for WgpuApp {
         });
 
         let depth_texture =
-            texture::Texture::create_depth_texture(&device, &config, "depth_texture");
+            texture::Texture::create_depth_texture(device, config, "depth_texture");
 
         let render_pipeline_layout =
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
@@ -414,7 +414,7 @@ impl WgpuAppAction for WgpuApp {
             };
             let shader = device.create_shader_module(desc);
             create_render_pipeline(
-                &device,
+                device,
                 &render_pipeline_layout,
                 config.format,
                 Some(texture::Texture::DEPTH_FORMAT),
@@ -435,7 +435,7 @@ impl WgpuAppAction for WgpuApp {
             };
             let shader = device.create_shader_module(desc);
             create_render_pipeline(
-                &device,
+                device,
                 &layout,
                 config.format,
                 Some(texture::Texture::DEPTH_FORMAT),
@@ -449,16 +449,16 @@ impl WgpuAppAction for WgpuApp {
             let normal_bytes = include_bytes!("../res/cobble-normal.png");
 
             let diffuse_texture = texture::Texture::from_bytes(
-                &device,
-                &queue,
+                device,
+                queue,
                 diffuse_bytes,
                 "res/alt-diffuse.png",
                 false,
             )
             .unwrap();
             let normal_texture = texture::Texture::from_bytes(
-                &device,
-                &queue,
+                device,
+                queue,
                 normal_bytes,
                 "res/alt-normal.png",
                 true,
@@ -466,7 +466,7 @@ impl WgpuAppAction for WgpuApp {
             .unwrap();
 
             model::Material::new(
-                &device,
+                device,
                 "alt-material",
                 diffuse_texture,
                 normal_texture,
@@ -478,7 +478,7 @@ impl WgpuAppAction for WgpuApp {
         let min_max_height = (-5.0, 5.0).into();
         // let min_max_height = (0.0, 10.0).into();
         let terrain_pipeline = terrain::TerrainPipeline::new(
-            &device,
+            device,
             chunk_size,
             min_max_height,
             &camera_bind_group_layout,
@@ -487,7 +487,7 @@ impl WgpuAppAction for WgpuApp {
             Some(texture::Texture::DEPTH_FORMAT),
         );
         let terrain_hack_pipeline = terrain::TerrainHackPipeline::new(
-            &device,
+            device,
             chunk_size,
             min_max_height,
             &camera_bind_group_layout,
@@ -497,7 +497,7 @@ impl WgpuAppAction for WgpuApp {
         );
 
         let mut terrain = terrain::Terrain::new(chunk_size, min_max_height);
-        terrain.gen_chunk(&device, &queue, &terrain_hack_pipeline, glam::Vec3::ZERO);
+        terrain.gen_chunk(device, queue, &terrain_hack_pipeline, glam::Vec3::ZERO);
         // terrain.gen_chunk(&device, &queue, &terrain_hack_pipeline, (0.0, 0.0, -(chunk_size.y as f32)).into());
         // terrain.gen_chunk(&device, &queue, &terrain_hack_pipeline, (-(chunk_size.x as f32), 0.0, -(chunk_size.y as f32)).into());
         // terrain.gen_chunk(&device, &queue, &terrain_hack_pipeline, (-(chunk_size.x as f32), 0.0, 0.0).into());
