@@ -159,7 +159,7 @@ console_error_panic_hook = "0.1.7"
 console_log = "1.0"
 wasm-bindgen = "0.2.97"
 wasm-bindgen-futures = "0.4.47"
- { version = "0.3.74", features = [
+web-sys = { version = "0.3.74", features = [
     "Document",
     "Window",
     "Element",
