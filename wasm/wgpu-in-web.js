@@ -264,7 +264,7 @@ function __wbg_adapter_34(arg0, arg1, arg2) {
 }
 
 function __wbg_adapter_101(arg0, arg1, arg2, arg3) {
-    wasm.closure70_externref_shim(arg0, arg1, arg2, arg3);
+    wasm.closure64_externref_shim(arg0, arg1, arg2, arg3);
 }
 
 const __wbindgen_enum_GpuCompilationMessageType = ["error", "warning", "info"];
@@ -1292,15 +1292,15 @@ function __wbg_get_imports() {
         const ret = false;
         return ret;
     };
-    imports.wbg.__wbindgen_closure_wrapper1393 = function(arg0, arg1, arg2) {
+    imports.wbg.__wbindgen_closure_wrapper1391 = function(arg0, arg1, arg2) {
         const ret = makeMutClosure(arg0, arg1, 109, __wbg_adapter_34);
         return ret;
     };
-    imports.wbg.__wbindgen_closure_wrapper2180 = function(arg0, arg1, arg2) {
+    imports.wbg.__wbindgen_closure_wrapper2176 = function(arg0, arg1, arg2) {
         const ret = makeMutClosure(arg0, arg1, 109, __wbg_adapter_34);
         return ret;
     };
-    imports.wbg.__wbindgen_closure_wrapper2185 = function(arg0, arg1, arg2) {
+    imports.wbg.__wbindgen_closure_wrapper2181 = function(arg0, arg1, arg2) {
         const ret = makeMutClosure(arg0, arg1, 109, __wbg_adapter_34);
         return ret;
     };
