@@ -14,7 +14,6 @@ glam.workspace = true
 instant.workspace = true
 env_logger.workspace = true
 log.workspace = true
-pollster.workspace = true
 tobj = { workspace = true, features = ["async"] }
 winit.workspace = true
 wgpu.workspace = true

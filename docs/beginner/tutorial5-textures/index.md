@@ -434,7 +434,6 @@ glam = "0.29"
 winit = "0.30"
 env_logger = "0.11"
 log = "0.4"
-pollster = "0.3"
 wgpu = "23"
 bytemuck = { version = "1.19", features = [ "derive" ] }
 anyhow = "1.0" # NEW!

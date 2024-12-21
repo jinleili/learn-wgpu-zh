@@ -9,9 +9,8 @@ app-surface.workspace = true
 bytemuck.workspace = true
 env_logger.workspace = true
 log.workspace = true
-pollster.workspace = true
 winit.workspace = true
-wgpu.workspace = true
+wgpu = { workspace = true }
 glam.workspace = true
 utils.workspace = true
 cfg-if = "1"
@@ -19,11 +18,7 @@ anyhow = "1.0"
 tobj = { version = "3.2", features = ["async"] }
 instant = "0.1"
 # image 0.25.5 版本中, read_image_transform 被改成了私有方法, 所以使用 0.24 版本
-image = { version = "=0.24.6", default_features = false, features = [
-    "png",
-    "jpeg",
-    "hdr",
-] }
+image = { version = "=0.24.6", features = ["png", "jpeg", "hdr"] }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 console_error_panic_hook.workspace = true

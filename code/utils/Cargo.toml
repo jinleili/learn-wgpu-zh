@@ -10,25 +10,26 @@ app-surface.workspace = true
 bytemuck.workspace = true
 cfg-if.workspace = true
 env_logger.workspace = true
-instant.workspace = true
 log.workspace = true
-parking_lot.workspace = true
-pollster.workspace = true
+parking_lot = { workspace = true }
 winit.workspace = true
 wgpu.workspace = true
 glam.workspace = true
-png = "0.17"
-image.workspace = true
+image = { workspace = true, features = ["png", "jpeg"] }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+# 需要避免在 wasm 中添加 pollster 依赖，否则会导致 wasm 加载时报错：
+# An error occurred loading "XXX": TypeError: Failed to resolve module specifier "env". Relative references must start with either "/", "./", or "../".
+pollster.workspace = true
+instant = { workspace = true, features = ["now"] }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
+instant = { version = "0.1.13", features = ["now", "wasm-bindgen"] }
 console_error_panic_hook.workspace = true
 console_log.workspace = true
 fern.workspace = true
-js-sys.workspace = true
 reqwest = "0.11"
-wasm-bindgen.workspace = true
 wasm-bindgen-futures.workspace = true
-web-time.workspace = true
 web-sys = { workspace = true, features = [
     "Document",
     "Window",

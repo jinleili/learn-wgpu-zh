@@ -10,7 +10,6 @@ app-surface.workspace = true
 bytemuck.workspace = true
 env_logger.workspace = true
 log.workspace = true
-pollster.workspace = true
 winit.workspace = true
 wgpu.workspace = true
 glam.workspace = true

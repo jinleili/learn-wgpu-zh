@@ -319,7 +319,11 @@ winit = "0.30"
 env_logger = "0.11"
 log = "0.4"
 wgpu = "23"
-pollster = "0.3"
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+# 需要避免在 wasm 中添加 pollster 依赖，否则会导致 wasm 加载时报错：
+# An error occurred loading "XXX": TypeError: Failed to resolve module specifier "env". Relative references must start with either "/", "./", or "../".
+pollster = 0.3
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 console_error_panic_hook = "0.1.7"

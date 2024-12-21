@@ -14,7 +14,6 @@ winit.workspace = true
 env_logger.workspace = true
 log.workspace = true
 wgpu = { workspace = true }
-pollster.workspace = true
 app-surface = { workspace = true }
 utils.workspace = true
 
@@ -26,12 +25,7 @@ js-sys.workspace = true
 wasm-bindgen.workspace = true
 wasm-bindgen-futures.workspace = true
 web-time.workspace = true
-web-sys = { workspace = true, features = [
-    "Document",
-    "Window",
-    "Element",
-    "HtmlCanvasElement",
-] }
+web-sys = { workspace = true, features = ["Document", "Window", "Element"] }
 
 [[bin]]
 name = "tutorial3-challenge"

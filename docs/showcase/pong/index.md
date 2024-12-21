@@ -268,13 +268,18 @@ winit = "0.28.7"
 anyhow = "1.0"
 bytemuck = { version = "1.14", features = [ "derive" ] }
 cgmath = "0.18"
-pollster = "0.3"
 wgpu = { version = "0.16", features = ["spirv"]}
 wgpu_glyph = "0.17"
 rand = "0.8"
 rodio = { version = "0.15", default-features = false, features = ["wav"] }
 log = "0.4"
 instant = "0.1"
+
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+# 需要避免在 wasm 中添加 pollster 依赖，否则会导致 wasm 加载时报错：
+# An error occurred loading "XXX": TypeError: Failed to resolve module specifier "env". Relative references must start with either "/", "./", or "../".
+pollster.workspace = true
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 console_error_panic_hook = "0.1.6"

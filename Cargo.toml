@@ -9,10 +9,7 @@ members = [
     "code/showcase/*",
     "run-wasm",
 ]
-exclude = [
-    "code/showcase/imgui-demo",
-    "code/showcase/pong",
-]
+exclude = ["code/showcase/imgui-demo", "code/showcase/pong"]
 
 [workspace.package]
 edition = "2021"
@@ -23,14 +20,14 @@ version = "0.25"
 default-features = false
 
 [workspace.dependencies]
-app-surface = "1.3.1"
+app-surface = "1.3.2"
 # app-surface = { path = "../idroid/wgpu-in-app/app-surface", default-features = false }
-bytemuck = { version = "1.19", features = ["derive"] }
+bytemuck = { version = "1.19" }
 cfg-if = "1"
 glam = "0.29"
 env_logger = "0.11"
 flume = "0.11"
-instant = "0.1"
+instant = "0.1.13"
 log = "0.4"
 pollster = "0.3"
 parking_lot = "0.12"
@@ -45,10 +42,10 @@ console_error_panic_hook = "0.1.7"
 console_log = "1.0"
 fern = "0.7"
 reqwest = { version = "0.11" }
-web-sys = "0.3.74"
-wasm-bindgen = "0.2.97"
-js-sys = "0.3.74"
-wasm-bindgen-futures = "0.4.47"
+web-sys = "0.3.76"
+wasm-bindgen = "0.2.99"
+js-sys = "0.3.76"
+wasm-bindgen-futures = "0.4.49"
 web-time = "1"
 
 # build-dependencies
