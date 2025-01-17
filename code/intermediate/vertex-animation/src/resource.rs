@@ -26,7 +26,7 @@ pub fn load_a_texture(app: &app_surface::AppSurface, img_data: &[u8]) -> AnyText
     app.queue.write_texture(
         texture.as_image_copy(),
         &buf,
-        wgpu::ImageDataLayout {
+        wgpu::TexelCopyBufferLayout {
             offset: 0,
             bytes_per_row: Some(info.width * 4),
             rows_per_image: None,

@@ -70,14 +70,14 @@ pub async fn from_path(
         ..Default::default()
     });
     app.queue.write_texture(
-        wgpu::ImageCopyTexture {
+        wgpu::TexelCopyTextureInfo {
             texture: &texture,
             mip_level: 0,
             origin: wgpu::Origin3d::ZERO,
             aspect: wgpu::TextureAspect::All,
         },
         &texels,
-        wgpu::ImageDataLayout {
+        wgpu::TexelCopyBufferLayout {
             offset: 0,
             bytes_per_row: Some(pixel_bytes * texture_extent.width),
             rows_per_image: Some(texture_extent.height),

@@ -24,7 +24,7 @@ pub fn load_a_texture(app_surface: &app_surface::AppSurface) -> (wgpu::Texture, 
     app_surface.queue.write_texture(
         texture.as_image_copy(),
         &buf,
-        wgpu::ImageDataLayout {
+        wgpu::TexelCopyBufferLayout {
             offset: 0,
             bytes_per_row: Some(info.width * 4),
             rows_per_image: None,

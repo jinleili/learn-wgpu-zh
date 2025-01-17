@@ -1,5 +1,5 @@
 async fn run() {
-    let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
+    let instance = wgpu::Instance::new(&wgpu::InstanceDescriptor {
         backends: wgpu::Backends::all(),
         ..Default::default()
     });
@@ -127,15 +127,15 @@ async fn run() {
     }
 
     encoder.copy_texture_to_buffer(
-        wgpu::ImageCopyTexture {
+        wgpu::TexelCopyTextureInfo {
             aspect: wgpu::TextureAspect::All,
             texture: &texture,
             mip_level: 0,
             origin: wgpu::Origin3d::ZERO,
         },
-        wgpu::ImageCopyBuffer {
+        wgpu::TexelCopyBufferInfo {
             buffer: &output_buffer,
-            layout: wgpu::ImageDataLayout {
+            layout: wgpu::TexelCopyBufferLayout {
                 offset: 0,
                 bytes_per_row: Some(u32_size * texture_size),
                 rows_per_image: Some(texture_size),
@@ -167,7 +167,7 @@ async fn run() {
             buffer.save("image.png").unwrap();
 
             println!("保存图片成功！");
-            
+
             // 须确保在解除缓冲区映射之前已删除所有已映射的视图
             drop(buffer);
             // 解除缓冲区映射

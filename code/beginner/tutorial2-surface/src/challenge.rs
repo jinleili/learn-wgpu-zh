@@ -29,7 +29,7 @@ impl WgpuApp {
     async fn new(window: Arc<Window>) -> Self {
         if cfg!(not(target_arch = "wasm32")) {
             // 计算一个默认显示高度
-            let height = 700 * window.scale_factor() as u32;
+            let height = 600 * window.scale_factor() as u32;
             let width = (height as f32 * 1.6) as u32;
             let _ = window.request_inner_size(PhysicalSize::new(width, height));
         }
@@ -72,7 +72,7 @@ impl WgpuApp {
 
         // The instance is a handle to our GPU
         // BackendBit::PRIMARY => Vulkan + Metal + DX12 + Browser WebGPU
-        let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
+        let instance = wgpu::Instance::new(&wgpu::InstanceDescriptor {
             backends: wgpu::Backends::all(),
             ..Default::default()
         });

@@ -76,7 +76,7 @@ let diffuse_texture = device.create_texture(
 ```rust
 queue.write_texture(
     // 告诉 wgpu 将像素数据复制到何处
-    wgpu::ImageCopyTexture {
+    wgpu::TexelCopyTextureInfo {
         texture: &diffuse_texture,
         mip_level: 0,
         origin: wgpu::Origin3d::ZERO,
@@ -85,7 +85,7 @@ queue.write_texture(
     // 实际像素数据
     &diffuse_rgba,
     // 纹理的内存布局
-    wgpu::ImageDataLayout {
+    wgpu::TexelCopyBufferLayout {
         offset: 0,
         bytes_per_row: Some(4 * dimensions.0),
         rows_per_image: Some(dimensions.1),
@@ -112,13 +112,13 @@ let mut encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor 
 });
 
 encoder.copy_buffer_to_texture(
-    wgpu::ImageCopyBuffer {
+    wgpu::TexelCopyBufferInfo {
         buffer: &buffer,
         offset: 0,
         bytes_per_row: 4 * dimensions.0,
         rows_per_image: dimensions.1,
     },
-    wgpu::ImageCopyTexture {
+    wgpu::TexelCopyTextureInfo {
         texture: &diffuse_texture,
         mip_level: 0,
         array_layer: 0,
@@ -490,14 +490,14 @@ impl Texture {
         );
 
         queue.write_texture(
-            wgpu::ImageCopyTexture {
+            wgpu::TexelCopyTextureInfo {
                 aspect: wgpu::TextureAspect::All,
                 texture: &texture,
                 mip_level: 0,
                 origin: wgpu::Origin3d::ZERO,
             },
             &rgba,
-            wgpu::ImageDataLayout {
+            wgpu::TexelCopyBufferLayout {
                 offset: 0,
                 bytes_per_row: Some(4 * dimensions.0),
                 rows_per_image: Some(dimensions.1),

@@ -189,15 +189,15 @@ let mut encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor 
 
 ```rust
 encoder.copy_texture_to_buffer(
-    wgpu::ImageCopyTexture {
+    wgpu::TexelCopyTextureInfo {
         aspect: wgpu::TextureAspect::All,
-                texture: &texture,
+        texture: &texture,
         mip_level: 0,
         origin: wgpu::Origin3d::ZERO,
     },
-    wgpu::ImageCopyBuffer {
+    wgpu::TexelCopyBufferInfo {
         buffer: &output_buffer,
-        layout: wgpu::ImageDataLayout {
+        layout: wgpu::TexelCopyBufferLayout {
             offset: 0,
             bytes_per_row: u32_size * texture_size,
             rows_per_image: texture_size,

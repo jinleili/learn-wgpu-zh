@@ -98,7 +98,7 @@ impl<A: WgpuAppAction> WgpuAppHandler<A> {
         window.set_title(self.title);
         if cfg!(not(target_arch = "wasm32")) {
             // 计算一个默认显示高度
-            let height = 700 * window.scale_factor() as u32;
+            let height = 600 * window.scale_factor() as u32;
             let width = height;
             let _ = window.request_inner_size(PhysicalSize::new(width, height));
         }

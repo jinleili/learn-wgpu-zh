@@ -93,7 +93,7 @@ impl WgpuApp {
     async fn new(Arc<Window>) -> Self {
         // instance 变量是 GPU 实例
         // Backends::all 对应 Vulkan、Metal、DX12、WebGL 等所有后端图形驱动
-        let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
+        let instance = wgpu::Instance::new(&wgpu::InstanceDescriptor {
             backends: wgpu::Backends::all(),
             ..Default::default()
         });
