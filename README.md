@@ -78,6 +78,7 @@ cargo run-wasm --bin tutorial1-window --features webgl
 Chrome 113+、Microsoft Edge 113+ 及 Arc 浏览器均已默认支持 WebGPU 功能。
 
 ### Safari
+
 Safari 18 (macOS 15) 已经默认开启了 WebGPU 功能。
 
 macOS 14- 系统上，需安装 [Safari Technology Preview 185+](https://www.webkit.org/blog/14879/webgpu-now-available-for-testing-in-safari-technology-preview/)，从顶部菜单栏选择 `开发 -> 功能标志` , 搜索并勾选 `WebGPU`:
@@ -90,7 +91,7 @@ macOS 14- 系统上，需安装 [Safari Technology Preview 185+](https://www.web
 
 ## 关于译者
 
-我是一名移动端架构师, 有多年使用 OpenGL / WebGL, Metal 的实践经验。2018 年开始接触 WebGPU，目前正积极地参与到 [wgpu 开源项目的开发与完善](https://github.com/gfx-rs/wgpu/commits?author=jinleili)之中，并且已于两年前在 AppStore 上架了基于 wgpu 实现的毛笔书法模拟 App [字习 Pro](https://apps.apple.com/cn/app/字习-pro/id1507339788)。
+我是一名移动端架构师, 有多年使用 OpenGL / WebGL, Metal 的实践经验。2018 年开始接触 WebGPU，目前正积极地参与到 [wgpu 开源项目的开发与完善](https://github.com/gfx-rs/wgpu/commits?author=jinleili)之中，并且已于 2020 年在 AppStore 上架了基于 wgpu 实现的毛笔书法模拟 App [字习 Pro](https://apps.apple.com/cn/app/字习-pro/id1507339788)。
 
 ## 加入 wgpu 微信学习交流群
 

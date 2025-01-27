@@ -176,9 +176,9 @@ impl WgpuApp {
             // 再更新 projection, hdr, depth_texture
             self.projection.resize(self.size.width, self.size.height);
             self.hdr
-                .resize(self.app.device.as_ref(), self.size.width, self.size.height);
+                .resize(&self.app.device, self.size.width, self.size.height);
             self.depth_texture = texture::Texture::create_depth_texture(
-                self.app.device.as_ref(),
+                &self.app.device,
                 &self.app.config,
                 "depth_texture",
             );
@@ -260,8 +260,8 @@ impl WgpuAppAction for WgpuApp {
         let surface_format = app.config.format.remove_srgb_suffix();
         app.ctx.update_config_format(surface_format);
 
-        let device = app.device.as_ref();
-        let queue = app.queue.as_ref();
+        let device = &app.device;
+        let queue = &app.queue;
         let config = &app.config;
 
         let texture_bind_group_layout =
@@ -671,7 +671,7 @@ impl WgpuAppAction for WgpuApp {
             .app
             .get_current_frame_view(Some(self.app.config.format.add_srgb_suffix()));
 
-        let device = self.app.device.as_ref();
+        let device = &self.app.device;
         let mut encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
             label: Some("Render Encoder"),
         });

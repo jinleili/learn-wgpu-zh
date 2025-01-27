@@ -20,7 +20,7 @@ version = "0.25"
 default-features = false
 
 [workspace.dependencies]
-app-surface = "1.4.2"
+app-surface = "1.5.0"
 # app-surface = { path = "../idroid/wgpu-in-app/app-surface", default-features = false }
 bytemuck = { version = "1.21", features = ["derive"] }
 cfg-if = "1"
