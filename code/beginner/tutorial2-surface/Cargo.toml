@@ -26,7 +26,6 @@ fern.workspace = true
 js-sys.workspace = true
 wasm-bindgen.workspace = true
 wasm-bindgen-futures.workspace = true
-web-time.workspace = true
 web-sys = { workspace = true, features = ["Document", "Window", "Element"] }
 
 [[bin]]

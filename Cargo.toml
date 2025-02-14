@@ -29,7 +29,7 @@ env_logger = "0.11"
 flume = "0.11"
 instant = "0.1.13"
 log = "0.4"
-pollster = "0.3"
+pollster = "0.4"
 parking_lot = "0.12"
 rayon = "1.8"
 tobj = "3.2"
@@ -42,11 +42,10 @@ console_error_panic_hook = "0.1.7"
 console_log = "1.0"
 fern = "0.7"
 reqwest = { version = "0.11" }
-web-sys = "0.3.77"
+web-sys = { version = "0.3.77", default-features = false }
 wasm-bindgen = "0.2.100"
-js-sys = "0.3.77"
+js-sys = { version = "0.3.77", default-features = false }
 wasm-bindgen-futures = "0.4.50"
-web-time = "1"
 
 # build-dependencies
 anyhow = "1.0"

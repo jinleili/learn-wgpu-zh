@@ -135,57 +135,57 @@ fn calcTangentBitangent(vertexIndex: u32) -> ModelVertex {
                     let _e75 = index2_;
                     let _e77 = global.srcVertices[_e75];
                     v2_ = _e77;
-                    let _e80 = v0_;
-                    let _e81 = getPos(_e80);
-                    pos0_ = _e81;
-                    let _e84 = v1_;
-                    let _e85 = getPos(_e84);
-                    pos1_ = _e85;
-                    let _e88 = v2_;
-                    let _e89 = getPos(_e88);
-                    pos2_ = _e89;
-                    let _e92 = v0_;
-                    let _e93 = getUV(_e92);
-                    uv0_ = _e93;
-                    let _e96 = v1_;
-                    let _e97 = getUV(_e96);
-                    uv1_ = _e97;
-                    let _e100 = v2_;
-                    let _e101 = getUV(_e100);
-                    uv2_ = _e101;
-                    let _e103 = pos1_;
-                    let _e104 = pos0_;
-                    delta_pos1_ = (_e103 - _e104);
-                    let _e107 = pos2_;
-                    let _e108 = pos0_;
-                    delta_pos2_ = (_e107 - _e108);
-                    let _e111 = uv1_;
-                    let _e112 = uv0_;
-                    delta_uv1_ = (_e111 - _e112);
-                    let _e115 = uv2_;
-                    let _e116 = uv0_;
-                    delta_uv2_ = (_e115 - _e116);
-                    let _e120 = delta_uv1_;
-                    let _e122 = delta_uv2_;
-                    let _e125 = delta_uv1_;
-                    let _e127 = delta_uv2_;
-                    r = (1f / ((_e120.x * _e122.y) - (_e125.y * _e127.x)));
-                    let _e133 = tangent;
-                    let _e134 = delta_pos1_;
-                    let _e135 = delta_uv2_;
-                    let _e138 = delta_pos2_;
-                    let _e139 = delta_uv1_;
-                    let _e143 = r;
-                    tangent = (_e133 + (((_e134 * _e135.y) - (_e138 * _e139.y)) * _e143));
-                    let _e146 = bitangent;
-                    let _e147 = delta_pos2_;
-                    let _e148 = delta_uv1_;
-                    let _e151 = delta_pos1_;
-                    let _e152 = delta_uv2_;
-                    let _e156 = r;
-                    bitangent = (_e146 + (((_e147 * _e148.x) - (_e151 * _e152.x)) * _e156));
-                    let _e159 = trianglesIncluded;
-                    trianglesIncluded = (_e159 + 1u);
+                    let _e79 = v0_;
+                    let _e80 = getPos(_e79);
+                    pos0_ = _e80;
+                    let _e82 = v1_;
+                    let _e83 = getPos(_e82);
+                    pos1_ = _e83;
+                    let _e85 = v2_;
+                    let _e86 = getPos(_e85);
+                    pos2_ = _e86;
+                    let _e88 = v0_;
+                    let _e89 = getUV(_e88);
+                    uv0_ = _e89;
+                    let _e91 = v1_;
+                    let _e92 = getUV(_e91);
+                    uv1_ = _e92;
+                    let _e94 = v2_;
+                    let _e95 = getUV(_e94);
+                    uv2_ = _e95;
+                    let _e97 = pos1_;
+                    let _e98 = pos0_;
+                    delta_pos1_ = (_e97 - _e98);
+                    let _e101 = pos2_;
+                    let _e102 = pos0_;
+                    delta_pos2_ = (_e101 - _e102);
+                    let _e105 = uv1_;
+                    let _e106 = uv0_;
+                    delta_uv1_ = (_e105 - _e106);
+                    let _e109 = uv2_;
+                    let _e110 = uv0_;
+                    delta_uv2_ = (_e109 - _e110);
+                    let _e114 = delta_uv1_;
+                    let _e116 = delta_uv2_;
+                    let _e119 = delta_uv1_;
+                    let _e121 = delta_uv2_;
+                    r = (1f / ((_e114.x * _e116.y) - (_e119.y * _e121.x)));
+                    let _e127 = tangent;
+                    let _e128 = delta_pos1_;
+                    let _e129 = delta_uv2_;
+                    let _e132 = delta_pos2_;
+                    let _e133 = delta_uv1_;
+                    let _e137 = r;
+                    tangent = (_e127 + (((_e128 * _e129.y) - (_e132 * _e133.y)) * _e137));
+                    let _e140 = bitangent;
+                    let _e141 = delta_pos2_;
+                    let _e142 = delta_uv1_;
+                    let _e145 = delta_pos1_;
+                    let _e146 = delta_uv2_;
+                    let _e150 = r;
+                    bitangent = (_e140 + (((_e141 * _e142.x) - (_e145 * _e146.x)) * _e150));
+                    let _e153 = trianglesIncluded;
+                    trianglesIncluded = (_e153 + 1u);
                 }
             }
         }
@@ -194,35 +194,35 @@ fn calcTangentBitangent(vertexIndex: u32) -> ModelVertex {
             i = (_e34 + 3u);
         }
     }
-    let _e163 = trianglesIncluded;
-    if (_e163 > 0u) {
+    let _e157 = trianglesIncluded;
+    if (_e157 > 0u) {
         {
-            let _e167 = tangent;
-            let _e168 = trianglesIncluded;
-            tangent = (_e167 / vec3(f32(_e168)));
-            let _e172 = bitangent;
-            let _e173 = trianglesIncluded;
-            bitangent = (_e172 / vec3(f32(_e173)));
-            let _e178 = tangent;
-            tangent = normalize(_e178);
-            let _e181 = bitangent;
-            bitangent = normalize(_e181);
+            let _e161 = tangent;
+            let _e162 = trianglesIncluded;
+            tangent = (_e161 / vec3(f32(_e162)));
+            let _e166 = bitangent;
+            let _e167 = trianglesIncluded;
+            bitangent = (_e166 / vec3(f32(_e167)));
+            let _e171 = tangent;
+            tangent = normalize(_e171);
+            let _e173 = bitangent;
+            bitangent = normalize(_e173);
         }
     }
-    let _e184 = tangent;
-    v_6.tx = _e184.x;
-    let _e187 = tangent;
-    v_6.ty = _e187.y;
-    let _e190 = tangent;
-    v_6.tz = _e190.z;
-    let _e193 = bitangent;
-    v_6.bx = _e193.x;
-    let _e196 = bitangent;
-    v_6.by = _e196.y;
-    let _e199 = bitangent;
-    v_6.bz = _e199.z;
-    let _e201 = v_6;
-    return _e201;
+    let _e176 = tangent;
+    v_6.tx = _e176.x;
+    let _e179 = tangent;
+    v_6.ty = _e179.y;
+    let _e182 = tangent;
+    v_6.tz = _e182.z;
+    let _e185 = bitangent;
+    v_6.bx = _e185.x;
+    let _e188 = bitangent;
+    v_6.by = _e188.y;
+    let _e191 = bitangent;
+    v_6.bz = _e191.z;
+    let _e193 = v_6;
+    return _e193;
 }
 
 fn main_1() {
@@ -231,12 +231,12 @@ fn main_1() {
 
     let _e11 = gl_GlobalInvocationID_1;
     vertexIndex_2 = _e11.x;
-    let _e15 = vertexIndex_2;
-    let _e16 = calcTangentBitangent(_e15);
-    result = _e16;
-    let _e18 = vertexIndex_2;
-    let _e20 = result;
-    global_1.dstVertices[_e18] = _e20;
+    let _e14 = vertexIndex_2;
+    let _e15 = calcTangentBitangent(_e14);
+    result = _e15;
+    let _e17 = vertexIndex_2;
+    let _e19 = result;
+    global_1.dstVertices[_e17] = _e19;
     return;
 }
 

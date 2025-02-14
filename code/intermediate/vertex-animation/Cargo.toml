@@ -17,13 +17,3 @@ glam.workspace = true
 png = "0.17"
 utils.workspace = true
 rand = "0.8"
-
-[target.'cfg(target_arch = "wasm32")'.dependencies]
-console_error_panic_hook.workspace = true
-console_log.workspace = true
-fern.workspace = true
-js-sys.workspace = true
-web-sys = { workspace = true, features = ["Document", "Window", "Element"] }
-wasm-bindgen.workspace = true
-wasm-bindgen-futures.workspace = true
-web-time.workspace = true
