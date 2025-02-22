@@ -4,7 +4,7 @@ on:
   push:
     branches: [master]
 env:
-  RUST_VERSION: 1.83
+  RUST_VERSION: 1.85
   CARGO_TERM_COLOR: always
 jobs:
   build:

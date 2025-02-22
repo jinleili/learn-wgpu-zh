@@ -1,5 +1,5 @@
 use parking_lot::Mutex;
-use std::{iter, rc::Rc, sync::Arc};
+use std::{rc::Rc, sync::Arc};
 use winit::dpi::PhysicalSize;
 use winit::{
     application::ApplicationHandler,
@@ -180,7 +180,7 @@ impl WgpuApp {
             });
         }
 
-        self.queue.submit(iter::once(encoder.finish()));
+        self.queue.submit(Some(encoder.finish()));
         output.present();
 
         Ok(())

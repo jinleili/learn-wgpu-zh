@@ -288,7 +288,7 @@ impl GenerateChunk for TerrainPipeline {
         );
         drop(cpass);
 
-        queue.submit(std::iter::once(encoder.finish()));
+        queue.submit(Some(encoder.finish()));
         device.poll(wgpu::Maintain::Wait);
 
         // resources::export_mesh_data(&format!("{}.json", chunk.mesh.name), device, &chunk.mesh);
@@ -610,7 +610,7 @@ impl GenerateChunk for TerrainHackPipeline {
             },
         );
 
-        queue.submit(std::iter::once(encoder.finish()));
+        queue.submit(Some(encoder.finish()));
         {
             device.poll(wgpu::Maintain::Wait);
             let bs = chunk.mesh.index_buffer.slice(..);

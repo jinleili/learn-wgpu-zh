@@ -125,7 +125,7 @@ for c in &colors {
         render_target.desc.size
     );
 
-    queue.submit(std::iter::once(encoder.finish()));
+    queue.submit(Some(encoder.finish()));
 
     // 创建一个缓冲区数据异步映射
     let buffer_slice = output_buffer.slice(..);

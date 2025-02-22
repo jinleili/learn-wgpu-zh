@@ -1,6 +1,6 @@
 use app_surface::{AppSurface, SurfaceFrame};
-use std::{iter, sync::Arc};
-use utils::{run, WgpuAppAction};
+use std::sync::Arc;
+use utils::{WgpuAppAction, run};
 use wgpu::util::DeviceExt;
 use winit::{dpi::PhysicalSize, event::*};
 
@@ -731,7 +731,7 @@ impl WgpuAppAction for WgpuApp {
         // 应用色调映射
         self.hdr.process(&mut encoder, &view);
 
-        self.app.queue.submit(iter::once(encoder.finish()));
+        self.app.queue.submit(Some(encoder.finish()));
         output.present();
 
         Ok(())

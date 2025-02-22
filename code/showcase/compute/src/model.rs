@@ -368,7 +368,7 @@ impl ModelLoader {
                     pass.set_bind_group(0, &calc_bind_group, &[]);
                     pass.dispatch_workgroups(binding.compute_info.num_vertices, 1, 1);
                 }
-                queue.submit(std::iter::once(encoder.finish()));
+                queue.submit(Some(encoder.finish()));
                 device.poll(wgpu::Maintain::Wait);
 
                 Ok(Mesh {

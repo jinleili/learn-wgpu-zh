@@ -1,6 +1,6 @@
 use crate::{hilbert_curve::HilbertCurve, line::Line};
 use app_surface::{AppSurface, SurfaceFrame};
-use std::{iter, sync::Arc};
+use std::sync::Arc;
 use utils::{BufferObj, SceneUniform, WgpuAppAction};
 use winit::dpi::PhysicalSize;
 
@@ -235,7 +235,7 @@ impl WgpuAppAction for HilbertCurveApp {
 
             rpass.draw(0..6, 0..instance_count);
         }
-        self.app.queue.submit(iter::once(encoder.finish()));
+        self.app.queue.submit(Some(encoder.finish()));
         output.present();
 
         Ok(())

@@ -1,6 +1,6 @@
 use app_surface::{AppSurface, SurfaceFrame};
-use std::{iter, sync::Arc};
-use utils::framework::{run, WgpuAppAction};
+use std::sync::Arc;
+use utils::framework::{WgpuAppAction, run};
 use wgpu::util::DeviceExt;
 use winit::dpi::PhysicalSize;
 
@@ -80,9 +80,7 @@ impl WgpuApp {
 }
 
 impl WgpuAppAction for WgpuApp {
-    async fn new(
-        window: Arc<winit::window::Window>,
-    ) -> Self {
+    async fn new(window: Arc<winit::window::Window>) -> Self {
         // 创建 wgpu 应用
         let app = AppSurface::new(window).await;
 
@@ -101,52 +99,52 @@ impl WgpuAppAction for WgpuApp {
                     push_constant_ranges: &[],
                 });
 
-        let render_pipeline =
-            app.device
-                .create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-                    label: Some("Render Pipeline"),
-                    layout: Some(&render_pipeline_layout),
-                    vertex: wgpu::VertexState {
-                        module: &shader,
-                        entry_point: Some("vs_main"),
-                        compilation_options: Default::default(),
-                        buffers: &[Vertex::desc()],
-                    },
-                    fragment: Some(wgpu::FragmentState {
-                        module: &shader,
-                        entry_point: Some("fs_main"),
-                        compilation_options: Default::default(),
-                        targets: &[Some(wgpu::ColorTargetState {
-                            format: app.config.format.add_srgb_suffix(),
-                            blend: Some(wgpu::BlendState {
-                                color: wgpu::BlendComponent::REPLACE,
-                                alpha: wgpu::BlendComponent::REPLACE,
-                            }),
-                            write_mask: wgpu::ColorWrites::ALL,
-                        })],
-                    }),
-                    primitive: wgpu::PrimitiveState {
-                        topology: wgpu::PrimitiveTopology::TriangleList,
-                        strip_index_format: None,
-                        front_face: wgpu::FrontFace::Ccw,
-                        cull_mode: Some(wgpu::Face::Back),
-                        polygon_mode: wgpu::PolygonMode::Fill,
-                        // Requires Features::DEPTH_CLIP_CONTROL
-                        unclipped_depth: false,
-                        // Requires Features::CONSERVATIVE_RASTERIZATION
-                        conservative: false,
-                    },
-                    depth_stencil: None,
-                    multisample: wgpu::MultisampleState {
-                        count: 1,
-                        mask: !0,
-                        alpha_to_coverage_enabled: false,
-                    },
-                    // If the pipeline will be used with a multiview render pass, this
-                    // indicates how many array layers the attachments will have.
-                    multiview: None,
-                    cache: None,
-                });
+        let render_pipeline = app
+            .device
+            .create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+                label: Some("Render Pipeline"),
+                layout: Some(&render_pipeline_layout),
+                vertex: wgpu::VertexState {
+                    module: &shader,
+                    entry_point: Some("vs_main"),
+                    compilation_options: Default::default(),
+                    buffers: &[Vertex::desc()],
+                },
+                fragment: Some(wgpu::FragmentState {
+                    module: &shader,
+                    entry_point: Some("fs_main"),
+                    compilation_options: Default::default(),
+                    targets: &[Some(wgpu::ColorTargetState {
+                        format: app.config.format.add_srgb_suffix(),
+                        blend: Some(wgpu::BlendState {
+                            color: wgpu::BlendComponent::REPLACE,
+                            alpha: wgpu::BlendComponent::REPLACE,
+                        }),
+                        write_mask: wgpu::ColorWrites::ALL,
+                    })],
+                }),
+                primitive: wgpu::PrimitiveState {
+                    topology: wgpu::PrimitiveTopology::TriangleList,
+                    strip_index_format: None,
+                    front_face: wgpu::FrontFace::Ccw,
+                    cull_mode: Some(wgpu::Face::Back),
+                    polygon_mode: wgpu::PolygonMode::Fill,
+                    // Requires Features::DEPTH_CLIP_CONTROL
+                    unclipped_depth: false,
+                    // Requires Features::CONSERVATIVE_RASTERIZATION
+                    conservative: false,
+                },
+                depth_stencil: None,
+                multisample: wgpu::MultisampleState {
+                    count: 1,
+                    mask: !0,
+                    alpha_to_coverage_enabled: false,
+                },
+                // If the pipeline will be used with a multiview render pass, this
+                // indicates how many array layers the attachments will have.
+                multiview: None,
+                cache: None,
+            });
 
         let vertex_buffer = app
             .device
@@ -229,7 +227,7 @@ impl WgpuAppAction for WgpuApp {
             render_pass.draw_indexed(0..self.num_indices, 0, 0..1);
         }
 
-        self.app.queue.submit(iter::once(encoder.finish()));
+        self.app.queue.submit(Some(encoder.finish()));
         output.present();
 
         Ok(())

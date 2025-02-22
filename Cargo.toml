@@ -1,5 +1,5 @@
 [workspace]
-resolver = "2"
+resolver = "3"
 members = [
     "code/beginner/*",
     "code/intermediate/*",
@@ -12,8 +12,8 @@ members = [
 exclude = ["code/showcase/imgui-demo", "code/showcase/pong"]
 
 [workspace.package]
-edition = "2021"
-rust-version = "1.83"
+edition = "2024"
+rust-version = "1.85"
 
 [workspace.dependencies.image]
 version = "0.25"

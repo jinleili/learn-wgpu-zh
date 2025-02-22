@@ -1,4 +1,3 @@
-use std::iter;
 use std::sync::Arc;
 
 use app_surface::{AppSurface, SurfaceFrame};
@@ -8,7 +7,7 @@ use winit::{
     keyboard::{KeyCode, PhysicalKey},
 };
 
-use utils::framework::{run, WgpuAppAction};
+use utils::framework::{WgpuAppAction, run};
 
 struct WgpuApp {
     app: AppSurface,
@@ -220,7 +219,7 @@ impl WgpuAppAction for WgpuApp {
         render_pass.draw(0..3, 0..1);
         drop(render_pass);
 
-        self.app.queue.submit(iter::once(encoder.finish()));
+        self.app.queue.submit(Some(encoder.finish()));
         output.present();
 
         Ok(())

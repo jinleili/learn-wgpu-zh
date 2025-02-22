@@ -218,7 +218,7 @@ impl Render {
                     .unwrap();
 
                 self.staging_belt.finish();
-                self.queue.submit(iter::once(encoder.finish()));
+                self.queue.submit(Some(encoder.finish()));
                 frame.present();
             }
             Err(wgpu::SurfaceError::Outdated) => {

@@ -1,4 +1,4 @@
-use std::{iter, mem};
+use std::mem;
 
 async fn run() {
     let instance = wgpu::Instance::new(&wgpu::InstanceDescriptor {
@@ -124,7 +124,7 @@ async fn run() {
             render_target.size,
         );
 
-        queue.submit(iter::once(encoder.finish()));
+        queue.submit(Some(encoder.finish()));
 
         // Create the map request
         let buffer_slice = output_buffer.slice(..);

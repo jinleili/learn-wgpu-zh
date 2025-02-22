@@ -1,7 +1,7 @@
-use std::{f32::consts, iter, sync::Arc};
+use std::{f32::consts, sync::Arc};
 
 use app_surface::{AppSurface, SurfaceFrame};
-use utils::{run, WgpuAppAction};
+use utils::{WgpuAppAction, run};
 use wgpu::util::DeviceExt;
 use winit::{
     dpi::PhysicalSize,
@@ -657,7 +657,7 @@ impl WgpuAppAction for WgpuApp {
             );
         }
 
-        self.app.queue.submit(iter::once(encoder.finish()));
+        self.app.queue.submit(Some(encoder.finish()));
         output.present();
 
         Ok(())

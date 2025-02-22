@@ -1,6 +1,6 @@
 use app_surface::{AppSurface, SurfaceFrame};
-use std::{f32::consts, iter, sync::Arc};
-use utils::{run, WgpuAppAction};
+use std::{f32::consts, sync::Arc};
+use utils::{WgpuAppAction, run};
 use wgpu::util::DeviceExt;
 use winit::{dpi::PhysicalSize, event::*};
 mod camera;
@@ -629,7 +629,7 @@ impl WgpuAppAction for WgpuApp {
                 &self.light_bind_group,
             );
         }
-        self.app.queue.submit(iter::once(encoder.finish()));
+        self.app.queue.submit(Some(encoder.finish()));
         output.present();
 
         Ok(())

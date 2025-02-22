@@ -1,9 +1,9 @@
 pub mod framework;
-pub use framework::{run, WgpuAppAction};
+pub use framework::{WgpuAppAction, run};
 
 pub mod load_texture;
 pub use load_texture::{
-    bilinear_sampler, default_sampler, mirror_repeate_sampler, repeate_sampler, AnyTexture,
+    AnyTexture, bilinear_sampler, default_sampler, mirror_repeate_sampler, repeate_sampler,
 };
 pub mod node;
 

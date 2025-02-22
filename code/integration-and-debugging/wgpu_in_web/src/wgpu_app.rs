@@ -1,7 +1,6 @@
 use crate::{particle_gen::ParticleGen, particle_ink::ParticleInk};
 use app_surface::{AppSurface, SurfaceFrame};
-use glam::{uvec2, UVec2, Vec2};
-use std::iter;
+use glam::{UVec2, Vec2, uvec2};
 
 pub struct WgpuApp {
     app: AppSurface,
@@ -103,7 +102,7 @@ impl WgpuApp {
                 .enter_frame(&self.gen_node, &mut render_pass);
         }
 
-        self.app.queue.submit(iter::once(encoder.finish()));
+        self.app.queue.submit(Some(encoder.finish()));
         output.present();
 
         Ok(())

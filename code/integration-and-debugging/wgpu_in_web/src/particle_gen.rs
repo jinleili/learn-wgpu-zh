@@ -2,9 +2,8 @@ use app_surface::AppSurface;
 use bytemuck::{Pod, Zeroable};
 use rand::Rng;
 use utils::{
-    load_texture, matrix_helper,
+    AnyTexture, BufferObj, load_texture, matrix_helper,
     node::{BindGroupData, ComputeNode},
-    AnyTexture, BufferObj,
 };
 use wgpu::{BufferAddress, BufferUsages, TextureUsages};
 
@@ -150,12 +149,12 @@ impl ParticleGen {
             staging_buf,
         };
 
-        instance.gen(app).await;
+        instance.generate_particles(app).await;
 
         instance
     }
 
-    async fn gen(&mut self, app: &AppSurface) {
+    async fn generate_particles(&mut self, app: &AppSurface) {
         let mut encoder = app
             .device
             .create_command_encoder(&wgpu::CommandEncoderDescriptor {

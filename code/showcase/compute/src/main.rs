@@ -1,7 +1,7 @@
 use app_surface::{AppSurface, SurfaceFrame};
 use rayon::prelude::*;
-use std::{f32::consts, iter, sync::Arc};
-use utils::framework::{run, WgpuAppAction};
+use std::{f32::consts, sync::Arc};
+use utils::framework::{WgpuAppAction, run};
 use wgpu::util::DeviceExt;
 use winit::{
     dpi::{PhysicalPosition, PhysicalSize},
@@ -557,7 +557,7 @@ impl WgpuAppAction for WgpuApp {
                 &self.light_bind_group,
             );
         }
-        queue.submit(iter::once(encoder.finish()));
+        queue.submit(Some(encoder.finish()));
         output.present();
 
         Ok(())

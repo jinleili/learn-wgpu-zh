@@ -2,10 +2,10 @@ use crate::{MoveParticle, ParticleFrameUniform, ParticleUniform};
 use app_surface::AppSurface;
 use rand::Rng;
 use utils::{
+    AnyTexture, BufferObj,
     matrix_helper::FullscreenFactor,
     node::{BindGroupData, ComputeNode, ViewNode, ViewNodeBuilder},
     vertex::PosTex,
-    AnyTexture, BufferObj,
 };
 
 // 粒子墨水

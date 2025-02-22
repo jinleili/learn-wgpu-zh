@@ -1,6 +1,6 @@
 use app_surface::{AppSurface, SurfaceFrame};
-use std::{iter, sync::Arc};
-use utils::framework::{run, WgpuAppAction};
+use std::sync::Arc;
+use utils::framework::{WgpuAppAction, run};
 use wgpu::util::DeviceExt;
 use winit::{
     dpi::PhysicalSize,
@@ -294,7 +294,7 @@ impl WgpuAppAction for WgpuApp {
             render_pass.draw_indexed(0..data.2, 0, 0..1);
         }
 
-        self.app.queue.submit(iter::once(encoder.finish()));
+        self.app.queue.submit(Some(encoder.finish()));
         output.present();
 
         Ok(())

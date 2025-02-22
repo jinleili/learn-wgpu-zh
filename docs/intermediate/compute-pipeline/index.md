@@ -87,7 +87,7 @@ fn cs_main(@builtin(global_invocation_id) global_id: vec3<u32>) {
     cpass.set_bind_group(0, &self.bind_group, &[]);
     cpass.dispatch_workgroups(self.workgroup_count.0, self.workgroup_count.1, 1);
 }
-queue.submit(iter::once(encoder.finish()));
+queue.submit(Some(encoder.finish()));
 ```
 
 在[展示平面](../../beginner/tutorial2-surface/#渲染)章节已讲解过 `{}` 开辟块空间的用途，这里就不再赘述。

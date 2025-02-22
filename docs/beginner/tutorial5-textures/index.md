@@ -127,7 +127,7 @@ encoder.copy_buffer_to_texture(
     size,
 );
 
-queue.submit(std::iter::once(encoder.finish()));
+queue.submit(Some(encoder.finish()));
 ```
 
 值得注意的是 `bytes_per_row` 字段，这个值需要是 256 的倍数。查看 [gif 教程](../../showcase/gifs/#how-do-we-make-the-frames) 以了解更多细节。

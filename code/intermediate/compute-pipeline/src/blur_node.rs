@@ -1,5 +1,5 @@
 use app_surface::AppSurface;
-use wgpu::{util::DeviceExt, ShaderModule, ShaderStages, TextureView, TextureViewDimension};
+use wgpu::{ShaderModule, ShaderStages, TextureView, TextureViewDimension, util::DeviceExt};
 
 pub struct BlurNode {
     pipeline: wgpu::ComputePipeline,

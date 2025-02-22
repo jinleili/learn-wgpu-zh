@@ -1,11 +1,11 @@
 use crate::particle_gen::ParticleGen;
 use app_surface::AppSurface;
 use bytemuck::{Pod, Zeroable};
-use glam::{vec2, Vec2, Vec4, Vec4Swizzles};
+use glam::{Vec2, Vec4, Vec4Swizzles, vec2};
 use utils::{
+    BufferObj,
     node::{BindGroupData, BufferlessFullscreenNode, ComputeNode, ViewNode, ViewNodeBuilder},
     vertex::PosOnly,
-    BufferObj,
 };
 
 #[repr(C)]
@@ -45,14 +45,14 @@ pub struct ParticleInk {
 }
 
 impl ParticleInk {
-    pub fn new(app: &AppSurface, gen: &ParticleGen) -> Self {
-        let particle_count = gen.count as usize;
+    pub fn new(app: &AppSurface, generator: &ParticleGen) -> Self {
+        let particle_count = generator.count as usize;
         let scale_factor = app.scale_factor;
 
         let surface_size = vec2(app.config.width as f32, app.config.height as f32);
         let mut tex_size = vec2(
-            gen.text_tex.size.width as f32,
-            gen.text_tex.size.height as f32,
+            generator.text_tex.size.width as f32,
+            generator.text_tex.size.height as f32,
         );
         // 如果 tex_size 的 x 或 y 大于 surface_size，则等比缩放 tex_size
         if tex_size.x > surface_size.x || tex_size.y > surface_size.y {
@@ -140,9 +140,9 @@ impl ParticleInk {
 
         // 准备绑定组需要的数据
         let bind_group_data = BindGroupData {
-            uniforms: vec![&gen.mvp_buf, &particle_uniform_buf],
-            inout_tv: vec![(&gen.text_tex, None)],
-            samplers: vec![&gen.sampler],
+            uniforms: vec![&generator.mvp_buf, &particle_uniform_buf],
+            inout_tv: vec![(&generator.text_tex, None)],
+            samplers: vec![&generator.sampler],
             visibilitys: vec![
                 wgpu::ShaderStages::VERTEX,
                 wgpu::ShaderStages::VERTEX,
@@ -172,9 +172,9 @@ impl ParticleInk {
         // 准备绑定组需要的数据
         let bind_group_data = BindGroupData {
             uniforms: vec![&interact_buf],
-            storage_buffers: vec![&gen.particle_buf],
+            storage_buffers: vec![&generator.particle_buf],
             visibilitys: vec![wgpu::ShaderStages::COMPUTE],
-            workgroup_count: ((gen.count as f32 / 64.0).ceil() as u32, 1, 1),
+            workgroup_count: ((generator.count as f32 / 64.0).ceil() as u32, 1, 1),
             ..Default::default()
         };
         let move_node = ComputeNode::new(&app.device, &bind_group_data, &move_shader);
@@ -189,8 +189,8 @@ impl ParticleInk {
                 source: wgpu::ShaderSource::Wgsl(include_str!("wgsl/debug_draw.wgsl").into()),
             });
         let bind_group_data = BindGroupData {
-            inout_tv: vec![(&gen.text_tex, None)],
-            samplers: vec![&gen.sampler],
+            inout_tv: vec![(&generator.text_tex, None)],
+            samplers: vec![&generator.sampler],
             visibilitys: vec![wgpu::ShaderStages::FRAGMENT, wgpu::ShaderStages::FRAGMENT],
             ..Default::default()
         };
@@ -234,7 +234,7 @@ impl ParticleInk {
 
     pub fn enter_frame<'a, 'b: 'a>(
         &'b mut self,
-        gen: &ParticleGen,
+        generator: &ParticleGen,
         rpass: &mut wgpu::RenderPass<'a>,
     ) {
         rpass.set_viewport(
@@ -253,7 +253,7 @@ impl ParticleInk {
         rpass.set_index_buffer(display_node.index_buf.slice(..), wgpu::IndexFormat::Uint32);
 
         // 将粒子数据设置为顶点缓冲区
-        rpass.set_vertex_buffer(0, gen.particle_buf.buffer.slice(..));
+        rpass.set_vertex_buffer(0, generator.particle_buf.buffer.slice(..));
 
         let vertex_buf = display_node.vertex_buf.as_ref().unwrap();
         rpass.set_vertex_buffer(1, vertex_buf.buffer.slice(..));

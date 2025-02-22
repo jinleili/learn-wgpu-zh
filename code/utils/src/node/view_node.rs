@@ -1,7 +1,7 @@
 use super::{BindGroupData, BindGroupSetting};
-use crate::vertex::Vertex;
 use crate::BufferObj;
 use crate::DEPTH_FORMAT;
+use crate::vertex::Vertex;
 use bytemuck::Pod;
 use glam::{Vec2 as Size, Vec4 as Rect};
 use std::ops::{Deref, DerefMut};

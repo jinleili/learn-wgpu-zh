@@ -479,7 +479,7 @@ let mut encoder = self.device.create_command_encoder(&wgpu::CommandEncoderDescri
 }
 
 // submit 命令能接受任何实现了 IntoIter trait 的参数
-self.queue.submit(std::iter::once(encoder.finish()));
+self.queue.submit(Some(encoder.finish()));
 output.present();
 
 Ok(())

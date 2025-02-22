@@ -1,7 +1,7 @@
 use app_surface::AppSurface;
 use utils::{
-    node::{BindGroupData, BindGroupSetting, DynamicUniformBindGroup},
     BufferObj,
+    node::{BindGroupData, BindGroupSetting, DynamicUniformBindGroup},
 };
 use wgpu::{MultisampleState, RenderPipeline, ShaderStages, VertexFormat};
 

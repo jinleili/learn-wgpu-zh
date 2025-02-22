@@ -12,7 +12,7 @@ pub use view_node::{ViewNode, ViewNodeBuilder};
 mod bufferless_fullscreen_node;
 pub use bufferless_fullscreen_node::BufferlessFullscreenNode;
 
-use crate::{load_texture::AnyTexture, BufferObj};
+use crate::{BufferObj, load_texture::AnyTexture};
 
 #[derive(Default, Clone)]
 pub struct BindGroupData<'a> {

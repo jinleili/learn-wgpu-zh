@@ -1,8 +1,8 @@
+use std::f32::consts;
 use std::sync::Arc;
-use std::{f32::consts, iter};
 
 use app_surface::{AppSurface, SurfaceFrame};
-use utils::framework::{run, WgpuAppAction};
+use utils::framework::{WgpuAppAction, run};
 use wgpu::util::DeviceExt;
 use winit::{
     dpi::PhysicalSize,
@@ -785,7 +785,7 @@ impl WgpuAppAction for WgpuApp {
 
         self.depth_pass.render(&view, &mut encoder);
 
-        self.app.queue.submit(iter::once(encoder.finish()));
+        self.app.queue.submit(Some(encoder.finish()));
         output.present();
 
         Ok(())

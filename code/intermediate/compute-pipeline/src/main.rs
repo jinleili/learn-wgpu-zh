@@ -1,6 +1,6 @@
 use app_surface::{AppSurface, SurfaceFrame};
-use std::{iter, sync::Arc};
-use utils::framework::{run, WgpuAppAction};
+use std::sync::Arc;
+use utils::framework::{WgpuAppAction, run};
 use wgpu::{TextureUsages, TextureView};
 use winit::dpi::PhysicalSize;
 
@@ -191,7 +191,7 @@ impl WgpuAppAction for WgpuApp {
         // 绘制到 framebuffer
         self.display_node.draw(&mut encoder, &view);
 
-        self.app.queue.submit(iter::once(encoder.finish()));
+        self.app.queue.submit(Some(encoder.finish()));
         output.present();
 
         self.frame_count += 1;

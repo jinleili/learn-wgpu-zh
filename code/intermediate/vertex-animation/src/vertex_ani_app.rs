@@ -1,11 +1,10 @@
-use crate::{particle_ink::ParticleInk, resource, TurningDynamicUniform};
+use crate::{TurningDynamicUniform, particle_ink::ParticleInk, resource};
 use app_surface::{AppSurface, SurfaceFrame};
-use std::iter;
 use std::{f32::consts::FRAC_PI_2, sync::Arc};
 use utils::{
+    AnyTexture, BufferObj, MVPMatUniform, Plane, WgpuAppAction,
     node::{BindGroupData, BufferlessFullscreenNode, ViewNode, ViewNodeBuilder},
     vertex::PosTex,
-    AnyTexture, BufferObj, MVPMatUniform, Plane, WgpuAppAction,
 };
 use wgpu::Sampler;
 use winit::dpi::PhysicalSize;
@@ -244,7 +243,7 @@ impl WgpuAppAction for VertexAnimationApp {
                 }
             }
         }
-        self.app.queue.submit(iter::once(encoder.finish()));
+        self.app.queue.submit(Some(encoder.finish()));
         output.present();
 
         Ok(())
