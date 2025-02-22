@@ -7,6 +7,7 @@ on:
     branches: [master]
 
 env:
+  RUST_VERSION: 1.85
   CARGO_TERM_COLOR: always
 
 jobs:
@@ -14,7 +15,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
+      - name: Install Rust ${{ env.RUST_VERSION }}
+        uses: actions-rust-lang/setup-rust-toolchain@v1.10.1
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+          components: rustfmt, clippy
+          override: true
       - name: Install Alsa
         run: sudo apt-get install libasound2-dev
       - name: Build
