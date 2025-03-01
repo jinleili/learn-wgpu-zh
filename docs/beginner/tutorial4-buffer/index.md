@@ -79,7 +79,7 @@ use wgpu::util::DeviceExt;
 bytemuck = { version = "1.19", features = [ "derive" ] }
 ```
 
-我们还需要实现两个 trait 来使 `bytemuck` 工作。它们是 [bytemuck::Pod](https://docs.rs/bytemuck/1.3.0/bytemuck/trait.Pod.html) 和 [bytemuck::Zeroable](https://docs.rs/bytemuck/1.3.0/bytemuck/trait.Zeroable.html)。 `Pod` 表示 `Vertex` 是 ["Plain Old Data"](<https://zh.wikipedia.org/wiki/POD_(程序设计)>) 数据类型，因此可以被解释为 `&[u8]` 类型。`Zeroable` 表示可以对其使用 `std::mem::zeroed()`。下面修改 `Vertex` 结构体来派生这些 trait：
+我们还需要实现两个 trait 来使 `bytemuck` 工作。它们是 [bytemuck::Pod](https://docs.rs/bytemuck/1.3.0/bytemuck/trait.Pod.html) 和 [bytemuck::Zeroable](https://docs.rs/bytemuck/1.3.0/bytemuck/trait.Zeroable.html)。 `Pod` 表示 `Vertex` 是 ["Plain Old Data"](<https://zh.wikipedia.org/wiki/POD_(程序设计)>) 数据类型，因此可以被解释为 `&[u8]` 类型。`Zeroable` 表示可以对其使用 `core::mem::zeroed()`。下面修改 `Vertex` 结构体来派生这些 trait：
 
 ```rust
 #[repr(C)]
@@ -119,7 +119,7 @@ Self {
 
 ```rust
 wgpu::VertexBufferLayout {
-    array_stride: std::mem::size_of::<Vertex>() as wgpu::BufferAddress, // 1.
+    array_stride: core::mem::size_of::<Vertex>() as wgpu::BufferAddress, // 1.
     step_mode: wgpu::VertexStepMode::Vertex, // 2.
     attributes: &[ // 3.
         wgpu::VertexAttribute {
@@ -128,7 +128,7 @@ wgpu::VertexBufferLayout {
             format: wgpu::VertexFormat::Float32x3, // 6.
         },
         wgpu::VertexAttribute {
-            offset: std::mem::size_of::<[f32; 3]>() as wgpu::BufferAddress,
+            offset: core::mem::size_of::<[f32; 3]>() as wgpu::BufferAddress,
             shader_location: 1,
             format: wgpu::VertexFormat::Float32x3,
         }
@@ -154,7 +154,7 @@ wgpu::VertexBufferLayout {
 impl Vertex {
     fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {
         wgpu::VertexBufferLayout {
-            array_stride: std::mem::size_of::<Vertex>() as wgpu::BufferAddress,
+            array_stride: core::mem::size_of::<Vertex>() as wgpu::BufferAddress,
             step_mode: wgpu::VertexStepMode::Vertex,
             attributes: &[
                 wgpu::VertexAttribute {
@@ -163,7 +163,7 @@ impl Vertex {
                     format: wgpu::VertexFormat::Float32x3,
                 },
                 wgpu::VertexAttribute {
-                    offset: std::mem::size_of::<[f32; 3]>() as wgpu::BufferAddress,
+                    offset: core::mem::size_of::<[f32; 3]>() as wgpu::BufferAddress,
                     shader_location: 1,
                     format: wgpu::VertexFormat::Float32x3,
                 }
@@ -179,7 +179,7 @@ impl Vertex {
 
 ```rust
 wgpu::VertexBufferLayout {
-    array_stride: std::mem::size_of::<Vertex>() as wgpu::BufferAddress,
+    array_stride: core::mem::size_of::<Vertex>() as wgpu::BufferAddress,
     step_mode: wgpu::VertexStepMode::Vertex,
     attributes: &wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x3],
 }
@@ -193,7 +193,7 @@ impl Vertex {
         wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x3];
 
     fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {
-        use std::mem;
+        use core::mem;
 
         wgpu::VertexBufferLayout {
             array_stride: mem::size_of::<Self>() as wgpu::BufferAddress,

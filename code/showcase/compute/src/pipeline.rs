@@ -5,7 +5,7 @@ pub trait Bindable {
 
 pub struct Binder<T: Bindable> {
     pub(crate) layout: wgpu::BindGroupLayout,
-    _marker: std::marker::PhantomData<T>,
+    _marker: core::marker::PhantomData<T>,
 }
 
 impl<T: Bindable> Binder<T> {
@@ -16,7 +16,7 @@ impl<T: Bindable> Binder<T> {
         });
         Self {
             layout,
-            _marker: std::marker::PhantomData,
+            _marker: core::marker::PhantomData,
         }
     }
 

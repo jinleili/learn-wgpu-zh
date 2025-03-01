@@ -18,7 +18,7 @@ struct Vertex {
 impl Vertex {
     fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {
         wgpu::VertexBufferLayout {
-            array_stride: std::mem::size_of::<Vertex>() as wgpu::BufferAddress,
+            array_stride: core::mem::size_of::<Vertex>() as wgpu::BufferAddress,
             step_mode: wgpu::VertexStepMode::Vertex,
             attributes: &[
                 wgpu::VertexAttribute {
@@ -27,7 +27,7 @@ impl Vertex {
                     format: wgpu::VertexFormat::Float32x3,
                 },
                 wgpu::VertexAttribute {
-                    offset: std::mem::size_of::<[f32; 3]>() as wgpu::BufferAddress,
+                    offset: core::mem::size_of::<[f32; 3]>() as wgpu::BufferAddress,
                     shader_location: 1,
                     format: wgpu::VertexFormat::Float32x3,
                 },
@@ -173,7 +173,7 @@ impl WgpuAppAction for WgpuApp {
         let num_indices = INDICES.len() as u32;
 
         let num_vertices = 16;
-        let angle = std::f32::consts::PI * 2.0 / num_vertices as f32;
+        let angle = core::f32::consts::PI * 2.0 / num_vertices as f32;
         let challenge_verts = (0..num_vertices)
             .map(|i| {
                 let theta = angle * i as f32;

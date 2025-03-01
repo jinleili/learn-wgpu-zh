@@ -1,4 +1,5 @@
 use anyhow::*;
+use core::result::Result::Ok;
 use fs_extra::copy_items;
 use fs_extra::dir::CopyOptions;
 use glob::glob;
@@ -7,7 +8,6 @@ use naga::front::glsl::Frontend;
 use naga::front::glsl::Options;
 use rayon::prelude::*;
 use std::env;
-use std::result::Result::Ok;
 use std::{fs::read_to_string, path::PathBuf};
 
 pub fn load_shader(src_path: PathBuf) -> Result<()> {

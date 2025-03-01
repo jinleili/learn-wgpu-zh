@@ -27,7 +27,7 @@ impl HilbertCurve {
             return;
         }
 
-        let pi_2 = std::f32::consts::FRAC_PI_2;
+        let pi_2 = core::f32::consts::FRAC_PI_2;
 
         let mut base = vec![
             Vec2::new(-0.5, -0.5),

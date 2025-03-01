@@ -8,7 +8,7 @@
 use winit::event::*;
 use winit::dpi::PhysicalPosition;
 use instant::Duration;
-use std::f32::consts::FRAC_PI_2;
+use core::f32::consts::FRAC_PI_2;
 
 const SAFE_FRAC_PI_2: f32 = FRAC_PI_2 - 0.0001;
 ```

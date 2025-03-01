@@ -136,7 +136,7 @@ impl BufferObj {
     where
         T: 'static + Pod + Copy,
     {
-        let min_binding_size = std::mem::size_of::<T>() as wgpu::BufferAddress;
+        let min_binding_size = core::mem::size_of::<T>() as wgpu::BufferAddress;
         let mut size = min_binding_size;
         let data: &[u8] = if let Some(slice) = slice {
             size *= slice.len() as wgpu::BufferAddress;

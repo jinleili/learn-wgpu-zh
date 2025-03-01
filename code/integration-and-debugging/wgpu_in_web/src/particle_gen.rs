@@ -71,7 +71,7 @@ impl ParticleGen {
         let mut particle_data: Vec<Particle> = Vec::with_capacity(particle_count as usize);
         log::info!(
             "粒子初始内存: {:?}MB",
-            particle_count as usize * std::mem::size_of::<Particle>() / 1024 / 1024
+            particle_count as usize * core::mem::size_of::<Particle>() / 1024 / 1024
         );
 
         // 使用 OsRng 替代 ThreadRng, 因为 OsRng 实现了 Send trait, 可以在异步上下文中正常工作
@@ -111,7 +111,7 @@ impl ParticleGen {
         );
 
         let staging_buf = app.device.create_buffer(&wgpu::BufferDescriptor {
-            size: std::mem::size_of::<u32>() as BufferAddress,
+            size: core::mem::size_of::<u32>() as BufferAddress,
             usage: BufferUsages::COPY_DST
             // MAP_READ 告诉 wpgu 我们要在 cpu 端读取此缓冲区
             | BufferUsages::MAP_READ,
@@ -170,7 +170,7 @@ impl ParticleGen {
             0,
             &self.staging_buf,
             0,
-            std::mem::size_of::<u32>() as u64,
+            core::mem::size_of::<u32>() as u64,
         );
 
         app.queue.submit(Some(encoder.finish()));
@@ -204,7 +204,7 @@ impl ParticleGen {
     }
 
     fn gen_final_particle_buf(&mut self, app: &AppSurface) {
-        let size = self.count as u64 * std::mem::size_of::<Particle>() as u64;
+        let size = self.count as u64 * core::mem::size_of::<Particle>() as u64;
         // 最终的粒子缓冲区
         let final_particle_buf = utils::BufferObj::create_empty_storage_buffer(
             &app.device,

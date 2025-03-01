@@ -55,7 +55,7 @@ usage 字段的 `RENDER_ATTACHMENT` 位令 wgpu 可以渲染到此纹理，`COPY
 我们要做的是反过来：从纹理中把数据复制到**缓冲区**，然后保存到文件中。我们得创建一个足够大的缓冲区来容纳数据：
 
 ```rust
-let u32_size = std::mem::size_of::<u32>() as u32;
+let u32_size = core::mem::size_of::<u32>() as u32;
 
 let output_buffer_size = (u32_size * texture_size * texture_size) as wgpu::BufferAddress;
 let output_buffer_desc = wgpu::BufferDescriptor {

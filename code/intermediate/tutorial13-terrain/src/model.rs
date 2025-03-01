@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use std::ops::Range;
+use core::ops::Range;
 
 use crate::texture;
 
@@ -20,7 +20,7 @@ pub struct ModelVertex {
 
 impl Vertex for ModelVertex {
     fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {
-        use std::mem;
+        use core::mem;
         wgpu::VertexBufferLayout {
             array_stride: mem::size_of::<ModelVertex>() as wgpu::BufferAddress,
             step_mode: wgpu::VertexStepMode::Vertex,

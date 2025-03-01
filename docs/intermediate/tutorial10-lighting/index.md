@@ -645,7 +645,7 @@ struct InstanceRaw {
 
 impl model::Vertex for InstanceRaw {
     fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {
-        use std::mem;
+        use core::mem;
         wgpu::VertexBufferLayout {
             array_stride: mem::size_of::<InstanceRaw>() as wgpu::BufferAddress,
             // step_mode 的值需要从 Vertex 改为 Instance

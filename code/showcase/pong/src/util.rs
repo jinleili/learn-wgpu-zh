@@ -5,7 +5,7 @@ use crate::state;
 pub const PLAYER_SPEED: f32 = 0.05;
 pub const BALL_SPEED: f32 = 0.025;
 
-const BOUNCE_ANGLE: f32 = std::f32::consts::FRAC_PI_2;
+const BOUNCE_ANGLE: f32 = core::f32::consts::FRAC_PI_2;
 
 pub fn calc_ball_velocity(ball: &state::Ball, player: &state::Player) -> cgmath::Vector2<f32> {
     let diff_y = ball.position.y - player.position.y;
@@ -17,7 +17,7 @@ pub fn calc_ball_velocity(ball: &state::Ball, player: &state::Player) -> cgmath:
 }
 
 pub fn size_of_slice<T: Sized>(slice: &[T]) -> usize {
-    std::mem::size_of_val(slice)
+    core::mem::size_of_val(slice)
 }
 
 #[macro_export]

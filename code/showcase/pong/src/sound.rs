@@ -48,7 +48,7 @@ impl SoundSystem {
     pub fn queue_spatial<S>(&self, sound: S, position: [f32; 3])
     where
         S: rodio::Source + Send + 'static,
-        S::Item: rodio::Sample + Send + std::fmt::Debug,
+        S::Item: rodio::Sample + Send + core::fmt::Debug,
     {
         self.spatial_sink.set_emitter_position(position);
         self.spatial_sink.append(sound);

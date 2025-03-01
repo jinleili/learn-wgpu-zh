@@ -62,7 +62,7 @@ pollster = "0.3"
 
 ```rust
 pub trait WgpuAppAction {
-    fn new(window: Arc<Window>) -> impl std::future::Future<Output = Self> + WasmNotSend;
+    fn new(window: Arc<Window>) -> impl core::future::Future<Output = Self> + WasmNotSend;
     /// 记录窗口大小已发生变化
     fn set_window_resized(&mut self, new_size: PhysicalSize<u32>);
     /// 获取窗口大小

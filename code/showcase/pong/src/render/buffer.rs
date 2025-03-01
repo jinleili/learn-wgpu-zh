@@ -2,7 +2,7 @@ use crate::state;
 use crate::util::size_of_slice;
 use wgpu::util::{BufferInitDescriptor, DeviceExt};
 
-pub const U32_SIZE: wgpu::BufferAddress = std::mem::size_of::<u32>() as wgpu::BufferAddress;
+pub const U32_SIZE: wgpu::BufferAddress = core::mem::size_of::<u32>() as wgpu::BufferAddress;
 
 #[derive(Copy, Clone)]
 pub struct Vertex {
@@ -14,7 +14,7 @@ unsafe impl bytemuck::Pod for Vertex {}
 unsafe impl bytemuck::Zeroable for Vertex {}
 
 impl Vertex {
-    pub const SIZE: wgpu::BufferAddress = std::mem::size_of::<Self>() as wgpu::BufferAddress;
+    pub const SIZE: wgpu::BufferAddress = core::mem::size_of::<Self>() as wgpu::BufferAddress;
     pub const DESC: wgpu::VertexBufferLayout<'static> = wgpu::VertexBufferLayout {
         array_stride: Self::SIZE,
         step_mode: wgpu::VertexStepMode::Vertex,

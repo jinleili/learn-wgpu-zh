@@ -35,7 +35,7 @@ async fn run() {
     let texture_view = texture.create_view(&Default::default());
 
     // we need to store this for later
-    let u32_size = std::mem::size_of::<u32>() as u32;
+    let u32_size = core::mem::size_of::<u32>() as u32;
 
     let output_buffer_size = (u32_size * texture_size * texture_size) as wgpu::BufferAddress;
     let output_buffer_desc = wgpu::BufferDescriptor {

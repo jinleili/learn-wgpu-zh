@@ -3,8 +3,8 @@ use crate::BufferObj;
 use crate::DEPTH_FORMAT;
 use crate::vertex::Vertex;
 use bytemuck::Pod;
+use core::ops::{Deref, DerefMut};
 use glam::{Vec2 as Size, Vec4 as Rect};
-use std::ops::{Deref, DerefMut};
 use wgpu::util::DeviceExt;
 
 #[allow(dead_code)]
@@ -179,9 +179,9 @@ impl ViewNode {
         let default_layout_attributes = T::vertex_attributes(0);
         let vertex_buffer_layouts = if let Some(layouts) = attributes.vertex_buffer_layouts {
             layouts
-        } else if std::mem::size_of::<T>() > 0 {
+        } else if core::mem::size_of::<T>() > 0 {
             vec![wgpu::VertexBufferLayout {
-                array_stride: std::mem::size_of::<T>() as wgpu::BufferAddress,
+                array_stride: core::mem::size_of::<T>() as wgpu::BufferAddress,
                 step_mode: wgpu::VertexStepMode::Vertex,
                 attributes: &default_layout_attributes,
             }]

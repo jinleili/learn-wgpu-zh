@@ -1,4 +1,4 @@
-use std::f32::consts;
+use core::f32::consts;
 use std::sync::Arc;
 
 use app_surface::{AppSurface, SurfaceFrame};
@@ -21,7 +21,7 @@ struct Vertex {
 
 impl Vertex {
     fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {
-        use std::mem;
+        use core::mem;
         wgpu::VertexBufferLayout {
             array_stride: mem::size_of::<Vertex>() as wgpu::BufferAddress,
             step_mode: wgpu::VertexStepMode::Vertex,
@@ -185,7 +185,7 @@ impl CameraController {
     }
 }
 
-const ROTATION_SPEED: f32 = 2.0 * std::f32::consts::PI / 60.0;
+const ROTATION_SPEED: f32 = 2.0 * core::f32::consts::PI / 60.0;
 
 struct Instance {
     position: glam::Vec3,
@@ -210,7 +210,7 @@ struct InstanceRaw {
 
 impl InstanceRaw {
     fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {
-        use std::mem;
+        use core::mem;
         wgpu::VertexBufferLayout {
             array_stride: mem::size_of::<InstanceRaw>() as wgpu::BufferAddress,
             // We need to switch from using a step mode of Vertex to Instance

@@ -319,7 +319,7 @@ impl HdrLoader {
             bytemuck::cast_slice(&pixels),
             wgpu::TexelCopyBufferLayout {
                 offset: 0,
-                bytes_per_row: Some(src.size.width * std::mem::size_of::<[f32; 4]>() as u32),
+                bytes_per_row: Some(src.size.width * core::mem::size_of::<[f32; 4]>() as u32),
                 rows_per_image: Some(src.size.height),
             },
             src.size,

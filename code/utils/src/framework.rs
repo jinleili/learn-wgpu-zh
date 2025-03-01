@@ -17,7 +17,7 @@ use winit::platform::web::WindowExtWebSys;
 
 pub trait WgpuAppAction {
     #[allow(opaque_hidden_inferred_bound)]
-    fn new(window: Arc<Window>) -> impl std::future::Future<Output = Self> + WasmNotSend;
+    fn new(window: Arc<Window>) -> impl core::future::Future<Output = Self> + WasmNotSend;
 
     /// 记录窗口大小已发生变化
     ///

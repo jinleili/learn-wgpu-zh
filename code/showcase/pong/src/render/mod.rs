@@ -1,6 +1,6 @@
 mod buffer;
 
-use std::iter;
+use core::iter;
 
 use wgpu_glyph::{ab_glyph, Section, Text};
 use winit::dpi::PhysicalSize;

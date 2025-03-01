@@ -1,4 +1,4 @@
-use std::f32::consts;
+use core::f32::consts;
 use std::sync::Arc;
 
 use app_surface::{AppSurface, SurfaceFrame};
@@ -21,7 +21,7 @@ struct Vertex {
 
 impl Vertex {
     fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {
-        use std::mem;
+        use core::mem;
         wgpu::VertexBufferLayout {
             array_stride: mem::size_of::<Vertex>() as wgpu::BufferAddress,
             step_mode: wgpu::VertexStepMode::Vertex,
@@ -222,7 +222,7 @@ struct InstanceRaw {
 
 impl InstanceRaw {
     fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {
-        use std::mem;
+        use core::mem;
         wgpu::VertexBufferLayout {
             array_stride: mem::size_of::<InstanceRaw>() as wgpu::BufferAddress,
             // We need to switch from using a step mode of Vertex to Instance

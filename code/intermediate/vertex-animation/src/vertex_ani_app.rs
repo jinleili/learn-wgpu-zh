@@ -1,6 +1,7 @@
 use crate::{TurningDynamicUniform, particle_ink::ParticleInk, resource};
 use app_surface::{AppSurface, SurfaceFrame};
-use std::{f32::consts::FRAC_PI_2, sync::Arc};
+use core::f32::consts::FRAC_PI_2;
+use std::sync::Arc;
 use utils::{
     AnyTexture, BufferObj, MVPMatUniform, Plane, WgpuAppAction,
     node::{BindGroupData, BufferlessFullscreenNode, ViewNode, ViewNodeBuilder},
@@ -305,7 +306,7 @@ impl VertexAnimationApp {
         let (dx, dy) = (-step_pos.x, -step_pos.y);
 
         let distance = (dx * dx + dy * dy).sqrt();
-        let half_circle = std::f32::consts::PI * radius;
+        let half_circle = core::f32::consts::PI * radius;
         let pi_2 = FRAC_PI_2;
 
         let angle = -dy.atan2(dx);

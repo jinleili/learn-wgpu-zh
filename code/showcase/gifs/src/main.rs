@@ -1,4 +1,4 @@
-use std::mem;
+use core::mem;
 
 async fn run() {
     let instance = wgpu::Instance::new(&wgpu::InstanceDescriptor {

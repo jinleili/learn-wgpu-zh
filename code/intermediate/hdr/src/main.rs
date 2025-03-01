@@ -74,7 +74,7 @@ struct InstanceRaw {
 
 impl model::Vertex for InstanceRaw {
     fn desc() -> wgpu::VertexBufferLayout<'static> {
-        use std::mem;
+        use core::mem;
         wgpu::VertexBufferLayout {
             array_stride: mem::size_of::<InstanceRaw>() as wgpu::BufferAddress,
             // We need to switch from using a step mode of Vertex to Instance
@@ -331,7 +331,7 @@ impl WgpuAppAction for WgpuApp {
                     } else {
                         glam::Quat::from_axis_angle(
                             position.normalize(),
-                            std::f32::consts::FRAC_PI_4,
+                            core::f32::consts::FRAC_PI_4,
                         )
                     };
 
@@ -643,7 +643,7 @@ impl WgpuAppAction for WgpuApp {
         }
     }
 
-    fn update(&mut self, dt: std::time::Duration) {
+    fn update(&mut self, dt: core::time::Duration) {
         self.camera_controller.update_camera(&mut self.camera, dt);
         self.camera_uniform
             .update_view_proj(&self.camera, &self.projection);

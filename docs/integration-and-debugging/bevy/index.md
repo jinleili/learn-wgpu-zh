@@ -175,8 +175,8 @@ impl Plugin for AppViewPlugin {
 
 pub fn run(&mut self) {
 	// ...
-	let mut app = std::mem::replace(self, App::empty());
-	let runner = std::mem::replace(&mut app.runner, Box::new(run_once));
+	let mut app = core::mem::replace(self, App::empty());
+	let runner = core::mem::replace(&mut app.runner, Box::new(run_once));
 
 	(runner)(app);
 }
