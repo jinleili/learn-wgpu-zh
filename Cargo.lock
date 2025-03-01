@@ -166,9 +166,9 @@ checksum = "34ac096ce696dc2fcabef30516bb13c0a68a11d30131d3df6f04711467681b04"
 
 [[package]]
 name = "app-surface"
-version = "1.5.0"
+version = "1.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c4dab4f7bba0567b69b7749c6bce5945e63cf369f258835b2895d5276247f7ed"
+checksum = "a5c26a20db3f8a5dc19920fbd23b45399f907d6b86a047a94d22569f1fa34f36"
 dependencies = [
  "android_logger",
  "cfg-if",
@@ -180,7 +180,7 @@ dependencies = [
  "log",
  "ndk-sys 0.6.0+11769913",
  "objc",
- "pollster 0.3.0",
+ "pollster",
  "raw-window-handle",
  "wasm-bindgen",
  "web-sys",
@@ -1105,7 +1105,7 @@ dependencies = [
  "glam",
  "image 0.25.5",
  "log",
- "pollster 0.4.0",
+ "pollster",
  "tobj 3.2.5",
  "utils",
  "wgpu",
@@ -2410,12 +2410,6 @@ dependencies = [
 
 [[package]]
 name = "pollster"
-version = "0.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "22686f4785f02a4fcc856d3b3bb19bf6c8160d103f7a99cc258bddd0251dc7f2"
-
-[[package]]
-name = "pollster"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2f3a9f18d041e6d0e102a0a46750538147e5e8992d3b4873aaafee2520b00ce3"
@@ -3079,7 +3073,7 @@ dependencies = [
  "image 0.25.5",
  "instant",
  "log",
- "pollster 0.4.0",
+ "pollster",
  "rayon",
  "reqwest",
  "tobj 3.2.5",
@@ -3245,7 +3239,7 @@ dependencies = [
  "js-sys",
  "log",
  "parking_lot",
- "pollster 0.4.0",
+ "pollster",
  "utils",
  "wasm-bindgen",
  "wasm-bindgen-futures",
@@ -3361,7 +3355,7 @@ dependencies = [
  "js-sys",
  "log",
  "parking_lot",
- "pollster 0.4.0",
+ "pollster",
  "utils",
  "wasm-bindgen",
  "wasm-bindgen-futures",
@@ -3570,7 +3564,7 @@ dependencies = [
  "instant",
  "log",
  "parking_lot",
- "pollster 0.4.0",
+ "pollster",
  "reqwest",
  "wasm-bindgen-futures",
  "web-sys",
@@ -4132,7 +4126,7 @@ version = "0.1.0"
 dependencies = [
  "flume",
  "image 0.25.5",
- "pollster 0.4.0",
+ "pollster",
  "wgpu",
 ]
 

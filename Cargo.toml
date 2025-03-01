@@ -20,7 +20,7 @@ version = "0.25"
 default-features = false
 
 [workspace.dependencies]
-app-surface = "1.5.0"
+app-surface = "1.5.1"
 # app-surface = { path = "../idroid/wgpu-in-app/app-surface", default-features = false }
 bytemuck = { version = "1.21", features = ["derive"] }
 cfg-if = "1"
@@ -54,6 +54,9 @@ glob = "0.3"
 
 [profile.wasm-release]
 inherits = "release"
+debug = 0
+# strip 设置为 true 或 "debuginfo" 对 wasm 大小没有 > 0.1 MB 的影响
+strip = true
 lto = "fat"
 # lto = true # VERY slightly smaller wasm
 # opt-level = 's' # 10-30% smaller wasm compared to `opt-level = 3`
