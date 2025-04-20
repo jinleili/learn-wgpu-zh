@@ -50,6 +50,7 @@ pub async fn from_path(
         } else {
             super::get_texture_file_path(image_path)
         };
+        log::info!("path: {:?}", path);
         image::open(path.as_path()).unwrap()
     };
 

@@ -10,21 +10,20 @@ async fn run() {
         .await
         .unwrap();
     let (device, queue) = adapter
-        .request_device(
-            &wgpu::DeviceDescriptor {
-                label: Some("Device"),
-                required_features: wgpu::Features::empty(),
-                // WebGL doesn't support all of wgpu's features, so if
-                // we're building for the web we'll have to disable some.
-                required_limits: if cfg!(target_arch = "wasm32") {
-                    wgpu::Limits::downlevel_webgl2_defaults()
-                } else {
-                    wgpu::Limits::default()
-                },
-                memory_hints: wgpu::MemoryHints::Performance,
+        .request_device(&wgpu::DeviceDescriptor {
+            label: Some("Device"),
+            required_features: wgpu::Features::empty(),
+            // WebGL doesn't support all of wgpu's features, so if
+            // we're building for the web we'll have to disable some.
+            required_limits: if cfg!(target_arch = "wasm32") {
+                wgpu::Limits::downlevel_webgl2_defaults()
+            } else {
+                wgpu::Limits::default()
             },
-            None, // Trace path
-        )
+            memory_hints: wgpu::MemoryHints::Performance,
+            // 追踪 API 调用路径
+            trace: wgpu::Trace::Off,
+        })
         .await
         .unwrap();
 
@@ -133,7 +132,7 @@ async fn run() {
             tx.send(result).unwrap();
         });
         // wait for the GPU to finish
-        device.poll(wgpu::Maintain::Wait).panic_on_timeout();
+        device.poll(wgpu::PollType::Wait).unwrap();
 
         if let Ok(Ok(())) = rx.recv_async().await {
             let padded_data = buffer_slice.get_mapped_range();

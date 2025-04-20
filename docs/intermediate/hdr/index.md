@@ -494,8 +494,8 @@ let (device, queue) = adapter
             required_features: wgpu::Features::all_webgpu_mask(),
             required_limits: wgpu::Limits::downlevel_defaults(),
             memory_hints: wgpu::MemoryHints::Performance,
-        },
-        None, // Trace path
+            trace: wgpu::Trace::Off,
+    }
     )
     .await
     .unwrap();
@@ -508,7 +508,7 @@ let (device, queue) = adapter
 因此，我们将从 `Cargo.toml` 中删除 WebGL 功能，就是下边这一行：
 
 ```toml
-wgpu = { version = "23", features = ["webgl"]}
+wgpu = { version = "25", features = ["webgl"]}
 ```
 
 </div>

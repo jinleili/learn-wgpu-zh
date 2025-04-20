@@ -289,7 +289,7 @@ impl GenerateChunk for TerrainPipeline {
         drop(cpass);
 
         queue.submit(Some(encoder.finish()));
-        device.poll(wgpu::Maintain::Wait);
+        device.poll(wgpu::PollType::Wait).unwrap();
 
         // resources::export_mesh_data(&format!("{}.json", chunk.mesh.name), device, &chunk.mesh);
 
@@ -612,13 +612,13 @@ impl GenerateChunk for TerrainHackPipeline {
 
         queue.submit(Some(encoder.finish()));
         {
-            device.poll(wgpu::Maintain::Wait);
+            device.poll(wgpu::PollType::Wait).unwrap();
             let bs = chunk.mesh.index_buffer.slice(..);
             let (tx, rx) = std::sync::mpsc::channel();
             bs.map_async(wgpu::MapMode::Read, move |result| {
                 tx.send(result).unwrap();
             });
-            device.poll(wgpu::Maintain::Wait);
+            device.poll(wgpu::PollType::Wait).unwrap();
             rx.recv().unwrap().unwrap();
             let data = bs.get_mapped_range();
 

@@ -20,9 +20,12 @@ version = "0.25"
 default-features = false
 
 [workspace.dependencies]
-app-surface = "1.5.1"
+app-surface = "1.6.0"
 # app-surface = { path = "../idroid/wgpu-in-app/app-surface", default-features = false }
-bytemuck = { version = "1.21", features = ["derive"] }
+bytemuck = { version = "1.22", features = [
+    "extern_crate_alloc",
+    "min_const_generics",
+] }
 cfg-if = "1"
 glam = "0.29"
 env_logger = "0.11"
@@ -34,7 +37,7 @@ parking_lot = "0.12"
 rayon = "1.8"
 tobj = "3.2"
 winit = "0.30"
-wgpu = { version = "24" }
+wgpu = { version = "25" }
 utils = { path = "code/utils" }
 
 # wasm32 dependencies

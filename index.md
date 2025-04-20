@@ -159,8 +159,9 @@ let (device, queue) = adapter.request_device(
         },
         label: None,
         memory_hints: wgpu::MemoryHints::Performance,
-    },
-    None, // 追踪 API 调用路径
+        // 追踪 API 调用路径
+        trace: wgpu::Trace::Off,
+    }
 ).await.unwrap();
 ```
 
@@ -318,7 +319,7 @@ cfg-if = "1"
 winit = "0.30"
 env_logger = "0.11"
 log = "0.4"
-wgpu = "23"
+wgpu = "25"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 # 需要避免在 wasm 中添加 pollster 依赖，否则会导致 wasm 加载时报错：
@@ -328,8 +329,8 @@ pollster = 0.3
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 console_error_panic_hook = "0.1.7"
 console_log = "1.0"
-wasm-bindgen = "0.2.97"
-wasm-bindgen-futures = "0.4.47"
+wasm-bindgen = "0.2.100"
+wasm-bindgen-futures = "0.4.50"
  { version = "0.3.74", features = [
     "Document",
     "Window",

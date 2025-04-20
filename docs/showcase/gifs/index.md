@@ -131,7 +131,7 @@ for c in &colors {
     let buffer_slice = output_buffer.slice(..);
     let request = buffer_slice.map_async(wgpu::MapMode::Read);
     // 等待 GPU 完成上面的任务
-    device.poll(wgpu::Maintain::Wait);
+    device.poll(wgpu::PollType::Wait).unwrap();
     let result = request.await;
 
     match result {
