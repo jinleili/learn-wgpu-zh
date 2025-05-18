@@ -22,7 +22,6 @@ bytemuck = { workspace = true, features = ["derive"] }
 [build-dependencies]
 anyhow.workspace = true
 fs_extra.workspace = true
-glob.workspace = true
 
 [[bin]]
 name = "tutorial4-challenge"

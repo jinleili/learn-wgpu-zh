@@ -36,4 +36,3 @@ web-sys = { workspace = true, features = [
 [build-dependencies]
 anyhow.workspace = true
 fs_extra.workspace = true
-glob.workspace = true

@@ -366,7 +366,7 @@ impl HdrLoader {
             timestamp_writes: None,
         });
 
-        let num_workgroups = (dst_size + 15) / 16;
+        let num_workgroups = dst_size.div_ceil(16);
         pass.set_pipeline(&self.equirect_to_cubemap);
         pass.set_bind_group(0, &bind_group, &[]);
         pass.dispatch_workgroups(num_workgroups, num_workgroups, 6);

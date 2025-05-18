@@ -95,7 +95,7 @@ impl WgpuAppAction for WgpuApp {
 
         let img_size = [swap_size.width as i32, swap_size.height as i32];
         // 计算工作组大小
-        let workgroup_count = ((swap_size.width + 15) / 16, (swap_size.height + 15) / 16);
+        let workgroup_count = (swap_size.width.div_ceil(16), swap_size.height.div_ceil(16));
 
         let blur_x = BlurNode::new(
             &app,

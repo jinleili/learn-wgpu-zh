@@ -1,5 +1,5 @@
 use parking_lot::Mutex;
-use std::{rc::Rc, sync::Arc};
+use std::sync::Arc;
 use winit::{
     application::ApplicationHandler,
     dpi::PhysicalSize,
@@ -204,22 +204,14 @@ impl WgpuApp {
 
 #[derive(Default)]
 struct WgpuAppHandler {
-    app: Rc<Mutex<Option<WgpuApp>>>,
+    app: Arc<Mutex<Option<WgpuApp>>>,
     /// 错失的窗口大小变化
     ///
     /// # NOTE：
     /// 在 web 端，app 的初始化是异步的，当收到 resized 事件时，初始化可能还没有完成从而错过窗口 resized 事件，
     /// 当 app 初始化完成后会调用 `set_window_resized` 方法来补上错失的窗口大小变化事件。
     #[allow(dead_code)]
-    missed_resize: Rc<Mutex<Option<PhysicalSize<u32>>>>,
-
-    /// 错失的请求重绘事件
-    ///
-    /// # NOTE：
-    /// 在 web 端，app 的初始化是异步的，当收到 redraw 事件时，初始化可能还没有完成从而错过请求重绘事件，
-    /// 当 app 初始化完成后会调用 `request_redraw` 方法来补上错失的请求重绘事件。
-    #[allow(dead_code)]
-    missed_request_redraw: Rc<Mutex<bool>>,
+    missed_resize: Arc<Mutex<Option<PhysicalSize<u32>>>>,
 }
 
 impl ApplicationHandler for WgpuAppHandler {
@@ -246,9 +238,6 @@ impl ApplicationHandler for WgpuAppHandler {
 
                     if let Some(resize) = *missed_resize.lock() {
                         app.as_mut().unwrap().set_window_resized(resize);
-                    }
-
-                    if *missed_request_redraw.lock() {
                         window_cloned.request_redraw();
                     }
                 });
@@ -272,18 +261,11 @@ impl ApplicationHandler for WgpuAppHandler {
         let mut app = self.app.lock();
         if app.as_ref().is_none() {
             // 如果 app 还没有初始化完成，则记录错失的窗口事件
-            match event {
-                WindowEvent::Resized(physical_size) => {
-                    if physical_size.width > 0 && physical_size.height > 0 {
-                        let mut missed_resize = self.missed_resize.lock();
-                        *missed_resize = Some(physical_size);
-                    }
+            if let WindowEvent::Resized(physical_size) = event {
+                if physical_size.width > 0 && physical_size.height > 0 {
+                    let mut missed_resize = self.missed_resize.lock();
+                    *missed_resize = Some(physical_size);
                 }
-                WindowEvent::RedrawRequested => {
-                    let mut missed_request_redraw = self.missed_request_redraw.lock();
-                    *missed_request_redraw = true;
-                }
-                _ => (),
             }
             return;
         }

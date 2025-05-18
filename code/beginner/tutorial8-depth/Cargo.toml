@@ -28,7 +28,6 @@ features = ["png", "jpeg"]
 [build-dependencies]
 anyhow.workspace = true
 fs_extra.workspace = true
-glob.workspace = true
 
 [[bin]]
 name = "tutorial8-challenge"

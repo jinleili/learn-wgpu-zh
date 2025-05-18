@@ -127,7 +127,6 @@ fn main() -> Result<()> {
 [build-dependencies]
 anyhow = "1.0"
 fs_extra = "1.3"
-glob = "0.3"
 ```
 
 ## 从 WASM 访问文件

@@ -50,7 +50,7 @@ impl WgpuApp {
 
 #[derive(Default)]
 struct WgpuAppHandler {
-    app: Rc<Mutex<Option<WgpuApp>>>,
+    app: Arc<Mutex<Option<WgpuApp>>>,
 }
 
 impl ApplicationHandler for WgpuAppHandler {

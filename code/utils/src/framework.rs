@@ -1,5 +1,5 @@
 use parking_lot::Mutex;
-use std::{rc::Rc, sync::Arc};
+use std::sync::Arc;
 use wgpu::WasmNotSend;
 use winit::{
     application::ApplicationHandler,
@@ -60,22 +60,14 @@ pub trait WgpuAppAction {
 struct WgpuAppHandler<A: WgpuAppAction> {
     window: Option<Arc<Window>>,
     title: &'static str,
-    app: Rc<Mutex<Option<A>>>,
+    app: Arc<Mutex<Option<A>>>,
     /// 错失的窗口大小变化
     ///
     /// # NOTE：
     /// 在 web 端，app 的初始化是异步的，当收到 resized 事件时，初始化可能还没有完成从而错过窗口 resized 事件，
     /// 当 app 初始化完成后会调用 `set_window_resized` 方法来补上错失的窗口大小变化事件。
     #[allow(dead_code)]
-    missed_resize: Rc<Mutex<Option<PhysicalSize<u32>>>>,
-
-    /// 错失的请求重绘事件
-    ///
-    /// # NOTE：
-    /// 在 web 端，app 的初始化是异步的，当收到 redraw 事件时，初始化可能还没有完成从而错过请求重绘事件，
-    /// 当 app 初始化完成后会调用 `request_redraw` 方法来补上错失的请求重绘事件, 启用 requestAnimationFrame 帧循环。
-    #[allow(dead_code)]
-    missed_request_redraw: Rc<Mutex<bool>>,
+    missed_resize: Arc<Mutex<Option<PhysicalSize<u32>>>>,
 
     /// 上次执行渲染的时间
     last_render_time: instant::Instant,
@@ -86,9 +78,8 @@ impl<A: WgpuAppAction> WgpuAppHandler<A> {
         Self {
             title,
             window: None,
-            app: Rc::new(Mutex::new(None)),
-            missed_resize: Rc::new(Mutex::new(None)),
-            missed_request_redraw: Rc::new(Mutex::new(false)),
+            app: Arc::new(Mutex::new(None)),
+            missed_resize: Arc::new(Mutex::new(None)),
             last_render_time: instant::Instant::now(),
         }
     }
@@ -172,7 +163,6 @@ impl<A: WgpuAppAction + 'static> ApplicationHandler for WgpuAppHandler<A> {
             if #[cfg(target_arch = "wasm32")] {
                 let app = self.app.clone();
                 let missed_resize = self.missed_resize.clone();
-                let missed_request_redraw = self.missed_request_redraw.clone();
 
                 wasm_bindgen_futures::spawn_local(async move {
                      let window_cloned = window.clone();
@@ -183,9 +173,6 @@ impl<A: WgpuAppAction + 'static> ApplicationHandler for WgpuAppHandler<A> {
 
                     if let Some(resize) = *missed_resize.lock() {
                         app.as_mut().unwrap().set_window_resized(resize);
-                    }
-
-                    if *missed_request_redraw.lock() {
                         window_cloned.request_redraw();
                     }
                 });
@@ -209,18 +196,11 @@ impl<A: WgpuAppAction + 'static> ApplicationHandler for WgpuAppHandler<A> {
         let mut app = self.app.lock();
         if app.as_ref().is_none() {
             // 如果 app 还没有初始化完成，则记录错失的窗口事件
-            match event {
-                WindowEvent::Resized(physical_size) => {
-                    if physical_size.width > 0 && physical_size.height > 0 {
-                        let mut missed_resize = self.missed_resize.lock();
-                        *missed_resize = Some(physical_size);
-                    }
+            if let WindowEvent::Resized(physical_size) = event {
+                if physical_size.width > 0 && physical_size.height > 0 {
+                    let mut missed_resize = self.missed_resize.lock();
+                    *missed_resize = Some(physical_size);
                 }
-                WindowEvent::RedrawRequested => {
-                    let mut missed_request_redraw = self.missed_request_redraw.lock();
-                    *missed_request_redraw = true;
-                }
-                _ => (),
             }
             return;
         }

@@ -1,5 +1,4 @@
 use parking_lot::Mutex;
-use std::rc::Rc;
 use std::sync::Arc;
 use winit::{
     application::ApplicationHandler,
@@ -57,7 +56,7 @@ impl WgpuApp {
 
 #[derive(Default)]
 struct WgpuAppHandler {
-    app: Rc<Mutex<Option<WgpuApp>>>,
+    app: Arc<Mutex<Option<WgpuApp>>>,
 }
 
 impl ApplicationHandler for WgpuAppHandler {
