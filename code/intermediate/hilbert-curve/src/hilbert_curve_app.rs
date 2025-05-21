@@ -151,53 +151,87 @@ impl WgpuAppAction for HilbertCurveApp {
     }
 
     fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
+        // —— 1. 处理窗口大小变化 ——
         self.resize_surface_if_needed();
 
-        // 循环执行动画
-        self.animate_index += 1;
-        if self.animate_index == self.draw_count {
-            // 本阶段动画完成，调整到下一阶段
-            self.animate_index = 0;
+        // —— 2. 首次调用：立即填充 1维 → 2维 的 start/target 缓冲 ——
+        if self.curve_vertex_count == 0 {
+            // 确定下一个目标维度（初始 self.curve_dimention==1，is_animation_up==true）
+            let next_dim = self.curve_dimention + 1;
+            // start: 1 维曲线顶点，复制 4 倍以匹配 2 维点数
+            let mut start_curve = HilbertCurve::new(self.curve_dimention);
+            start_curve.four_times_vertices();
+            // target: 2 维曲线
+            let target_curve = HilbertCurve::new(next_dim);
+
+            // 更新实例数，并写入两个 vertex buffer
+            self.curve_vertex_count = target_curve.vertices.len();
+            self.app.queue.write_buffer(
+                &self.vertex_buffers[0],
+                0,
+                bytemuck::cast_slice(&start_curve.vertices),
+            );
+            self.app.queue.write_buffer(
+                &self.vertex_buffers[1],
+                0,
+                bytemuck::cast_slice(&target_curve.vertices),
+            );
+        }
+
+        // —— 3. 推进动画索引 ——
+        self.animate_index = (self.animate_index + 1) % self.draw_count;
+
+        // —— 4. 每当 animate_index 回到 0，就切换维度并准备下一次过渡 ——
+        if self.animate_index == 0 {
+            // 更新维度状态
             if self.is_animation_up {
-                if self.curve_dimention == 6 {
+                if self.curve_dimention < 6 {
+                    self.curve_dimention += 1;
+                } else {
                     self.is_animation_up = false;
                     self.curve_dimention -= 1;
+                }
+            } else {
+                if self.curve_dimention > 1 {
+                    self.curve_dimention -= 1;
                 } else {
+                    self.is_animation_up = true;
                     self.curve_dimention += 1;
                 }
-            } else if self.curve_dimention == 1 {
-                self.is_animation_up = true;
-                self.curve_dimention += 1;
-            } else {
-                self.curve_dimention -= 1;
             }
 
-            let mut target = HilbertCurve::new(self.curve_dimention);
-            let start = if self.is_animation_up {
-                let mut start = HilbertCurve::new(self.curve_dimention - 1);
-                // 把顶点数翻 4 倍来对应目标维度曲线
-                start.four_times_vertices();
-                start
+            // 计算下一次过渡的目标维度
+            let next_dim = if self.is_animation_up {
+                self.curve_dimention + 1
             } else {
-                target.four_times_vertices();
-                HilbertCurve::new(self.curve_dimention + 1)
+                self.curve_dimention - 1
             };
-            // 更新顶点数
-            self.curve_vertex_count = target.vertices.len();
-            // 填充顶点 buffer
-            for (buf, curve) in self.vertex_buffers.iter().zip([start, target].iter()) {
-                self.app
-                    .queue
-                    .write_buffer(buf, 0, bytemuck::cast_slice(&curve.vertices));
+
+            // 构造 start/target 顶点集
+            let mut start_curve = HilbertCurve::new(self.curve_dimention);
+            if self.is_animation_up {
+                // 升维时，start 的点数要乘 4
+                start_curve.four_times_vertices();
             }
-        }
-        if self.curve_vertex_count == 0 {
-            return Ok(());
+            let target_curve = HilbertCurve::new(next_dim);
+
+            // 更新实例数 & 写缓冲
+            self.curve_vertex_count = target_curve.vertices.len();
+            self.app.queue.write_buffer(
+                &self.vertex_buffers[0],
+                0,
+                bytemuck::cast_slice(&start_curve.vertices),
+            );
+            self.app.queue.write_buffer(
+                &self.vertex_buffers[1],
+                0,
+                bytemuck::cast_slice(&target_curve.vertices),
+            );
         }
 
-        // 动画帧绘制
-        let output = self.app.surface.get_current_texture().unwrap();
-        let frame_view = output
+        // —— 5. 真正开始绘制 ——
+        let output = self.app.surface.get_current_texture()?;
+        let view = output
             .texture
             .create_view(&wgpu::TextureViewDescriptor::default());
         let mut encoder = self
@@ -206,11 +240,12 @@ impl WgpuAppAction for HilbertCurveApp {
             .create_command_encoder(&wgpu::CommandEncoderDescriptor {
                 label: Some("Render Encoder"),
             });
+
         {
             let mut rpass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-                label: None,
+                label: Some("Hilbert Render"),
                 color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                    view: &frame_view,
+                    view: &view,
                     resolve_target: None,
                     ops: wgpu::Operations {
                         load: wgpu::LoadOp::Clear(utils::unpack_u32_to_color(0xf2eaddff)),
@@ -219,22 +254,25 @@ impl WgpuAppAction for HilbertCurveApp {
                 })],
                 ..Default::default()
             });
+
+            // 绑定 pipeline + uniform
             rpass.set_pipeline(&self.line.pipeline);
             rpass.set_bind_group(0, &self.line.bg_setting.bind_group, &[]);
-            rpass.set_bind_group(
-                1,
-                &self.line.dy_bg.bind_group,
-                &[256 * self.animate_index as wgpu::DynamicOffset],
-            );
-            let instance_count = self.curve_vertex_count as u32 - 1;
+            let dyn_off: wgpu::DynamicOffset = 256 * self.animate_index;
+            rpass.set_bind_group(1, &self.line.dy_bg.bind_group, &[dyn_off]);
 
+            // 绑定 4 个实例流的顶点缓冲
+            let instance_count = (self.curve_vertex_count as u32).saturating_sub(1);
             rpass.set_vertex_buffer(0, self.vertex_buffers[0].slice(..));
             rpass.set_vertex_buffer(1, self.vertex_buffers[0].slice(12..));
             rpass.set_vertex_buffer(2, self.vertex_buffers[1].slice(..));
             rpass.set_vertex_buffer(3, self.vertex_buffers[1].slice(12..));
 
+            // 绘制所有线段实例
             rpass.draw(0..6, 0..instance_count);
         }
+
+        // 提交并呈现
         self.app.queue.submit(Some(encoder.finish()));
         output.present();
 
