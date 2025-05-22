@@ -52,6 +52,39 @@ impl HilbertCurveApp {
             self.size_changed = false;
         }
     }
+
+    fn update_buffers(&mut self) {
+        // 构造 start/target 顶点集
+        let mut start_curve = HilbertCurve::new(self.curve_dimention);
+
+        // 计算下一次过渡的目标维度
+        let next_dim = if self.is_animation_up {
+            // 升维时，start 的点数要乘 4
+            start_curve.four_times_vertices();
+            self.curve_dimention + 1
+        } else {
+            self.curve_dimention - 1
+        };
+
+        let mut target_curve = HilbertCurve::new(next_dim);
+        if !self.is_animation_up {
+            // 降维时，target 的点数要乘 4
+            target_curve.four_times_vertices();
+        }
+
+        // 更新实例数 & 写缓冲
+        self.curve_vertex_count = target_curve.vertices.len();
+        self.app.queue.write_buffer(
+            &self.vertex_buffers[0],
+            0,
+            bytemuck::cast_slice(&start_curve.vertices),
+        );
+        self.app.queue.write_buffer(
+            &self.vertex_buffers[1],
+            0,
+            bytemuck::cast_slice(&target_curve.vertices),
+        );
+    }
 }
 
 impl WgpuAppAction for HilbertCurveApp {
@@ -157,25 +190,7 @@ impl WgpuAppAction for HilbertCurveApp {
         // —— 2. 首次调用：立即填充 1维 → 2维 的 start/target 缓冲 ——
         if self.curve_vertex_count == 0 {
             // 确定下一个目标维度（初始 self.curve_dimention==1，is_animation_up==true）
-            let next_dim = self.curve_dimention + 1;
-            // start: 1 维曲线顶点，复制 4 倍以匹配 2 维点数
-            let mut start_curve = HilbertCurve::new(self.curve_dimention);
-            start_curve.four_times_vertices();
-            // target: 2 维曲线
-            let target_curve = HilbertCurve::new(next_dim);
-
-            // 更新实例数，并写入两个 vertex buffer
-            self.curve_vertex_count = target_curve.vertices.len();
-            self.app.queue.write_buffer(
-                &self.vertex_buffers[0],
-                0,
-                bytemuck::cast_slice(&start_curve.vertices),
-            );
-            self.app.queue.write_buffer(
-                &self.vertex_buffers[1],
-                0,
-                bytemuck::cast_slice(&target_curve.vertices),
-            );
+            self.update_buffers();
         }
 
         // —— 3. 推进动画索引 ——
@@ -185,48 +200,18 @@ impl WgpuAppAction for HilbertCurveApp {
         if self.animate_index == 0 {
             // 更新维度状态
             if self.is_animation_up {
-                if self.curve_dimention < 6 {
-                    self.curve_dimention += 1;
-                } else {
+                self.curve_dimention += 1;
+                if self.curve_dimention == 6 {
                     self.is_animation_up = false;
-                    self.curve_dimention -= 1;
                 }
             } else {
-                if self.curve_dimention > 1 {
-                    self.curve_dimention -= 1;
-                } else {
+                self.curve_dimention -= 1;
+                if self.curve_dimention == 1 {
                     self.is_animation_up = true;
-                    self.curve_dimention += 1;
                 }
             }
 
-            // 计算下一次过渡的目标维度
-            let next_dim = if self.is_animation_up {
-                self.curve_dimention + 1
-            } else {
-                self.curve_dimention - 1
-            };
-
-            // 构造 start/target 顶点集
-            let mut start_curve = HilbertCurve::new(self.curve_dimention);
-            if self.is_animation_up {
-                // 升维时，start 的点数要乘 4
-                start_curve.four_times_vertices();
-            }
-            let target_curve = HilbertCurve::new(next_dim);
-
-            // 更新实例数 & 写缓冲
-            self.curve_vertex_count = target_curve.vertices.len();
-            self.app.queue.write_buffer(
-                &self.vertex_buffers[0],
-                0,
-                bytemuck::cast_slice(&start_curve.vertices),
-            );
-            self.app.queue.write_buffer(
-                &self.vertex_buffers[1],
-                0,
-                bytemuck::cast_slice(&target_curve.vertices),
-            );
+            self.update_buffers();
         }
 
         // —— 5. 真正开始绘制 ——
