@@ -545,11 +545,11 @@ impl WgpuAppAction for WgpuApp {
     }
 
     fn device_input(&mut self, event: &DeviceEvent) -> bool {
-        if let DeviceEvent::MouseMotion { delta } = event {
-            if self.mouse_pressed {
-                self.camera_controller.process_mouse(delta.0, delta.1);
-                return true;
-            }
+        if let DeviceEvent::MouseMotion { delta } = event
+            && self.mouse_pressed
+        {
+            self.camera_controller.process_mouse(delta.0, delta.1);
+            return true;
         }
         false
     }

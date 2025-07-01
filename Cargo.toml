@@ -13,7 +13,7 @@ exclude = ["code/showcase/imgui-demo", "code/showcase/pong"]
 
 [workspace.package]
 edition = "2024"
-rust-version = "1.85"
+rust-version = "1.88"
 
 [workspace.dependencies.image]
 version = "0.25"

@@ -52,7 +52,7 @@ fn main() {
             if is_need_copy {
                 let result = copy_items(&[&res_dir], &out_dir, &copy_options);
                 if let Err(e) = result {
-                    println!("copy_items error: {:?}", e);
+                    println!("copy_items error: {e:?}");
                     println!("res_dir: {:?}", res_dir.canonicalize());
                     println!("out_dir: {:?}", out_dir.canonicalize());
                 }

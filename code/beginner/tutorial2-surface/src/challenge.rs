@@ -261,11 +261,12 @@ impl ApplicationHandler for WgpuAppHandler {
         let mut app = self.app.lock();
         if app.as_ref().is_none() {
             // 如果 app 还没有初始化完成，则记录错失的窗口事件
-            if let WindowEvent::Resized(physical_size) = event {
-                if physical_size.width > 0 && physical_size.height > 0 {
-                    let mut missed_resize = self.missed_resize.lock();
-                    *missed_resize = Some(physical_size);
-                }
+            if let WindowEvent::Resized(physical_size) = event
+                && physical_size.width > 0
+                && physical_size.height > 0
+            {
+                let mut missed_resize = self.missed_resize.lock();
+                *missed_resize = Some(physical_size);
             }
             return;
         }
