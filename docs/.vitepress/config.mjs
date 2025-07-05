@@ -164,6 +164,10 @@ function sidebarConfig() {
         {
           text: "🆕 在 iOS Android App 中集成 Bevy 游戏引擎",
           link: "/integration-and-debugging/bevy/",
+        }, 
+        {
+          text: "🆕 在 wgpu 项目中集成 bevy_ecs",
+          link: "/integration-and-debugging/bevy/ecs.md",
         },
       ],
     },
