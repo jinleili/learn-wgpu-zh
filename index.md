@@ -306,7 +306,7 @@ cfg-if = "1"
 winit = "0.30"
 env_logger = "0.11"
 log = "0.4"
-wgpu = "25"
+wgpu = "26"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 # 需要避免在 wasm 中添加 pollster 依赖，否则会导致 wasm 加载时报错：
@@ -452,6 +452,7 @@ let mut encoder = self.device.create_command_encoder(&wgpu::CommandEncoderDescri
         color_attachments: &[Some(wgpu::RenderPassColorAttachment {
             view: &view,
             resolve_target: None,
+            depth_slice: None,
             ops: wgpu::Operations {
                 load: wgpu::LoadOp::Clear(wgpu::Color {
                     r: 0.1,
@@ -534,6 +535,7 @@ match event {
 Some(wgpu::RenderPassColorAttachment {
     view: &view,
     resolve_target: None,
+    depth_slice: None,
     ops: wgpu::Operations {
         load: wgpu::LoadOp::Clear(wgpu::Color {
             r: 0.1,

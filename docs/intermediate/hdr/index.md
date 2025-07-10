@@ -195,6 +195,7 @@ impl HdrPipeline {
             color_attachments: &[Some(wgpu::RenderPassColorAttachment {
                 view: &output,
                 resolve_target: None,
+                depth_slice: None,
                 ops: Operations {
                     load: wgpu::LoadOp::Load,
                     store: wgpu::StoreOp::Store,
@@ -346,6 +347,7 @@ let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
     color_attachments: &[Some(wgpu::RenderPassColorAttachment {
         view: self.hdr.view(), // 这里有变更!
         resolve_target: None,
+        depth_slice: None,
         ops: wgpu::Operations {
             load: wgpu::LoadOp::Clear(wgpu::Color {
                 r: 0.1,
@@ -508,7 +510,7 @@ let (device, queue) = adapter
 因此，我们将从 `Cargo.toml` 中删除 WebGL 功能，就是下边这一行：
 
 ```toml
-wgpu = { version = "25", features = ["webgl"]}
+wgpu = { version = "26", features = ["webgl"]}
 ```
 
 </div>

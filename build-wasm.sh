@@ -1,5 +1,8 @@
 export RES_PATH=learn-wgpu-zh
-#
+
+RUSTFLAGS='--cfg getrandom_backend="wasm_js"'
+export RUSTFLAGS
+
 cargo build --no-default-features --profile wasm-release --target wasm32-unknown-unknown --features webgl \
 --bin tutorial1-window \
 --bin tutorial2-surface \
@@ -36,7 +39,7 @@ do
     filename=$(basename "$i");
     # Remove the .wasm extension from filename
     name_no_extension="${filename%.wasm}";
-    wasm-opt -Oz wasm/"$name_no_extension"_bg.wasm --output docs/public/wasm/"$name_no_extension"_bg.wasm;
+    wasm-opt -Oz --enable-bulk-memory --enable-nontrapping-float-to-int --output docs/public/wasm/"$name_no_extension"_bg.wasm wasm/"$name_no_extension"_bg.wasm;
 
     cp wasm/"$name_no_extension".js docs/public/wasm/"$name_no_extension".js
 done

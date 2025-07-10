@@ -552,11 +552,13 @@ impl GenerateChunk for TerrainHackPipeline {
                 Some(wgpu::RenderPassColorAttachment {
                     view: &vertex_view,
                     resolve_target: None,
+                    depth_slice: None,
                     ops: wgpu::Operations::default(),
                 }),
                 Some(wgpu::RenderPassColorAttachment {
                     view: &index_view,
                     resolve_target: None,
+                    depth_slice: None,
                     ops: wgpu::Operations::default(),
                 }),
             ],

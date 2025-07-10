@@ -208,6 +208,7 @@ impl WgpuAppAction for VertexAnimationApp {
                 color_attachments: &[Some(wgpu::RenderPassColorAttachment {
                     view: &frame_view,
                     resolve_target: None,
+                    depth_slice: None,
                     ops: wgpu::Operations {
                         load: wgpu::LoadOp::Clear(utils::unpack_u32_to_color(0xf2eaddff)),
                         store: wgpu::StoreOp::Store,

@@ -27,7 +27,9 @@ log.workspace = true
 rand = "0.8"
 # 使 rand 支持 wasm 环境
 # https://github.com/rust-random/rand/blob/585b29f2a9b21170c56fc9a0e29cff664491561c/README.md?plain=1#L113
-getrandom = { version = "*", features = ["js"] }
+getrandom = { version = "0.3.3", default-features = false, features = [
+    "wasm_js",
+] }
 utils.workspace = true
 wgpu.workspace = true
 

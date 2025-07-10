@@ -1,6 +1,6 @@
 set -e 
 
-cargo build --no-default-features --features web_rwh --target wasm32-unknown-unknown 
+cargo build --no-default-features --features web_rwh --profile wasm-release --target wasm32-unknown-unknown 
 
 # Generate bindings
 wasm-bindgen --no-typescript --out-dir wasm --web "../../../target/wasm32-unknown-unknown/debug/wgpu_in_web.wasm";

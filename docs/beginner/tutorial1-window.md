@@ -12,7 +12,7 @@ env_logger = "0.11"
 log = "0.4"
 parking_lot = "0.12"
 winit = "0.30"
-wgpu = "25"
+wgpu = "26"
 ```
 
 ## 使用 Rust 的新版解析器
