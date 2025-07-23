@@ -79,14 +79,15 @@ Chrome 113+、Microsoft Edge 113+ 及 Arc 浏览器均已默认支持 WebGPU 功
 
 ### Safari
 
-Safari 18 (macOS 15) 已经默认开启了 WebGPU 功能。
+[Safari 26 (macOS、iPadOS 及 iOS 26)](https://developer.apple.com/videos/play/wwdc2025/236/) 已默认支持 WebGPU 功能。
 
-macOS 14- 系统上，需安装 [Safari Technology Preview 185+](https://www.webkit.org/blog/14879/webgpu-now-available-for-testing-in-safari-technology-preview/)，从顶部菜单栏选择 `开发 -> 功能标志` , 搜索并勾选 `WebGPU`:
+macOS 15- 系统上，需安装 [Safari Technology Preview 185+](https://www.webkit.org/blog/14879/webgpu-now-available-for-testing-in-safari-technology-preview/)，从顶部菜单栏选择 `开发 -> 功能标志` , 搜索并勾选 `WebGPU`:
 <img src="docs/public/res/safari.png" alt="Safari Technology Preview">
 
 ### Firefox
+[Firefox 141 for Windows](https://mozillagfx.wordpress.com/2025/07/15/shipping-webgpu-on-windows-in-firefox-141/)已默认支持 WebGPU 功能。
 
-安装 Nightly 版本，在地址栏中输入 `about:config` , 将 `dom.webgpu.enabled` 设置为 `true`:
+其它系统上需手动开启 WebGPU 支持，在地址栏中输入 `about:config` , 将 `dom.webgpu.enabled` 设置为 `true`:
 <img src="docs/public/res/firefox.png" alt="Firefox Nightly">
 
 ## 关于译者
