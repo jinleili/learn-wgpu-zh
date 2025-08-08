@@ -56,7 +56,7 @@ cargo run --bin tutorial3-pipeline
 # 在浏览器中运行
 # 需要先安装 Rust WebAssembly target
 rustup target add wasm32-unknown-unknown
-# 使用 WebGPU（需要使用 Chrome/Edge 113+，Arc 或 Safari 18）
+# 使用 WebGPU（需要使用 Chrome/Edge 113+，Arc 或 Safari 26）
 # compute-pipeline, vertex-animation 及 hilbert-curve 示例只能在桌面端与浏览器端 WebGPU 环境运行
 cargo run-wasm --bin vertex-animation
 # 使用 WebGL 2.0

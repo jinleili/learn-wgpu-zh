@@ -172,7 +172,7 @@ web-sys = { version = "0.3.77", features = [
 
 - [console_error_panic_hook](https://docs.rs/console_error_panic_hook) 配置 `panic!` 宏以将错误发送到 javascript 控制台。如果没有这个，当遇到程序崩溃时，你就会对导致崩溃的原因一无所知。
 - [console_log](https://docs.rs/console_log) 实现了 [log](https://docs.rs/log) API。它将所有日志发送到 javascript 控制台。它还可以配置为仅发送特定级别的日志，这非常适合用于调试。
-- 当我们想在大多数当前浏览器上运行时，就需要在 wgpu 上启用 `WebGL` 功能。因为目前只在 Chrome/Edge 113+、Arc、Safari 18 才支持直接使用 WebGPU API。<br>
+- 当我们想在大多数当前浏览器上运行时，就需要在 wgpu 上启用 `WebGL` 功能。因为目前只在 Chrome/Edge 113+、Arc、Safari 26 才支持直接使用 WebGPU API。<br>
   教程大部分代码的编译会使用 WebGL 功能，如果你想了解更多详细信息，请查看 [wgpu 源码仓库](https://github.com/gfx-rs/wgpu/wiki/Running-on-the-Web-with-WebGPU-and-WebGL) 上的 web 编译指南
 - [wasm-bindgen](https://docs.rs/wasm-bindgen) 是此列表中最重要的依赖项。它负责生成样板代码，并告诉浏览器如何使用我们的项目。它还允许我们在 Rust 中公开可在 Javascript 中使用的**函数**，反之亦然。<br>
   我不会详细介绍 wasm-bindgen，所以如果你需要入门（或者是复习），请查看[这里](https://rustwasm.github.io/wasm-bindgen/)

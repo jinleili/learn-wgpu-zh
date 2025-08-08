@@ -60,7 +60,7 @@ cargo run --bin tutorial1-window
 # 在浏览器中运行
 # 需要先安装 Rust WebAssembly target
 rustup target add wasm32-unknown-unknown
-# 使用 WebGPU（需要使用 Chrome/Edge 113+，Arc 或 Safari 18）
+# 使用 WebGPU（需要使用 Chrome/Edge 113+，Arc 或 Safari 26）
 cargo run-wasm --bin tutorial1-window
 # 使用 WebGL 2.0
 cargo run-wasm --bin tutorial1-window --features webgl

@@ -3,7 +3,7 @@
         <div id="alert" style="display: none;">
             <div style="line-height: 40px;">此浏览器版本不支持 WebGPU</div>
             <div style="font-size: 16px;color: #999999;">
-                请使用 Chrome / Edge 113+，Arc 或者 Safari 18
+                请使用 Chrome / Edge 113+，Arc 或者 Safari 26
             </div>
         </div>
         <div id="loading" style="display: block;">

@@ -1,6 +1,6 @@
 pub trait Bindable {
     fn layout_entries() -> Vec<wgpu::BindGroupLayoutEntry>;
-    fn bind_group_entries(&self) -> Vec<wgpu::BindGroupEntry>;
+    fn bind_group_entries(&self) -> Vec<wgpu::BindGroupEntry<'_>>;
 }
 
 pub struct Binder<T: Bindable> {
