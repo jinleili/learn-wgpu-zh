@@ -19,7 +19,7 @@
 
 ## Blinn-Phong 反射模型
 
-对于大多数**实时**（real-time）应用来说，**光线/路径追踪**的计算成本十在太高了（尽管这种情况已经开始改变），所以通常使用一种更有效的，精度较低的 [Phong 反射模型](https://en.wikipedia.org/wiki/Phong_shading) 来解决光照问题。它考虑了光线与材质的 3 种相互作用：环境光反射、漫反射和镜面反射。我们将学习 [Blinn-Phong 反射模型](https://en.wikipedia.org/wiki/Blinn%E2%80%93Phong_reflection_model)，它能加速镜面反射的计算。
+对于大多数**实时**（real-time）应用来说，**光线/路径追踪**的计算成本实在太高了（尽管这种情况已经开始改变），所以通常使用一种更有效的，精度较低的 [Phong 反射模型](https://en.wikipedia.org/wiki/Phong_shading) 来解决光照问题。它考虑了光线与材质的 3 种相互作用：环境光反射、漫反射和镜面反射。我们将学习 [Blinn-Phong 反射模型](https://en.wikipedia.org/wiki/Blinn%E2%80%93Phong_reflection_model)，它能加速镜面反射的计算。
 
 在开始学习之前，需要在我们的场景中添加一个光源：
 
