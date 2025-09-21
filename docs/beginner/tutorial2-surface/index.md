@@ -317,9 +317,9 @@ pollster = "0.3"
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 console_error_panic_hook = "0.1.7"
 console_log = "1.0"
-wasm-bindgen = "0.2.100"
-wasm-bindgen-futures = "0.4.50"
-web-sys = { version = "0.3.77", features = [
+wasm-bindgen = "0.2.103"
+wasm-bindgen-futures = "0.4.53"
+web-sys = { version = "0.3.80", features = [
     "Document",
     "Window",
     "Element",

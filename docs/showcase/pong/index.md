@@ -286,9 +286,9 @@ console_error_panic_hook = "0.1.6"
 console_log = "1.0"
 getrandom = { version = "0.2", features = ["js"] }
 rodio = { version = "0.15", default-features = false, features = ["wasm-bindgen", "wav"] }
-wasm-bindgen-futures = "0.4.50"
-wasm-bindgen = "0.2.100"
-web-sys = { version = "0.3.77", features = [
+wasm-bindgen-futures = "0.4.51"
+wasm-bindgen = "0.2.103"
+web-sys = { version = "0.3.80", features = [
     "Document",
     "Window",
     "Element",
