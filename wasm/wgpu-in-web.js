@@ -301,7 +301,7 @@ export function drop_wgpu_app(ptr) {
     wasm.drop_wgpu_app(ptr);
 }
 
-function __wbg_adapter_4(arg0, arg1, arg2) {
+function __wbg_adapter_12(arg0, arg1, arg2) {
     wasm.__wbindgen_export_5(arg0, arg1, addHeapObject(arg2));
 }
 
@@ -1647,7 +1647,7 @@ function __wbg_get_imports() {
     };
     imports.wbg.__wbindgen_cast_75d7d4cd7db9065b = function(arg0, arg1) {
         // Cast intrinsic for `Closure(Closure { dtor_idx: 114, function: Function { arguments: [Externref], shim_idx: 115, ret: Unit, inner_ret: Some(Unit) }, mutable: true }) -> Externref`.
-        const ret = makeMutClosure(arg0, arg1, 114, __wbg_adapter_4);
+        const ret = makeMutClosure(arg0, arg1, 114, __wbg_adapter_12);
         return addHeapObject(ret);
     };
     imports.wbg.__wbindgen_cast_cb9088102bce6b30 = function(arg0, arg1) {
