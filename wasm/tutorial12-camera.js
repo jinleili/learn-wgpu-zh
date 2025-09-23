@@ -327,12 +327,12 @@ function __wbg_adapter_6(arg0, arg1, arg2) {
     wasm.__wbindgen_export_5(arg0, arg1, addHeapObject(arg2));
 }
 
-function __wbg_adapter_11(arg0, arg1, arg2, arg3) {
-    wasm.__wbindgen_export_6(arg0, arg1, addHeapObject(arg2), addHeapObject(arg3));
+function __wbg_adapter_33(arg0, arg1) {
+    wasm.__wbindgen_export_6(arg0, arg1);
 }
 
-function __wbg_adapter_36(arg0, arg1) {
-    wasm.__wbindgen_export_7(arg0, arg1);
+function __wbg_adapter_38(arg0, arg1, arg2, arg3) {
+    wasm.__wbindgen_export_7(arg0, arg1, addHeapObject(arg2), addHeapObject(arg3));
 }
 
 const __wbindgen_enum_GpuAddressMode = ["clamp-to-edge", "repeat", "mirror-repeat"];
@@ -2836,7 +2836,7 @@ function __wbg_get_imports() {
     }, arguments) };
     imports.wbg.__wbindgen_cast_00e6e4b7561ac466 = function(arg0, arg1) {
         // Cast intrinsic for `Closure(Closure { dtor_idx: 541, function: Function { arguments: [], shim_idx: 917, ret: Unit, inner_ret: Some(Unit) }, mutable: true }) -> Externref`.
-        const ret = makeMutClosure(arg0, arg1, 541, __wbg_adapter_36);
+        const ret = makeMutClosure(arg0, arg1, 541, __wbg_adapter_33);
         return addHeapObject(ret);
     };
     imports.wbg.__wbindgen_cast_0558836ec4dc4582 = function(arg0, arg1) {
@@ -2896,7 +2896,7 @@ function __wbg_get_imports() {
     };
     imports.wbg.__wbindgen_cast_a58a4edd0fa19288 = function(arg0, arg1) {
         // Cast intrinsic for `Closure(Closure { dtor_idx: 541, function: Function { arguments: [NamedExternref("Array<any>"), NamedExternref("ResizeObserver")], shim_idx: 370, ret: Unit, inner_ret: Some(Unit) }, mutable: true }) -> Externref`.
-        const ret = makeMutClosure(arg0, arg1, 541, __wbg_adapter_11);
+        const ret = makeMutClosure(arg0, arg1, 541, __wbg_adapter_38);
         return addHeapObject(ret);
     };
     imports.wbg.__wbindgen_cast_bbb4883c6389f1de = function(arg0, arg1) {
