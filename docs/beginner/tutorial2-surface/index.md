@@ -182,6 +182,9 @@ let (device, queue) = adapter.request_device(
 
 ```rust
 let caps = surface.get_capabilities(&adapter);
+let mut size = window.inner_size();
+size.width = size.width.max(1);
+size.height = size.height.max(1);
 let config = wgpu::SurfaceConfiguration {
     usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
     format: caps.formats[0],
@@ -233,6 +236,7 @@ let modes = surface.get_capabilities(&adapter).present_modes;
             queue,
             config,
             size,
+            size_changed: false,
         }
     }
     // ...
