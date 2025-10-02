@@ -495,6 +495,7 @@ let (device, queue) = adapter
             // 这里是变更!
             required_features: wgpu::Features::all_webgpu_mask(),
             required_limits: wgpu::Limits::downlevel_defaults(),
+            experimental_features: wgpu::ExperimentalFeatures::disabled(),
             memory_hints: wgpu::MemoryHints::Performance,
             trace: wgpu::Trace::Off,
     }

@@ -176,12 +176,12 @@ impl WgpuAppAction for WgpuApp {
                 label: Some("Render Encoder"),
             });
         // 每 600 帧重置为初始状态
-        if self.frame_count % 600 == 0 {
+        if self.frame_count.is_multiple_of(600) {
             self.reset_node.draw(&mut encoder, &self.blur_xy_tv);
         }
 
         // 减慢模糊的迭代速度
-        if self.frame_count % 20 == 0 {
+        if self.frame_count.is_multiple_of(20) {
             // 执行模糊运算
             let mut cpass = encoder.begin_compute_pass(&wgpu::ComputePassDescriptor::default());
             self.blur_x.dispatch(&mut cpass);

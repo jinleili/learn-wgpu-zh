@@ -20,6 +20,7 @@ async fn run() {
             } else {
                 wgpu::Limits::default()
             },
+            experimental_features: wgpu::ExperimentalFeatures::disabled(),
             memory_hints: wgpu::MemoryHints::Performance,
             // 追踪 API 调用路径
             trace: wgpu::Trace::Off,
@@ -133,7 +134,7 @@ async fn run() {
             tx.send(result).unwrap();
         });
         // wait for the GPU to finish
-        device.poll(wgpu::PollType::Wait).unwrap();
+        device.poll(wgpu::PollType::wait_indefinitely()).unwrap();
 
         if let Ok(Ok(())) = rx.recv_async().await {
             let padded_data = buffer_slice.get_mapped_range();

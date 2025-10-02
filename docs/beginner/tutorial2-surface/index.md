@@ -157,6 +157,7 @@ let (device, queue) = adapter.request_device(
         } else {
             wgpu::Limits::default()
         },
+        experimental_features: wgpu::ExperimentalFeatures::disabled(),
         label: None,
         memory_hints: wgpu::MemoryHints::Performance,
         // 追踪 API 调用路径

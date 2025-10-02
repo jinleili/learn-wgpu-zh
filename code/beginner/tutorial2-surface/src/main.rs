@@ -91,6 +91,7 @@ impl WgpuApp {
                 } else {
                     wgpu::Limits::default()
                 },
+                experimental_features: wgpu::ExperimentalFeatures::disabled(),
                 memory_hints: wgpu::MemoryHints::Performance,
                 trace: wgpu::Trace::Off,
             })

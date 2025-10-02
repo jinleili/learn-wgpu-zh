@@ -98,6 +98,7 @@ impl WgpuApp {
                 } else {
                     wgpu::Limits::default()
                 },
+                experimental_features: wgpu::ExperimentalFeatures::disabled(),
                 memory_hints: wgpu::MemoryHints::Performance,
                 // 追踪 API 调用路径
                 trace: wgpu::Trace::Off,
@@ -222,7 +223,7 @@ impl ApplicationHandler for WgpuAppHandler {
             return;
         }
 
-        let window_attributes = Window::default_attributes().with_title("tutorial1-window");
+        let window_attributes = Window::default_attributes().with_title("tutorial2-challenge");
         let window = Arc::new(event_loop.create_window(window_attributes).unwrap());
         cfg_if::cfg_if! {
             if #[cfg(target_arch = "wasm32")] {

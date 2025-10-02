@@ -369,7 +369,7 @@ impl ModelLoader {
                     pass.dispatch_workgroups(binding.compute_info.num_vertices, 1, 1);
                 }
                 queue.submit(Some(encoder.finish()));
-                device.poll(wgpu::PollType::Wait).unwrap();
+                device.poll(wgpu::PollType::wait_indefinitely()).unwrap();
 
                 Ok(Mesh {
                     name: m.name.clone(),
