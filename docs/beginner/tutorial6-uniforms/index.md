@@ -407,7 +407,6 @@ fn window_event(
             WindowEvent::RedrawRequested => {
                 // ...
 
-                // 第六章重点-更新相机，但文章中没有提及
                 app.update();
 
                 // ...
