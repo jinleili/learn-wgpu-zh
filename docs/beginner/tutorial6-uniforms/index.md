@@ -395,25 +395,6 @@ fn update(&mut self) {
     self.app.queue.write_buffer(&self.camera_buffer, 0, bytemuck::cast_slice(&[self.camera_uniform]));
 }
 ```
-然后在以下部分调用update函数
-```rust
-fn window_event(
-        &mut self,
-        event_loop: &ActiveEventLoop,
-        _window_id: WindowId,
-        event: WindowEvent,
-    ) {
-            // ...
-            WindowEvent::RedrawRequested => {
-                // ...
-
-                app.update();
-
-                // ...
-            }
-            // ...
-    }
-```
 
 这就是要做的全部工作了。现在运行代码，将能看到一个带有树木纹理的五边形，并可以用 wasd/arrow 键来旋转和缩放。
 
