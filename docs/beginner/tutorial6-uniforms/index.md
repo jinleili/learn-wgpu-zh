@@ -223,6 +223,9 @@ render_pass.draw_indexed(0..self.num_indices, 0, 0..1);
 struct CameraUniform {
     view_proj: mat4x4f,
 };
+// 这里如果使用了VScode的版本为:0.11.94的wgsl-analyzer扩展，
+// 在var处则会提示以下错误：这是扩展的bug，暂时无需理会
+// type is not host-shareable
 @group(1) @binding(0) // 1.
 var<uniform> camera: CameraUniform;
 
@@ -278,49 +281,35 @@ impl CameraController {
         }
     }
 
-    fn process_events(&mut self, event: &WindowEvent) -> bool {
-        match event {
-            WindowEvent::KeyboardInput {
-                event:
-                    KeyEvent {
-                        state,
-                        logical_key,
-                        physical_key,
-                        ..
-                    },
-                ..
-            } => {
-                let is_pressed = *state == ElementState::Pressed;
-                match logical_key {
-                    Key::Named(NamedKey::Space) => {
-                        self.is_up_pressed = is_pressed;
-                        return true;
-                    }
-                    _ => {}
-                }
-                match physical_key {
-                    PhysicalKey::Code(KeyCode::ShiftLeft) => {
-                        self.is_down_pressed = is_pressed;
-                        true
-                    }
-                    PhysicalKey::Code(KeyCode::KeyW) | PhysicalKey::Code(KeyCode::ArrowUp) => {
-                        self.is_forward_pressed = is_pressed;
-                        true
-                    }
-                    PhysicalKey::Code(KeyCode::KeyA) | PhysicalKey::Code(KeyCode::ArrowLeft) => {
-                        self.is_left_pressed = is_pressed;
-                        true
-                    }
-                    PhysicalKey::Code(KeyCode::KeyS) | PhysicalKey::Code(KeyCode::ArrowDown) => {
-                        self.is_backward_pressed = is_pressed;
-                        true
-                    }
-                    PhysicalKey::Code(KeyCode::KeyD) | PhysicalKey::Code(KeyCode::ArrowRight) => {
-                        self.is_right_pressed = is_pressed;
-                        true
-                    }
-                    _ => false,
-                }
+    fn process_events(&mut self, event: &KeyEvent) -> bool {
+        // 直接检查 KeyEvent 的状态
+        let is_pressed = event.state == ElementState::Pressed;
+
+        if event.physical_key == PhysicalKey::Code(KeyCode::Space) {
+            self.is_up_pressed = is_pressed;
+            return true;
+        }
+
+        match event.physical_key {
+            PhysicalKey::Code(KeyCode::ShiftLeft) => {
+                self.is_down_pressed = is_pressed;
+                true
+            }
+            PhysicalKey::Code(KeyCode::KeyW) | PhysicalKey::Code(KeyCode::ArrowUp) => {
+                self.is_forward_pressed = is_pressed;
+                true
+            }
+            PhysicalKey::Code(KeyCode::KeyA) | PhysicalKey::Code(KeyCode::ArrowLeft) => {
+                self.is_left_pressed = is_pressed;
+                true
+            }
+            PhysicalKey::Code(KeyCode::KeyS) | PhysicalKey::Code(KeyCode::ArrowDown) => {
+                self.is_backward_pressed = is_pressed;
+                true
+            }
+            PhysicalKey::Code(KeyCode::KeyD) | PhysicalKey::Code(KeyCode::ArrowRight) => {
+                self.is_right_pressed = is_pressed;
+                true
             }
             _ => false,
         }
