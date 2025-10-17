@@ -256,7 +256,7 @@ WGSL 中的 `var` `let` 关键字与 Swift 语言一样：
 
 ## 结构体
 
-在 WGSL 中，**结构体**（struct）用于表示 Unoform 及 Storage **缓冲区**以及着色器的输入和输出。Unoform 缓冲区与 GLSL 类似，Storage 缓冲区虽然也在 GLSL 中存在等价物，但是 WebGL 2.0 并不支持。
+在 WGSL 中，**结构体**（struct）用于表示 Uniform 及 Storage **缓冲区**以及着色器的输入和输出。Uniform 缓冲区与 GLSL 类似，Storage 缓冲区虽然也在 GLSL 中存在等价物，但是 WebGL 2.0 并不支持。
 
 WGSL 结构体字段对齐规则也与 GLSL 几乎一致，想要了解更多细节，可查看 [WGSL 规范中的字节对齐规则示例](https://www.w3.org/TR/WGSL/#example-fc0bb4df)：
 
@@ -280,7 +280,7 @@ struct UniformParams {
 out.position = params.mvp * vec4f(pos, 1.0);
 ```
 
-注意到上面 Unoform 缓冲区在声明及使用上的两个区别了吗？
+注意到上面 Uniform 缓冲区在声明及使用上的两个区别了吗？
 
 1. WGSL 需要先定义结构体然后才能声明绑定，而 GLSL 可以在声明绑定的同时定义（当然也支持先定义）;
 2. WGSL 里需要用声明的变量来访问结构体字段，而 GLSL 里是直接使用结构体中的字段;
