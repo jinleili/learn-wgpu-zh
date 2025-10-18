@@ -65,7 +65,7 @@ let vertex_buffer = device.create_buffer_init(
 );
 ```
 
-为了访问 `wgpu::Device` 上的 `create_buffer_init` 方法，我们须导入 [DeviceExt](https://docs.rs/wgpu/latest/wgpu/util/trait.DeviceExt.html#tymethod.create_buffer_init) 扩展 trait。关于扩展 trait 的更多信息，请查看[这篇文章](http://xion.io/post/code/rust-extension-traits.html)。
+为了访问 `Device` 上的 `create_buffer_init` 方法，我们须导入 [DeviceExt](https://docs.rs/wgpu/latest/wgpu/util/trait.DeviceExt.html#tymethod.create_buffer_init) 扩展 trait。关于扩展 trait 的更多信息，请查看[这篇文章](http://xion.io/post/code/rust-extension-traits.html)。
 
 要导入扩展 trait，只需在 `lib.rs` 的顶部放上这一行：
 
@@ -137,7 +137,7 @@ wgpu::VertexBufferLayout {
 ```
 
 1. `array_stride` 定义了一个顶点所占的字节数。当着色器读取下一个顶点时，它将跳过 `array_stride` 的字节数。在我们的例子中，array_stride 是 24 个字节。
-2. `step_mode` 告诉管线此缓冲区中的数组数据中的每个元素代表的是每个顶点还是每个实例的数据，如果只想在开始绘制一个新实例时改变顶点，就可以设置为 `wgpu::VertexStepMode::Instance`。在后面的教程里我们会讲解实例化绘制。
+2. `step_mode` 告诉管线此缓冲区中的数组数据中的每个元素代表的是每个顶点还是每个实例的数据，如果只想在开始绘制一个新实例时改变顶点，就可以设置为 `VertexStepMode::Instance`。在后面的教程里我们会讲解实例化绘制。
 3. `attributes` 描述顶点的各个属性（Attribute）的布局。一般来说，这与结构体的字段是 1:1 映射的，在我们的案例中也是如此。
 4. `offset` 定义了属性在一个顶点元素中的字节偏移量。对于第一个属性，偏移量通常为零。其后属性的偏移量应为在其之前各属性的 `size_of` 之和。
 5. `shader_location` 告诉着色器要在什么位置存储这个属性。例如 `@location(0) x: vec3f` 在顶点着色器中对应于 `Vertex` 结构体的 `position` 字段，而 `@location(1) x: vec3f` 对应 `color` 字段。
@@ -185,7 +185,7 @@ wgpu::VertexBufferLayout {
 }
 ```
 
-这无疑很棒，但 Rust 认为 `vertex_attr_array` 的结果是一个临时值，所以需要进行调整才能从一个函数中返回。我们可以将`wgpu::VertexBufferLayout` 的生命周期改为 `'static`，或者[使其成为 `const`](https://github.com/gfx-rs/wgpu/discussions/1790#discussioncomment-1160378)。示例如下：
+这无疑很棒，但 Rust 认为 `vertex_attr_array` 的结果是一个临时值，所以需要进行调整才能从一个函数中返回。我们可以将`VertexBufferLayout` 的生命周期改为 `'static`，或者[使其成为 `const`](https://github.com/gfx-rs/wgpu/discussions/1790#discussioncomment-1160378)。示例如下：
 
 ```rust
 impl Vertex {

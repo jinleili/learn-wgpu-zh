@@ -14,7 +14,7 @@ let compute_pipeline = device
     .create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
         layout: None, // 此处使用了隐式布局
         module: &compute_shader,
-        entry_point: "cs_main",
+        entry_point: Some("cs_main"),
         compilation_options: Default::default(),
         label: None,
     });

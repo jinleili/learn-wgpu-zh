@@ -20,7 +20,7 @@ export NDK_HOME=$ANDROID_SDK_ROOT/ndk/23.1.7779620
 
 到目前为止，Android 模拟器和虚拟设备还不支持 Vulkan 图形 API（仅支持 OpenGL ES），所以开发或调试 wgpu 程序在 Android 系统上的运行时，建议使用真机（各种云测平台的云真机也行）。
 
-如果需要支持模拟器运行，还得加上 `x86_64-linux-android` 和 `i686-linux-android` 这两个构建目标的支持。需要注意的是，如果指定了 wgpu 项目使用 Vulkan 图形后端（`Instance::new(wgpu::Backends::VULKAN)`），则在模拟内运行时会崩溃：
+如果需要支持模拟器运行，还得加上 `x86_64-linux-android` 和 `i686-linux-android` 这两个构建目标的支持。需要注意的是，如果指定了 wgpu 项目使用 Vulkan 图形后端（`Instance::new(Backends::VULKAN)`），则在模拟内运行时会崩溃：
 
 ```sh
 rustup target add aarch64-linux-android armv7-linux-androideabi

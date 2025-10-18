@@ -52,7 +52,7 @@ let rt_desc = wgpu::TextureDescriptor {
 };
 let render_target = framework::Texture::from_descriptor(&device, rt_desc);
 
-// wgpu 需要使用 wgpu::COPY_BYTES_PER_ROW_ALIGNMENT 对齐纹理 -> 缓冲区的复制
+// wgpu 需要使用 COPY_BYTES_PER_ROW_ALIGNMENT 对齐纹理 -> 缓冲区的复制
 // 因此，我们需要同时保存 padded_bytes_per_row 和 unpadded_bytes_per_row
 let pixel_size = mem::size_of::<[u8;4]>() as u32;
 let align = wgpu::COPY_BYTES_PER_ROW_ALIGNMENT;

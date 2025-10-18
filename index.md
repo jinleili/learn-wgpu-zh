@@ -209,7 +209,7 @@ surface.configure(&device, &config);
 
 </div>
 
-`present_mode` 指定的 `wgpu::PresentMode` 枚举值决定了**展示平面**如何与**显示设备**同步。我们选择的`PresentMode::Fifo` 指定了显示设备的刷新率做为渲染的帧速率，这本质上就是**垂直同步**（VSync），所有平台都得支持这种**呈现模式**（PresentMode）。你可以在[文档](https://docs.rs/wgpu/latest/wgpu/enum.PresentMode.html)中查看所有的模式。
+`present_mode` 指定的 `PresentMode` 枚举值决定了**展示平面**如何与**显示设备**同步。我们选择的`PresentMode::Fifo` 指定了显示设备的刷新率做为渲染的帧速率，这本质上就是**垂直同步**（VSync），所有平台都得支持这种**呈现模式**（PresentMode）。你可以在[文档](https://docs.rs/wgpu/latest/wgpu/enum.PresentMode.html)中查看所有的模式。
 
 <div class="note">
 
