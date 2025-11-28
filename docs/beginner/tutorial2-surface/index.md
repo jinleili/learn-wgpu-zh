@@ -212,7 +212,7 @@ surface.configure(&device, &config);
 
 </div>
 
-`present_mode` 指定的 `wgpu::PresentMode` 枚举值决定了**展示平面**如何与**显示设备**同步。我们选择的`PresentMode::Fifo` 指定了显示设备的刷新率做为渲染的帧速率，这本质上就是**垂直同步**（VSync），所有平台都得支持这种**呈现模式**（PresentMode）。你可以在[文档](https://docs.rs/wgpu/latest/wgpu/enum.PresentMode.html)中查看所有的模式。
+`present_mode` 指定的 `PresentMode` 枚举值决定了**展示平面**如何与**显示设备**同步。我们选择的`PresentMode::Fifo` 指定了显示设备的刷新率做为渲染的帧速率，这本质上就是**垂直同步**（VSync），所有平台都得支持这种**呈现模式**（PresentMode）。你可以在[文档](https://docs.rs/wgpu/latest/wgpu/enum.PresentMode.html)中查看所有的模式。
 
 <div class="note">
 
@@ -558,7 +558,7 @@ Some(wgpu::RenderPassColorAttachment {
 
 `resolve_target` 是接收**多重采样**解析输出的纹理。除非启用了多重采样, 否则不需要设置它，保留为 `None` 即可。
 
-`ops` 字段需要一个 `wpgu::Operations` 对象。它告诉 wgpu 如何处理屏幕上的颜色（由 `view` 指定）。`load` 字段告诉 wgpu 如何处理存储在前一帧的颜色。目前，我们正在用蓝色**清屏**。`store` 字段告诉 wgpu 是否要将渲染的结果存储到**纹理视图**后面的纹理上（在这个例子中是 `SurfaceTexture` ）。我们希望存储渲染结果，所以设置为 `true`。
+`ops` 字段需要一个 `Operations` 对象。它告诉 wgpu 如何处理屏幕上的颜色（由 `view` 指定）。`load` 字段告诉 wgpu 如何处理存储在前一帧的颜色。目前，我们正在用蓝色**清屏**。`store` 字段告诉 wgpu 是否要将渲染的结果存储到**纹理视图**后面的纹理上（在这个例子中是 `SurfaceTexture` ）。我们希望存储渲染结果，所以设置为 `StoreOp::Store`。
 
 <div class="note">
 
