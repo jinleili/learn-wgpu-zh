@@ -82,7 +82,7 @@ fn vs_main(
 
 <div class="note">
 
-我们也可以不使用 stuct，直接按以下代码来实现：
+我们也可以不使用 struct，直接按以下代码来实现：
 
 ```rust
 @vertex
