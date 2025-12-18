@@ -184,7 +184,9 @@ impl ParticleGen {
         buffer_slice.map_async(wgpu::MapMode::Read, move |result| {
             tx.send(result).unwrap();
         });
-        app.device.poll(wgpu::PollType::wait_indefinitely()).unwrap();
+        app.device
+            .poll(wgpu::PollType::wait_indefinitely())
+            .unwrap();
 
         if let Ok(Ok(())) = rx.recv_async().await {
             let data = buffer_slice.get_mapped_range();

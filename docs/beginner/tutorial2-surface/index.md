@@ -322,9 +322,9 @@ pollster = "0.3"
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 console_error_panic_hook = "0.1.7"
 console_log = "1.0"
-wasm-bindgen = "0.2.103"
-wasm-bindgen-futures = "0.4.53"
-web-sys = { version = "0.3.80", features = [
+wasm-bindgen = "=0.2.105"
+wasm-bindgen-futures = "0.4"
+web-sys = { version = "0.3", features = [
     "Document",
     "Window",
     "Element",
@@ -579,7 +579,3 @@ Some(wgpu::RenderPassColorAttachment {
 <WasmExample example="tutorial2_surface"></WasmExample>
 
 <AutoGithubLink/>
-
-## 加入 wgpu 微信学习交流群
-
-<JoinWeiChatGroup />

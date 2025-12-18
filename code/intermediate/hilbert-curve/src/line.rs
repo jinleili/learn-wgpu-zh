@@ -31,7 +31,7 @@ impl Line {
             .create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: None,
                 bind_group_layouts: &[&bg_setting.bind_group_layout, &dy_bg.bind_group_layout],
-                push_constant_ranges: &[],
+                immediate_size: 0,
             });
         // 着色器
         let shader = app
@@ -82,7 +82,7 @@ impl Line {
                 primitive: wgpu::PrimitiveState::default(),
                 depth_stencil: None,
                 multisample: MultisampleState::default(),
-                multiview: None,
+                multiview_mask: None,
                 cache: None,
             });
 

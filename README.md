@@ -1,6 +1,6 @@
 # [《学习 wgpu》中文版](https://jinleili.github.io/learn-wgpu-zh/)
 
-![Minimum Rust Version](https://img.shields.io/badge/min%20rust-1.88-green.svg)
+![Minimum Rust Version](https://img.shields.io/badge/min%20rust-1.92-green.svg)
 [![Build Status](https://github.com/jinleili/learn-wgpu-zh/workflows/Build/badge.svg)](https://github.com/jinleili/learn-wgpu-zh/actions)
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/jinleili/learn-wgpu-zh/blob/master/LICENSE.MIT)
 
@@ -85,6 +85,7 @@ macOS 15- 系统上，需安装 [Safari Technology Preview 185+](https://www.web
 <img src="docs/public/res/safari.png" alt="Safari Technology Preview">
 
 ### Firefox
+
 [Firefox 141 for Windows](https://mozillagfx.wordpress.com/2025/07/15/shipping-webgpu-on-windows-in-firefox-141/)已默认支持 WebGPU 功能。
 
 其它系统上需手动开启 WebGPU 支持，在地址栏中输入 `about:config` , 将 `dom.webgpu.enabled` 设置为 `true`:

@@ -159,9 +159,9 @@ cfg-if = "1"
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 console_error_panic_hook = "0.1.7"
 console_log = "1.0"
-wasm-bindgen = "0.2.103"
-wasm-bindgen-futures = "0.4.53"
-web-sys = { version = "0.3.80", features = [
+wasm-bindgen = "=0.2.105"
+wasm-bindgen-futures = "0.4"
+web-sys = { version = "0.3", features = [
     "Document",
     "Window",
     "Element",
@@ -304,7 +304,7 @@ webgl = ["wgpu/webgl"]
 3. 安装 [`wasm-bindgen`](https://rustwasm.github.io/wasm-bindgen) 并运行：
 
 ```shell
-cargo install -f wasm-bindgen-cli --version 0.2.97
+cargo install -f wasm-bindgen-cli --version 0.2.105
 wasm-bindgen --no-typescript --out-dir {你的输出目录，例如 ./tutorial1_window_output} --web {wasm 所在的目录，例如 .\target\wasm32-unknown-unknown\release\tutorial1_window.wasm}
 ```
 

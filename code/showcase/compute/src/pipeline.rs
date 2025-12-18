@@ -91,7 +91,7 @@ pub fn create_render_pipeline(
         },
         // If the pipeline will be used with a multiview render pass, this
         // indicates how many array layers the attachments will have.
-        multiview: None,
+        multiview_mask: None,
         cache: None,
     })
 }
@@ -105,7 +105,7 @@ pub fn create_compute_pipeline(
     let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
         label,
         bind_group_layouts,
-        push_constant_ranges: &[],
+        immediate_size: 0,
     });
     device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
         label,

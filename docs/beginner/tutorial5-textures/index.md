@@ -151,7 +151,7 @@ let diffuse_sampler = device.create_sampler(&wgpu::SamplerDescriptor {
     address_mode_w: wgpu::AddressMode::ClampToEdge,
     mag_filter: wgpu::FilterMode::Linear,
     min_filter: wgpu::FilterMode::Nearest,
-    mipmap_filter: wgpu::FilterMode::Nearest,
+    mipmap_filter: wgpu::MipmapFilterMode::Nearest,
     ..Default::default()
 });
 ```
@@ -287,7 +287,7 @@ async fn new(...) {
         &wgpu::PipelineLayoutDescriptor {
             label: Some("Render Pipeline Layout"),
             bind_group_layouts: &[&texture_bind_group_layout], // 新添加!
-            push_constant_ranges: &[],
+            immediate_size: 0,
         }
     );
     // ...
@@ -513,7 +513,7 @@ impl Texture {
                 address_mode_w: wgpu::AddressMode::ClampToEdge,
                 mag_filter: wgpu::FilterMode::Linear,
                 min_filter: wgpu::FilterMode::Nearest,
-                mipmap_filter: wgpu::FilterMode::Nearest,
+                mipmap_filter: wgpu::MipmapFilterMode::Nearest,
                 ..Default::default()
             }
         );

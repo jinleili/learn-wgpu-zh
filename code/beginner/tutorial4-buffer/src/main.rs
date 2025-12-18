@@ -96,7 +96,7 @@ impl WgpuAppAction for WgpuApp {
                 .create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                     label: Some("Render Pipeline Layout"),
                     bind_group_layouts: &[],
-                    push_constant_ranges: &[],
+                    immediate_size: 0,
                 });
 
         let render_pipeline = app
@@ -142,7 +142,7 @@ impl WgpuAppAction for WgpuApp {
                 },
                 // If the pipeline will be used with a multiview render pass, this
                 // indicates how many array layers the attachments will have.
-                multiview: None,
+                multiview_mask: None,
                 cache: None,
             });
 

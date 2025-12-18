@@ -227,7 +227,7 @@ fn create_render_pipeline(
         },
         // If the pipeline will be used with a multiview render pass, this
         // indicates how many array layers the attachments will have.
-        multiview: None,
+        multiview_mask: None,
         cache: None,
     })
 }
@@ -410,7 +410,7 @@ impl WgpuAppAction for WgpuApp {
                     &camera_bind_group_layout,
                     &light_bind_group_layout,
                 ],
-                push_constant_ranges: &[],
+                immediate_size: 0,
             });
 
         let render_pipeline = {
@@ -432,7 +432,7 @@ impl WgpuAppAction for WgpuApp {
             let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: Some("Light Pipeline Layout"),
                 bind_group_layouts: &[&camera_bind_group_layout, &light_bind_group_layout],
-                push_constant_ranges: &[],
+                immediate_size: 0,
             });
             let shader = wgpu::ShaderModuleDescriptor {
                 label: Some("Light Shader"),

@@ -200,14 +200,14 @@ impl ViewNode {
             let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: None,
                 bind_group_layouts: &[&bg_setting.bind_group_layout, &dy_bg.bind_group_layout],
-                push_constant_ranges: &[],
+                immediate_size: 0,
             });
             (Some(dy_bg), pipeline_layout)
         } else {
             let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: None,
                 bind_group_layouts: &[&bg_setting.bind_group_layout],
-                push_constant_ranges: &[],
+                immediate_size: 0,
             });
             (None, pipeline_layout)
         };
@@ -251,7 +251,7 @@ impl ViewNode {
                 None
             },
             multisample: wgpu::MultisampleState::default(),
-            multiview: None,
+            multiview_mask: None,
             cache: None,
         });
 

@@ -157,7 +157,7 @@ let render_pipeline_layout =
     device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
         label: Some("Render Pipeline Layout"),
         bind_group_layouts: &[],
-        push_constant_ranges: &[],
+        immediate_size: 0,
     });
 ```
 
@@ -222,7 +222,7 @@ primitive: wgpu::PrimitiveState {
         mask: !0, // 3.
         alpha_to_coverage_enabled: false, // 4.
     },
-    multiview: None, // 5.
+    multiview_mask: None, // 5.
     cache: None,
 });
 ```

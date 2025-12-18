@@ -1,10 +1,7 @@
-use wgpu::{PushConstantRange, ShaderModule};
-
 use super::{BindGroupSetting, DynamicUniformBindGroup};
 use crate::BufferObj;
-
-use core::ops::Range;
 use std::vec::Vec;
+use wgpu::ShaderModule;
 
 #[allow(dead_code)]
 pub struct ComputeNode {
@@ -22,7 +19,37 @@ impl ComputeNode {
         bg_data: &super::BindGroupData,
         shader_module: &ShaderModule,
     ) -> Self {
-        ComputeNode::new_with_push_constants(device, bg_data, shader_module, None)
+        let mut visibilitys: Vec<wgpu::ShaderStages> = vec![];
+        for _ in
+            0..(bg_data.uniforms.len() + bg_data.storage_buffers.len() + bg_data.inout_tv.len())
+        {
+            visibilitys.push(wgpu::ShaderStages::COMPUTE);
+        }
+        let mut bg_data = bg_data.clone();
+        bg_data.visibilitys = visibilitys;
+        let bg_setting = BindGroupSetting::new(device, &bg_data);
+
+        let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+            label: None,
+            bind_group_layouts: &[&bg_setting.bind_group_layout],
+            immediate_size: 0,
+        });
+        let pipeline = device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
+            label: None,
+            layout: Some(&pipeline_layout),
+            module: shader_module,
+            entry_point: Some("cs_main"),
+            compilation_options: Default::default(),
+            cache: None,
+        });
+
+        ComputeNode {
+            bg_setting,
+            dy_uniform_bg: None,
+            pipeline_layout,
+            pipeline,
+            workgroup_count: bg_data.workgroup_count,
+        }
     }
 
     #[allow(dead_code)]
@@ -53,7 +80,7 @@ impl ComputeNode {
                 &bg_setting.bind_group_layout,
                 &dy_uniform_bg.bind_group_layout,
             ],
-            push_constant_ranges: &[],
+            immediate_size: 0,
         });
         let pipeline = device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
             label: None,
@@ -67,55 +94,6 @@ impl ComputeNode {
         ComputeNode {
             bg_setting,
             dy_uniform_bg: Some(dy_uniform_bg),
-            pipeline_layout,
-            pipeline,
-            workgroup_count: bg_data.workgroup_count,
-        }
-    }
-
-    pub fn new_with_push_constants(
-        device: &wgpu::Device,
-        bg_data: &super::BindGroupData,
-        shader_module: &ShaderModule,
-        push_constants: Option<Vec<(wgpu::ShaderStages, Range<u32>)>>,
-    ) -> Self {
-        let mut visibilitys: Vec<wgpu::ShaderStages> = vec![];
-        for _ in
-            0..(bg_data.uniforms.len() + bg_data.storage_buffers.len() + bg_data.inout_tv.len())
-        {
-            visibilitys.push(wgpu::ShaderStages::COMPUTE);
-        }
-        let mut bg_data = bg_data.clone();
-        bg_data.visibilitys = visibilitys;
-        let bg_setting = BindGroupSetting::new(device, &bg_data);
-
-        let mut ranges: Vec<PushConstantRange> = vec![];
-        if let Some(constants) = push_constants {
-            for (stage, range) in constants.iter() {
-                ranges.push(wgpu::PushConstantRange {
-                    stages: *stage,
-                    range: range.clone(),
-                })
-            }
-        }
-
-        let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-            label: None,
-            bind_group_layouts: &[&bg_setting.bind_group_layout],
-            push_constant_ranges: &ranges,
-        });
-        let pipeline = device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
-            label: None,
-            layout: Some(&pipeline_layout),
-            module: shader_module,
-            entry_point: Some("cs_main"),
-            compilation_options: Default::default(),
-            cache: None,
-        });
-
-        ComputeNode {
-            bg_setting,
-            dy_uniform_bg: None,
             pipeline_layout,
             pipeline,
             workgroup_count: bg_data.workgroup_count,

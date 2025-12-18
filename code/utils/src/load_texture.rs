@@ -179,7 +179,7 @@ pub fn default_sampler(device: &wgpu::Device) -> Sampler {
         address_mode_w: wgpu::AddressMode::ClampToEdge,
         mag_filter: wgpu::FilterMode::Nearest,
         min_filter: wgpu::FilterMode::Nearest,
-        mipmap_filter: wgpu::FilterMode::Nearest,
+        mipmap_filter: wgpu::MipmapFilterMode::Nearest,
         ..Default::default()
     })
 }
@@ -193,7 +193,7 @@ pub fn repeate_sampler(device: &wgpu::Device) -> Sampler {
         address_mode_w: wgpu::AddressMode::Repeat,
         mag_filter: wgpu::FilterMode::Nearest,
         min_filter: wgpu::FilterMode::Nearest,
-        mipmap_filter: wgpu::FilterMode::Nearest,
+        mipmap_filter: wgpu::MipmapFilterMode::Nearest,
         ..Default::default()
     })
 }
@@ -207,7 +207,7 @@ pub fn mirror_repeate_sampler(device: &wgpu::Device) -> Sampler {
         address_mode_w: wgpu::AddressMode::MirrorRepeat,
         mag_filter: wgpu::FilterMode::Linear,
         min_filter: wgpu::FilterMode::Linear,
-        mipmap_filter: wgpu::FilterMode::Nearest,
+        mipmap_filter: wgpu::MipmapFilterMode::Nearest,
         ..Default::default()
     })
 }
@@ -222,7 +222,7 @@ pub fn tile_sampler(device: &wgpu::Device) -> Sampler {
         address_mode_w: wgpu::AddressMode::ClampToEdge,
         mag_filter: wgpu::FilterMode::Nearest,
         min_filter: wgpu::FilterMode::Nearest,
-        mipmap_filter: wgpu::FilterMode::Nearest,
+        mipmap_filter: wgpu::MipmapFilterMode::Nearest,
         ..Default::default()
     })
 }
@@ -238,7 +238,7 @@ pub fn bilinear_sampler(device: &wgpu::Device) -> Sampler {
         address_mode_w: wgpu::AddressMode::ClampToEdge,
         mag_filter: wgpu::FilterMode::Linear,
         min_filter: wgpu::FilterMode::Linear,
-        mipmap_filter: wgpu::FilterMode::Linear,
+        mipmap_filter: wgpu::MipmapFilterMode::Linear,
         // iOS 上设置了 compare 值会 crash
         // compare: Some(wgpu::CompareFunction::LessEqual),
         // compare: wgpu::CompareFunction::Undefined,

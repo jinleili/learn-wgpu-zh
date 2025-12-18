@@ -349,7 +349,7 @@ impl WgpuAppAction for WgpuApp {
                     &camera_bind_group_layout,
                     &light_bind_group_layout,
                 ],
-                push_constant_ranges: &[],
+                immediate_size: 0,
             });
 
         println!("Creating RENDER pipeline");
@@ -368,7 +368,7 @@ impl WgpuAppAction for WgpuApp {
             let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: Some("Light Pipeline Layout"),
                 bind_group_layouts: &[&camera_bind_group_layout, &light_bind_group_layout],
-                push_constant_ranges: &[],
+                immediate_size: 0,
             });
 
             create_render_pipeline(

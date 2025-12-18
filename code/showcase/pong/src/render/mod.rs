@@ -94,7 +94,7 @@ impl Render {
 
         let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
             bind_group_layouts: &[],
-            push_constant_ranges: &[],
+            immediate_size: 0,
             label: Some("Pipeline Layout"),
         });
         let pipeline = create_render_pipeline(
@@ -308,6 +308,6 @@ fn create_render_pipeline(
         },
         // If the pipeline will be used with a multiview render pass, this
         // indicates how many array layers the attachments will have.
-        multiview: None,
+        multiview_mask: None,
     })
 }

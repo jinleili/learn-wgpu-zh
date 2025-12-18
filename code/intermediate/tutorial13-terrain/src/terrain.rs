@@ -123,7 +123,7 @@ impl TerrainPipeline {
         let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
             label: Some("TerrainPipeline::Gen::PipelineLayout"),
             bind_group_layouts: &[&gen_layout],
-            push_constant_ranges: &[],
+            immediate_size: 0,
         });
         let gen_pipeline = device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
             label: Some("TerrainPipeline::ComputePipeline"),
@@ -138,7 +138,7 @@ impl TerrainPipeline {
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: Some("TerrainPipeline::Render::PipelineLayout"),
                 bind_group_layouts: &[camera_layout, light_layout],
-                push_constant_ranges: &[],
+                immediate_size: 0,
             });
         let render_pipeline = create_render_pipeline(
             device,
@@ -336,7 +336,7 @@ impl TerrainHackPipeline {
         let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
             label: Some("HackTerrainPipeline::PipelineLayout"),
             bind_group_layouts: &[&gen_layout],
-            push_constant_ranges: &[],
+            immediate_size: 0,
         });
 
         let shader = device.create_shader_module(wgpu::include_wgsl!("terrain.wgsl"));
@@ -377,7 +377,7 @@ impl TerrainHackPipeline {
                     }),
                 ],
             }),
-            multiview: None,
+            multiview_mask: None,
             cache: None,
         });
 
@@ -385,7 +385,7 @@ impl TerrainHackPipeline {
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: Some("TerrainPipeline::Render::PipelineLayout"),
                 bind_group_layouts: &[camera_layout, light_layout],
-                push_constant_ranges: &[],
+                immediate_size: 0,
             });
         let render_pipeline = create_render_pipeline(
             device,

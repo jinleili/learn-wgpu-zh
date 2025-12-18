@@ -43,7 +43,7 @@ impl ImageNode {
             .create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: None,
                 bind_group_layouts: &[&bind_group_layout],
-                push_constant_ranges: &[],
+                immediate_size: 0,
             });
 
         let pipeline = app
@@ -66,7 +66,7 @@ impl ImageNode {
                 primitive: wgpu::PrimitiveState::default(),
                 depth_stencil: None,
                 multisample: wgpu::MultisampleState::default(),
-                multiview: None,
+                multiview_mask: None,
                 cache: None,
             });
         let bind_group = app.device.create_bind_group(&wgpu::BindGroupDescriptor {
