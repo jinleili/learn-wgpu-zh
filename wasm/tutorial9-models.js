@@ -319,16 +319,16 @@ function takeObject(idx) {
     dropObject(idx);
     return ret;
 }
-function __wasm_bindgen_func_elem_7136(arg0, arg1) {
-    wasm.__wasm_bindgen_func_elem_7136(arg0, arg1);
-}
-
 function __wasm_bindgen_func_elem_3709(arg0, arg1, arg2) {
     wasm.__wasm_bindgen_func_elem_3709(arg0, arg1, addHeapObject(arg2));
 }
 
 function __wasm_bindgen_func_elem_2063(arg0, arg1, arg2, arg3) {
     wasm.__wasm_bindgen_func_elem_2063(arg0, arg1, addHeapObject(arg2), addHeapObject(arg3));
+}
+
+function __wasm_bindgen_func_elem_7136(arg0, arg1) {
+    wasm.__wasm_bindgen_func_elem_7136(arg0, arg1);
 }
 
 const __wbindgen_enum_GpuAddressMode = ["clamp-to-edge", "repeat", "mirror-repeat"];

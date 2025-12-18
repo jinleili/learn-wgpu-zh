@@ -319,12 +319,12 @@ function takeObject(idx) {
     dropObject(idx);
     return ret;
 }
-function __wasm_bindgen_func_elem_1476(arg0, arg1, arg2, arg3) {
-    wasm.__wasm_bindgen_func_elem_1476(arg0, arg1, addHeapObject(arg2), addHeapObject(arg3));
-}
-
 function __wasm_bindgen_func_elem_2953(arg0, arg1, arg2) {
     wasm.__wasm_bindgen_func_elem_2953(arg0, arg1, addHeapObject(arg2));
+}
+
+function __wasm_bindgen_func_elem_1476(arg0, arg1, arg2, arg3) {
+    wasm.__wasm_bindgen_func_elem_1476(arg0, arg1, addHeapObject(arg2), addHeapObject(arg3));
 }
 
 function __wasm_bindgen_func_elem_6235(arg0, arg1) {

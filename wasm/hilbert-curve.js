@@ -253,12 +253,12 @@ function __wasm_bindgen_func_elem_1351(arg0, arg1, arg2) {
     wasm.__wasm_bindgen_func_elem_1351(arg0, arg1, addHeapObject(arg2));
 }
 
-function __wasm_bindgen_func_elem_2558(arg0, arg1) {
-    wasm.__wasm_bindgen_func_elem_2558(arg0, arg1);
-}
-
 function __wasm_bindgen_func_elem_850(arg0, arg1, arg2, arg3) {
     wasm.__wasm_bindgen_func_elem_850(arg0, arg1, addHeapObject(arg2), addHeapObject(arg3));
+}
+
+function __wasm_bindgen_func_elem_2558(arg0, arg1) {
+    wasm.__wasm_bindgen_func_elem_2558(arg0, arg1);
 }
 
 const __wbindgen_enum_GpuBlendFactor = ["zero", "one", "src", "one-minus-src", "src-alpha", "one-minus-src-alpha", "dst", "one-minus-dst", "dst-alpha", "one-minus-dst-alpha", "src-alpha-saturated", "constant", "one-minus-constant", "src1", "one-minus-src1", "src1-alpha", "one-minus-src1-alpha"];
