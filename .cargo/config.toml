@@ -1,2 +1,5 @@
 [alias]
 run-wasm = "run --no-default-features --release --package run-wasm --"
+
+[build]
+rustflags = ["--cfg", "getrandom_backend=\"wasm_js\""]
