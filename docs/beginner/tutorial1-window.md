@@ -304,7 +304,7 @@ webgl = ["wgpu/webgl"]
 3. 安装 [`wasm-bindgen`](https://rustwasm.github.io/wasm-bindgen) 并运行：
 
 ```shell
-cargo install -f wasm-bindgen-cli --version 0.2.105
+cargo install -f wasm-bindgen-cli --version 0.2.114
 wasm-bindgen --no-typescript --out-dir {你的输出目录，例如 ./tutorial1_window_output} --web {wasm 所在的目录，例如 .\target\wasm32-unknown-unknown\release\tutorial1_window.wasm}
 ```
 
