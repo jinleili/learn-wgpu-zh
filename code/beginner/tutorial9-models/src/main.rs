@@ -366,7 +366,7 @@ impl WgpuAppAction for WgpuApp {
             app.device
                 .create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                     label: Some("Render Pipeline Layout"),
-                    bind_group_layouts: &[&texture_bind_group_layout, &camera_bind_group_layout],
+                    bind_group_layouts: &[Some(&texture_bind_group_layout), Some(&camera_bind_group_layout)],
                     immediate_size: 0,
                 });
 
@@ -407,8 +407,8 @@ impl WgpuAppAction for WgpuApp {
                 },
                 depth_stencil: Some(wgpu::DepthStencilState {
                     format: texture::Texture::DEPTH_FORMAT,
-                    depth_write_enabled: true,
-                    depth_compare: wgpu::CompareFunction::Less,
+                    depth_write_enabled: Some(true),
+                    depth_compare: Some(wgpu::CompareFunction::Less),
                     stencil: wgpu::StencilState::default(),
                     bias: wgpu::DepthBiasState::default(),
                 }),
@@ -468,10 +468,12 @@ impl WgpuAppAction for WgpuApp {
         );
     }
 
-    fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
+    fn render(&mut self) -> Result<(), wgpu::SurfaceStatus> {
         self.resize_surface_if_needed();
 
-        let (output, view) = self.app.get_current_frame_view(None);
+        let Some((output, view)) = self.app.get_current_frame_view(None) else {
+            return Ok(());
+        };
         let mut encoder = self
             .app
             .device

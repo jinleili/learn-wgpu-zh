@@ -183,7 +183,7 @@ impl WgpuAppAction for HilbertCurveApp {
         PhysicalSize::new(self.app.config.width, self.app.config.height)
     }
 
-    fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
+    fn render(&mut self) -> Result<(), wgpu::SurfaceStatus> {
         // —— 1. 处理窗口大小变化 ——
         self.resize_surface_if_needed();
 
@@ -215,7 +215,7 @@ impl WgpuAppAction for HilbertCurveApp {
         }
 
         // —— 5. 真正开始绘制 ——
-        let output = self.app.surface.get_current_texture()?;
+        let output = utils::get_current_surface_texture(&self.app.surface)?;
         let view = output
             .texture
             .create_view(&wgpu::TextureViewDescriptor::default());

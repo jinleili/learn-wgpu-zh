@@ -57,11 +57,13 @@ impl WgpuApp {
         self.particle_ink.cursor_moved(&self.app, cursor_pos);
     }
 
-    pub fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
+    pub fn render(&mut self) -> Result<(), wgpu::SurfaceStatus> {
         self.resize_surface_if_needed();
 
         let format = self.app.config.format;
-        let (output, view) = self.app.get_current_frame_view(Some(format));
+        let Some((output, view)) = self.app.get_current_frame_view(Some(format)) else {
+            return Ok(());
+        };
         let mut encoder = self
             .app
             .device

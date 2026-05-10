@@ -31,7 +31,7 @@ impl ComputeNode {
 
         let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
             label: None,
-            bind_group_layouts: &[&bg_setting.bind_group_layout],
+            bind_group_layouts: &[Some(&bg_setting.bind_group_layout)],
             immediate_size: 0,
         });
         let pipeline = device.create_compute_pipeline(&wgpu::ComputePipelineDescriptor {
@@ -77,8 +77,8 @@ impl ComputeNode {
         let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
             label: None,
             bind_group_layouts: &[
-                &bg_setting.bind_group_layout,
-                &dy_uniform_bg.bind_group_layout,
+                Some(&bg_setting.bind_group_layout),
+                Some(&dy_uniform_bg.bind_group_layout),
             ],
             immediate_size: 0,
         });

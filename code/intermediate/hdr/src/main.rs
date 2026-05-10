@@ -232,8 +232,8 @@ fn create_render_pipeline(
         },
         depth_stencil: depth_format.map(|format| wgpu::DepthStencilState {
             format,
-            depth_write_enabled: true,
-            depth_compare: wgpu::CompareFunction::LessEqual, // UDPATED!
+            depth_write_enabled: Some(true),
+            depth_compare: Some(wgpu::CompareFunction::LessEqual), // UDPATED!
             stencil: wgpu::StencilState::default(),
             bias: wgpu::DepthBiasState::default(),
         }),
@@ -468,10 +468,10 @@ impl WgpuAppAction for WgpuApp {
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: Some("Render Pipeline Layout"),
                 bind_group_layouts: &[
-                    &texture_bind_group_layout,
-                    &camera_bind_group_layout,
-                    &light_bind_group_layout,
-                    &environment_layout, // UPDATED!
+                    Some(&texture_bind_group_layout),
+                    Some(&camera_bind_group_layout),
+                    Some(&light_bind_group_layout),
+                    Some(&environment_layout), // UPDATED!
                 ],
                 immediate_size: 0,
             });
@@ -495,7 +495,7 @@ impl WgpuAppAction for WgpuApp {
         let light_render_pipeline = {
             let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: Some("Light Pipeline Layout"),
-                bind_group_layouts: &[&camera_bind_group_layout, &light_bind_group_layout],
+                bind_group_layouts: &[Some(&camera_bind_group_layout), Some(&light_bind_group_layout)],
                 immediate_size: 0,
             });
             let shader = wgpu::ShaderModuleDescriptor {
@@ -517,7 +517,7 @@ impl WgpuAppAction for WgpuApp {
         let sky_pipeline = {
             let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: Some("Sky Pipeline Layout"),
-                bind_group_layouts: &[&camera_bind_group_layout, &environment_layout],
+                bind_group_layouts: &[Some(&camera_bind_group_layout), Some(&environment_layout)],
                 immediate_size: 0,
             });
             let shader = wgpu::include_wgsl!("sky.wgsl");
@@ -664,12 +664,15 @@ impl WgpuAppAction for WgpuApp {
         );
     }
 
-    fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
+    fn render(&mut self) -> Result<(), wgpu::SurfaceStatus> {
         self.resize_surface_if_needed();
 
-        let (output, view) = self
+        let Some((output, view)) = self
             .app
-            .get_current_frame_view(Some(self.app.config.format.add_srgb_suffix()));
+            .get_current_frame_view(Some(self.app.config.format.add_srgb_suffix()))
+        else {
+            return Ok(());
+        };
 
         let device = &self.app.device;
         let mut encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {

@@ -121,7 +121,7 @@ impl HdrPipeline {
         let shader = wgpu::include_wgsl!("hdr.wgsl");
         let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
             label: None,
-            bind_group_layouts: &[&layout],
+            bind_group_layouts: &[Some(&layout)],
             immediate_size: 0,
         });
 
@@ -511,7 +511,7 @@ let (device, queue) = adapter
 因此，我们将从 `Cargo.toml` 中删除 WebGL 功能，就是下边这一行：
 
 ```toml
-wgpu = { version = "26", features = ["webgl"]}
+wgpu = { version = "29", features = ["webgl"]}
 ```
 
 </div>
@@ -557,7 +557,7 @@ impl HdrLoader {
 
         let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
             label: None,
-            bind_group_layouts: &[&equirect_layout],
+            bind_group_layouts: &[Some(&equirect_layout)],
             immediate_size: 0,
         });
 
@@ -863,7 +863,7 @@ let environment_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor
 let sky_pipeline = {
     let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
         label: Some("Sky Pipeline Layout"),
-        bind_group_layouts: &[&camera_bind_group_layout, &environment_layout],
+        bind_group_layouts: &[Some(&camera_bind_group_layout), Some(&environment_layout)],
         immediate_size: 0,
     });
     let shader = wgpu::include_wgsl!("sky.wgsl");
@@ -901,8 +901,8 @@ fn create_render_pipeline(
         },
         depth_stencil: depth_format.map(|format| wgpu::DepthStencilState {
             format,
-            depth_write_enabled: true,
-            depth_compare: wgpu::CompareFunction::LessEqual, // 这里有更新!
+            depth_write_enabled: Some(true),
+            depth_compare: Some(wgpu::CompareFunction::LessEqual), // 这里有更新!
             stencil: wgpu::StencilState::default(),
             bias: wgpu::DepthBiasState::default(),
         }),

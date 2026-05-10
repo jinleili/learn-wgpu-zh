@@ -203,8 +203,8 @@ fn create_render_pipeline(
         },
         depth_stencil: depth_format.map(|format| wgpu::DepthStencilState {
             format,
-            depth_write_enabled: true,
-            depth_compare: wgpu::CompareFunction::Less,
+            depth_write_enabled: Some(true),
+            depth_compare: Some(wgpu::CompareFunction::Less),
             stencil: wgpu::StencilState::default(),
             bias: wgpu::DepthBiasState::default(),
         }),
@@ -399,11 +399,7 @@ impl WgpuAppAction for WgpuApp {
         let render_pipeline_layout =
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: Some("Render Pipeline Layout"),
-                bind_group_layouts: &[
-                    &texture_bind_group_layout,
-                    &camera_bind_group_layout,
-                    &light_bind_group_layout,
-                ],
+                bind_group_layouts: &[Some(&texture_bind_group_layout), Some(&camera_bind_group_layout), Some(&light_bind_group_layout)],
                 immediate_size: 0,
             });
 
@@ -426,7 +422,7 @@ impl WgpuAppAction for WgpuApp {
         let light_render_pipeline = {
             let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: Some("Light Pipeline Layout"),
-                bind_group_layouts: &[&camera_bind_group_layout, &light_bind_group_layout],
+                bind_group_layouts: &[Some(&camera_bind_group_layout), Some(&light_bind_group_layout)],
                 immediate_size: 0,
             });
             let desc = wgpu::ShaderModuleDescriptor {
@@ -603,10 +599,12 @@ impl WgpuAppAction for WgpuApp {
         );
     }
 
-    fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
+    fn render(&mut self) -> Result<(), wgpu::SurfaceStatus> {
         self.resize_surface_if_needed();
 
-        let (output, view) = self.app.get_current_frame_view(None);
+        let Some((output, view)) = self.app.get_current_frame_view(None) else {
+            return Ok(());
+        };
 
         let mut encoder = self
             .app

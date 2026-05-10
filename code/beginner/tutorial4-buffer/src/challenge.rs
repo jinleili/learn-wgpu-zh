@@ -246,10 +246,12 @@ impl WgpuAppAction for WgpuApp {
         false
     }
 
-    fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
+    fn render(&mut self) -> Result<(), wgpu::SurfaceStatus> {
         self.resize_surface_if_needed();
 
-        let (output, view) = self.app.get_current_frame_view(None);
+        let Some((output, view)) = self.app.get_current_frame_view(None) else {
+            return Ok(());
+        };
 
         let mut encoder = self
             .app

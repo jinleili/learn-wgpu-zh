@@ -9,7 +9,7 @@
 ```toml
 [dependencies]
 # other deps...
-glam = "0.29"
+glam = "0.32"
 ```
 
 现在让我们开始使用此数学**包**！在 `WgpuApp` 结构体上方创建**摄像机**结构体：
@@ -170,8 +170,8 @@ let render_pipeline_layout = device.create_pipeline_layout(
     &wgpu::PipelineLayoutDescriptor {
         label: Some("Render Pipeline Layout"),
         bind_group_layouts: &[
-            &texture_bind_group_layout,
-            &camera_bind_group_layout,
+            Some(&texture_bind_group_layout),
+            Some(&camera_bind_group_layout),
         ],
         immediate_size: 0,
     }

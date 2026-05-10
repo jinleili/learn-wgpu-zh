@@ -160,14 +160,17 @@ impl WgpuAppAction for WgpuApp {
         PhysicalSize::new(self.app.config.width, self.app.config.height)
     }
 
-    fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
+    fn render(&mut self) -> Result<(), wgpu::SurfaceStatus> {
         self.resize_surface_if_needed();
 
         // 此处与其它示例不同，主动使用了非 sRGB 格式的纹理视图
         // 使用 remove_srgb_suffix 之后的线性纹理格式，避免手动做 gamma 运算
-        let (output, view) = self
+        let Some((output, view)) = self
             .app
-            .get_current_frame_view(Some(self.app.config.format.remove_srgb_suffix()));
+            .get_current_frame_view(Some(self.app.config.format.remove_srgb_suffix()))
+        else {
+            return Ok(());
+        };
 
         let mut encoder = self
             .app

@@ -12,7 +12,7 @@ env_logger = "0.11"
 log = "0.4"
 parking_lot = "0.12"
 winit = "0.30"
-wgpu = "26"
+wgpu = "29"
 # 若是单独运行本章demo，需要再添加以下依赖
 # pollster = "0.4.0"  # 用于阻塞运行异步代码
 ```

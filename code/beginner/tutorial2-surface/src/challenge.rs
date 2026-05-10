@@ -72,9 +72,9 @@ impl WgpuApp {
 
         // The instance is a handle to our GPU
         // BackendBit::PRIMARY => Vulkan + Metal + DX12 + Browser WebGPU
-        let instance = wgpu::Instance::new(&wgpu::InstanceDescriptor {
+        let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
             backends: wgpu::Backends::all(),
-            ..Default::default()
+            ..wgpu::InstanceDescriptor::new_without_display_handle()
         });
         let surface = instance.create_surface(window.clone()).unwrap();
 
@@ -165,12 +165,12 @@ impl WgpuApp {
         }
     }
 
-    fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
+    fn render(&mut self) -> Result<(), wgpu::SurfaceStatus> {
         if self.size.width == 0 || self.size.height == 0 {
             return Ok(());
         }
         self.resize_surface_if_needed();
-        let output = self.surface.get_current_texture()?;
+        let output = utils::get_current_surface_texture(&self.surface)?;
         let view = output
             .texture
             .create_view(&wgpu::TextureViewDescriptor::default());
@@ -302,7 +302,7 @@ impl ApplicationHandler for WgpuAppHandler {
                 match app.render() {
                     Ok(_) => {}
                     // 当展示平面的上下文丢失，就需重新配置
-                    Err(wgpu::SurfaceError::Lost) => eprintln!("Surface is lost"),
+                    Err(wgpu::SurfaceStatus::Lost) => eprintln!("Surface is lost"),
                     // 所有其他错误（过期、超时等）应在下一帧解决
                     Err(e) => eprintln!("{e:?}"),
                 }

@@ -54,7 +54,7 @@ pub trait WgpuAppAction {
     fn update(&mut self, _dt: instant::Duration) {}
 
     /// 提交渲染
-    fn render(&mut self) -> Result<(), wgpu::SurfaceError>;
+    fn render(&mut self) -> Result<(), wgpu::SurfaceStatus>;
 }
 
 struct WgpuAppHandler<A: WgpuAppAction> {
@@ -252,7 +252,7 @@ impl<A: WgpuAppAction + 'static> ApplicationHandler for WgpuAppHandler<A> {
                 match app.render() {
                     Ok(_) => {}
                     // 当展示平面的上下文丢失，就需重新配置
-                    Err(wgpu::SurfaceError::Lost) => eprintln!("Surface is lost"),
+                    Err(wgpu::SurfaceStatus::Lost) => eprintln!("Surface is lost"),
                     // 所有其他错误（过期、超时等）应在下一帧解决
                     Err(e) => eprintln!("{e:?}"),
                 }

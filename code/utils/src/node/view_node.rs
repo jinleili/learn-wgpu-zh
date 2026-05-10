@@ -199,14 +199,17 @@ impl ViewNode {
             let dy_bg = super::DynamicUniformBindGroup::new(device, uniforms);
             let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: None,
-                bind_group_layouts: &[&bg_setting.bind_group_layout, &dy_bg.bind_group_layout],
+                bind_group_layouts: &[
+                    Some(&bg_setting.bind_group_layout),
+                    Some(&dy_bg.bind_group_layout),
+                ],
                 immediate_size: 0,
             });
             (Some(dy_bg), pipeline_layout)
         } else {
             let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: None,
-                bind_group_layouts: &[&bg_setting.bind_group_layout],
+                bind_group_layouts: &[Some(&bg_setting.bind_group_layout)],
                 immediate_size: 0,
             });
             (None, pipeline_layout)
@@ -242,8 +245,8 @@ impl ViewNode {
             depth_stencil: if attributes.use_depth_stencil {
                 Some(wgpu::DepthStencilState {
                     format: DEPTH_FORMAT,
-                    depth_write_enabled: true,
-                    depth_compare: wgpu::CompareFunction::Less,
+                    depth_write_enabled: Some(true),
+                    depth_compare: Some(wgpu::CompareFunction::Less),
                     stencil: wgpu::StencilState::default(),
                     bias: wgpu::DepthBiasState::default(),
                 })

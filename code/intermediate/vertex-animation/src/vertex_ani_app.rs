@@ -182,14 +182,14 @@ impl WgpuAppAction for VertexAnimationApp {
         PhysicalSize::new(self.app.config.width, self.app.config.height)
     }
 
-    fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
+    fn render(&mut self) -> Result<(), wgpu::SurfaceStatus> {
         self.resize_surface_if_needed();
 
         if self.depth_tex_view.is_none() {
             return Ok(());
         }
         let particle_ink = self.particle_ink.as_mut().unwrap();
-        let output = self.app.surface.get_current_texture().unwrap();
+        let output = utils::get_current_surface_texture(&self.app.surface)?;
         let frame_view = output
             .texture
             .create_view(&wgpu::TextureViewDescriptor::default());

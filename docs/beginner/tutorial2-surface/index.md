@@ -38,7 +38,7 @@ impl WgpuApp {
         todo!()
     }
 
-    fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
+    fn render(&mut self) -> Result<(), wgpu::SurfaceStatus> {
         todo!()
     }
 }
@@ -77,7 +77,7 @@ pub trait WgpuAppAction {
     /// 更新渲染数据
     fn update(&mut self, _dt: instant::Duration) {}
     /// 提交渲染
-    fn render(&mut self) -> Result<(), wgpu::SurfaceError>;
+    fn render(&mut self) -> Result<(), wgpu::SurfaceStatus>;
 }
 ```
 
@@ -93,9 +93,9 @@ impl WgpuApp {
     async fn new(Arc<Window>) -> Self {
         // instance 变量是 GPU 实例
         // Backends::all 对应 Vulkan、Metal、DX12、WebGL 等所有后端图形驱动
-        let instance = wgpu::Instance::new(&wgpu::InstanceDescriptor {
+        let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
             backends: wgpu::Backends::all(),
-            ..Default::default()
+            ..wgpu::InstanceDescriptor::new_without_display_handle()
         });
         let surface = instance.create_surface(window.clone()).unwrap();
 
@@ -166,7 +166,7 @@ let (device, queue) = adapter.request_device(
 ).await.unwrap();
 ```
 
-`DeviceDescriptor`上的 `features` 字段允许我们指定想要的扩展功能。对于这个简单的例子，我决定不使用任何额外的功能。
+`DeviceDescriptor` 上的 `required_features` 字段允许我们指定想要的扩展功能。对于这个简单的例子，我决定不使用任何额外的功能。
 
 <div class="note">
 
@@ -178,7 +178,7 @@ let (device, queue) = adapter.request_device(
 
 </div>
 
-`limits` 字段描述了创建某些类型的资源的限制。我们在本教程中使用默认值，所以可以支持大多数设备。你可以[在这里](https://docs.rs/wgpu/0.13.1/wgpu/struct.Limits.html)查看限制列表。
+`required_limits` 字段描述了创建某些类型的资源时需要满足的限制。我们在本教程中使用默认值，所以可以支持大多数设备。你可以[在这里](https://docs.rs/wgpu/latest/wgpu/struct.Limits.html)查看限制列表。
 
 ```rust
 let caps = surface.get_capabilities(&adapter);
@@ -311,7 +311,7 @@ cfg-if = "1"
 winit = "0.30"
 env_logger = "0.11"
 log = "0.4"
-wgpu = "26"
+wgpu = "29"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 # 需要避免在 wasm 中添加 pollster 依赖，否则会导致 wasm 加载时报错：
@@ -429,11 +429,11 @@ fn update(&mut self) {
 ```rust
 // impl WgpuApp
 
-fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
-    let output = self.surface.get_current_texture()?;
+fn render(&mut self) -> Result<(), wgpu::SurfaceStatus> {
+    let output = utils::get_current_surface_texture(&self.surface)?;
 ```
 
-`get_current_texture` 函数会等待 `surface` 提供一个新的 `SurfaceTexture`。我们将它存储在 `output` 变量中以便后续使用。
+在 wgpu v29 中，`Surface::get_current_texture()` 返回的是 `CurrentSurfaceTexture` 枚举。为了保持示例代码简洁，这里使用 `utils::get_current_surface_texture()` 帮我们把它转换成 `Result<SurfaceTexture, SurfaceStatus>`。我们将它存储在 `output` 变量中以便后续使用。
 
 ```rust
 let view = output.texture.create_view(&wgpu::TextureViewDescriptor::default());
@@ -498,7 +498,7 @@ match event {
         match app.render() {
             Ok(_) => {}
             // 当展示平面的上下文丢失，就需重新配置
-            Err(wgpu::SurfaceError::Lost) => eprintln!("Surface is lost"),
+            Err(wgpu::SurfaceStatus::Lost) => eprintln!("Surface is lost"),
             // 所有其他错误（过期、超时等）应在下一帧解决
             Err(e) => eprintln!("{e:?}"),
         }
@@ -554,7 +554,7 @@ Some(wgpu::RenderPassColorAttachment {
 })
 ```
 
-`RenderPassColorAttachment` 有一个 `view` 字段，用于通知 wgpu 将颜色保存到什么**纹理**。这里我们指定使用 `surface.get_current_texture()` 创建的 `view`，这意味着向此**附件**（Attachment）上绘制的任何颜色都会被绘制到屏幕上。
+`RenderPassColorAttachment` 有一个 `view` 字段，用于通知 wgpu 将颜色保存到什么**纹理**。这里我们指定使用当前帧纹理创建的 `view`，这意味着向此**附件**（Attachment）上绘制的任何颜色都会被绘制到屏幕上。
 
 `resolve_target` 是接收**多重采样**解析输出的纹理。除非启用了多重采样, 否则不需要设置它，保留为 `None` 即可。
 

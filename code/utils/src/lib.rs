@@ -19,6 +19,20 @@ pub mod vertex;
 mod color;
 pub use color::*;
 
+pub fn get_current_surface_texture(
+    surface: &wgpu::Surface<'_>,
+) -> Result<wgpu::SurfaceTexture, wgpu::SurfaceStatus> {
+    match surface.get_current_texture() {
+        wgpu::CurrentSurfaceTexture::Success(frame)
+        | wgpu::CurrentSurfaceTexture::Suboptimal(frame) => Ok(frame),
+        wgpu::CurrentSurfaceTexture::Timeout => Err(wgpu::SurfaceStatus::Timeout),
+        wgpu::CurrentSurfaceTexture::Occluded => Err(wgpu::SurfaceStatus::Occluded),
+        wgpu::CurrentSurfaceTexture::Outdated => Err(wgpu::SurfaceStatus::Outdated),
+        wgpu::CurrentSurfaceTexture::Lost => Err(wgpu::SurfaceStatus::Lost),
+        wgpu::CurrentSurfaceTexture::Validation => Err(wgpu::SurfaceStatus::Validation),
+    }
+}
+
 use bytemuck::{Pod, Zeroable};
 
 pub static DEPTH_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Depth32Float;

@@ -40,7 +40,7 @@ impl WgpuAppAction for WgpuAppNativeWrapper {
         true
     }
 
-    fn render(&mut self) -> Result<(), wgpu::SurfaceError> {
+    fn render(&mut self) -> Result<(), wgpu::SurfaceStatus> {
         self.app.render()
     }
 }

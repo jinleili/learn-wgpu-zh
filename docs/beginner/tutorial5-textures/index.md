@@ -286,7 +286,7 @@ async fn new(...) {
     let render_pipeline_layout = device.create_pipeline_layout(
         &wgpu::PipelineLayoutDescriptor {
             label: Some("Render Pipeline Layout"),
-            bind_group_layouts: &[&texture_bind_group_layout], // 新添加!
+            bind_group_layouts: &[Some(&texture_bind_group_layout)], // 新添加!
             immediate_size: 0,
         }
     );
@@ -430,11 +430,11 @@ const VERTICES: &[Vertex] = &[
 ```toml
 [dependencies]
 image = "0.25"
-glam = "0.29"
+glam = "0.32"
 winit = "0.30"
 env_logger = "0.11"
 log = "0.4"
-wgpu = "26"
+wgpu = "29"
 bytemuck = { version = "1.22", features = [ "extern_crate_alloc", "min_const_generics" ] }
 anyhow = "1.0" # NEW!
 ```
