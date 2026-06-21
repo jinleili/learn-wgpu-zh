@@ -172,12 +172,11 @@ checksum = "e16d2d3311acee920a9eb8d33b8cbc1787ce4a264e85f964c2404b969bdcd487"
 
 [[package]]
 name = "app-surface"
-version = "1.11.0"
+version = "1.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a4b3a0a1f57f517f4fa62c8ca9fdd76d54da5b29f0e2d31888de11b6f349d478"
+checksum = "c235f22d595d7b1e05ba1e0ed5b82d35c30e7e19aa5402fe90be3cdf3941a90b"
 dependencies = [
  "android_logger",
- "cfg-if",
  "env_logger",
  "futures-lite",
  "glam",
@@ -608,7 +607,6 @@ dependencies = [
  "anyhow",
  "app-surface",
  "bytemuck",
- "cfg-if",
  "env_logger",
  "fs_extra",
  "glam",
@@ -629,7 +627,6 @@ version = "0.1.0"
 dependencies = [
  "app-surface",
  "bytemuck",
- "cfg-if",
  "env_logger",
  "log",
  "png",
@@ -1296,7 +1293,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5971ac85611da7067dbfcabef3c70ebb5606018acd9e2a3903a0da507521e0d5"
 dependencies = [
  "foldhash 0.1.5",
- "serde",
 ]
 
 [[package]]
@@ -1319,7 +1315,6 @@ dependencies = [
  "anyhow",
  "app-surface",
  "bytemuck",
- "cfg-if",
  "env_logger",
  "fs_extra",
  "glam",
@@ -1525,9 +1520,9 @@ dependencies = [
 
 [[package]]
 name = "id-arena"
-version = "2.2.1"
+version = "2.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "25a2bc672d1148e28034f176e01fffebb08b35768468cc954630da77a1449005"
+checksum = "3d3067d79b975e8844ca9eb072e16b31c3c1c36928edf9c6789548c524d0d954"
 dependencies = [
  "rayon",
 ]
@@ -1699,11 +1694,12 @@ checksum = "00810f1d8b74be64b13dbf3db89ac67740615d6c891f0e7b6179326533011a07"
 
 [[package]]
 name = "js-sys"
-version = "0.3.91"
+version = "0.3.100"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b49715b7073f385ba4bc528e5747d02e66cb39c6146efb66b781f131f0fb399c"
+checksum = "f2025f20d7a4fa7785846e7b63d10a76d3f1cee98ee5cb79ea59703f95e42162"
 dependencies = [
- "once_cell",
+ "cfg-if",
+ "futures-util",
  "wasm-bindgen",
 ]
 
@@ -2553,9 +2549,9 @@ dependencies = [
 
 [[package]]
 name = "proc-macro2"
-version = "1.0.95"
+version = "1.0.106"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "02b3e5e68a3a1a02aad3ec490a98007cbc13c37cbe84a3cd7b8e406d76e7f778"
+checksum = "8fd00f0bb2e90d81d1044c2b32617f68fcb9fa3bb7640c23e9c748e53fb30934"
 dependencies = [
  "unicode-ident",
 ]
@@ -2577,9 +2573,9 @@ dependencies = [
 
 [[package]]
 name = "quote"
-version = "1.0.40"
+version = "1.0.45"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1885c039570dc00dcb4ff087a89e185fd56bae234ddc7f056a945bf36467248d"
+checksum = "41f2619966050689382d2b44f664f4bc593e129785a36d6ee376ddf37259b924"
 dependencies = [
  "proc-macro2",
 ]
@@ -2646,9 +2642,9 @@ dependencies = [
 
 [[package]]
 name = "rayon"
-version = "1.10.0"
+version = "1.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b418a60154510ca1a002a752ca9714984e21e4241e804d32555251faf8b78ffa"
+checksum = "fb39b166781f92d482534ef4b4b1b2568f42613b53e5b6c160e24cfbfa30926d"
 dependencies = [
  "either",
  "rayon-core",
@@ -2656,9 +2652,9 @@ dependencies = [
 
 [[package]]
 name = "rayon-core"
-version = "1.12.1"
+version = "1.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1465873a3dfdaa8ae7cb14b4383657caab0b3e8a0aa9ae8e04b044854c8dfce2"
+checksum = "22e18b0f0062d30d4230b2e85ff77fdfe4326feb054b9783a3460d8435c8ab91"
 dependencies = [
  "crossbeam-deque",
  "crossbeam-utils",
@@ -3097,9 +3093,9 @@ dependencies = [
 
 [[package]]
 name = "syn"
-version = "2.0.104"
+version = "2.0.118"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "17b6f705963418cdb9927482fa304bc562ece2fdd4f616084c50b7023b435a40"
+checksum = "1b9ae57f904213ebb649ce6895b8a66c66f0203b9319718f69a5612a065b1422"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -3214,7 +3210,6 @@ dependencies = [
  "app-surface",
  "async-std",
  "bytemuck",
- "cfg-if",
  "console_error_panic_hook",
  "console_log",
  "env_logger",
@@ -3383,7 +3378,6 @@ checksum = "d2df906b07856748fa3f6e0ad0cbaa047052d4a7dd609e231c4f72cee8c36f31"
 name = "tutorial1-window"
 version = "0.1.0"
 dependencies = [
- "cfg-if",
  "console_error_panic_hook",
  "console_log",
  "env_logger",
@@ -3407,7 +3401,6 @@ dependencies = [
  "anyhow",
  "app-surface",
  "bytemuck",
- "cfg-if",
  "env_logger",
  "fs_extra",
  "glam",
@@ -3429,7 +3422,6 @@ dependencies = [
  "anyhow",
  "app-surface",
  "bytemuck",
- "cfg-if",
  "env_logger",
  "fs_extra",
  "glam",
@@ -3451,7 +3443,6 @@ dependencies = [
  "anyhow",
  "app-surface",
  "bytemuck",
- "cfg-if",
  "env_logger",
  "fs_extra",
  "glam",
@@ -3473,7 +3464,6 @@ dependencies = [
  "anyhow",
  "app-surface",
  "bytemuck",
- "cfg-if",
  "console_log",
  "env_logger",
  "fs_extra",
@@ -3495,7 +3485,6 @@ dependencies = [
 name = "tutorial2-surface"
 version = "0.1.0"
 dependencies = [
- "cfg-if",
  "console_error_panic_hook",
  "console_log",
  "env_logger",
@@ -3517,7 +3506,6 @@ name = "tutorial3-pipeline"
 version = "0.1.0"
 dependencies = [
  "app-surface",
- "cfg-if",
  "env_logger",
  "log",
  "utils",
@@ -3532,7 +3520,6 @@ dependencies = [
  "anyhow",
  "app-surface",
  "bytemuck",
- "cfg-if",
  "env_logger",
  "fs_extra",
  "log",
@@ -3548,7 +3535,6 @@ dependencies = [
  "anyhow",
  "app-surface",
  "bytemuck",
- "cfg-if",
  "env_logger",
  "fs_extra",
  "image 0.25.6",
@@ -3565,7 +3551,6 @@ dependencies = [
  "anyhow",
  "app-surface",
  "bytemuck",
- "cfg-if",
  "env_logger",
  "fs_extra",
  "glam",
@@ -3584,7 +3569,6 @@ dependencies = [
  "anyhow",
  "app-surface",
  "bytemuck",
- "cfg-if",
  "env_logger",
  "fs_extra",
  "glam",
@@ -3603,7 +3587,6 @@ dependencies = [
  "anyhow",
  "app-surface",
  "bytemuck",
- "cfg-if",
  "env_logger",
  "fs_extra",
  "glam",
@@ -3622,7 +3605,6 @@ dependencies = [
  "anyhow",
  "app-surface",
  "bytemuck",
- "cfg-if",
  "env_logger",
  "fs_extra",
  "glam",
@@ -3696,7 +3678,6 @@ version = "0.0.0"
 dependencies = [
  "app-surface",
  "bytemuck",
- "cfg-if",
  "console_error_panic_hook",
  "console_log",
  "env_logger",
@@ -3738,7 +3719,6 @@ version = "0.1.0"
 dependencies = [
  "app-surface",
  "bytemuck",
- "cfg-if",
  "env_logger",
  "glam",
  "log",
@@ -3761,9 +3741,9 @@ dependencies = [
 
 [[package]]
 name = "walrus"
-version = "0.25.2"
+version = "0.26.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "643cc295c2bf4c34d36c2bbaddee48c56a15de3a35e7021b95ceb6a936a493ac"
+checksum = "3bfa49767bb3a9e1afb02aa95bbcbde8d82f2db4ca377afae94d688f14f62378"
 dependencies = [
  "anyhow",
  "gimli 0.32.3",
@@ -3773,14 +3753,14 @@ dependencies = [
  "rayon",
  "walrus-macro",
  "wasm-encoder",
- "wasmparser 0.245.1",
+ "wasmparser",
 ]
 
 [[package]]
 name = "walrus-macro"
-version = "0.25.0"
+version = "0.26.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cef8d704ff46ad931a2cd1f7a504fe43ffb8e968d931e179ff18d0dff4949bd5"
+checksum = "1a9b0525d7ea6e5f906aca581a172e5c91b4c595290dfa8ad4a2bc9ffef33b44"
 dependencies = [
  "heck",
  "proc-macro2",
@@ -3814,9 +3794,9 @@ dependencies = [
 
 [[package]]
 name = "wasm-bindgen"
-version = "0.2.114"
+version = "0.2.123"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6532f9a5c1ece3798cb1c2cfdba640b9b3ba884f5db45973a6f442510a87d38e"
+checksum = "a254a4b10c19a76f09a27640e7ffbf9bc30bf67e16a3bf28aaefa4920fe81563"
 dependencies = [
  "cfg-if",
  "once_cell",
@@ -3827,9 +3807,9 @@ dependencies = [
 
 [[package]]
 name = "wasm-bindgen-cli-support"
-version = "0.2.114"
+version = "0.2.123"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a468565fe14ad40511a77eb46b743d88c7a8dc6e2035a670abb4555a32d9a3e7"
+checksum = "ca30e62d6564a989f05665f15ffbeda5963142fa743190548228a31ebdb0fbcc"
 dependencies = [
  "anyhow",
  "base64 0.22.1",
@@ -3840,28 +3820,24 @@ dependencies = [
  "serde_json",
  "walrus",
  "wasm-bindgen-shared",
- "wasmparser 0.240.0",
+ "wasmparser",
 ]
 
 [[package]]
 name = "wasm-bindgen-futures"
-version = "0.4.64"
+version = "0.4.73"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e9c5522b3a28661442748e09d40924dfb9ca614b21c00d3fd135720e48b67db8"
+checksum = "54568702fabf5d4849ce2b90fadfa64168a097eaf4b351ce9df8b687a0086aaf"
 dependencies = [
- "cfg-if",
- "futures-util",
  "js-sys",
- "once_cell",
  "wasm-bindgen",
- "web-sys",
 ]
 
 [[package]]
 name = "wasm-bindgen-macro"
-version = "0.2.114"
+version = "0.2.123"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "18a2d50fcf105fb33bb15f00e7a77b772945a2ee45dcf454961fd843e74c18e6"
+checksum = "24a40fc75b0ec6f3746ceb10d36f53a93dcd68a93b11b6445983945d79eba0dc"
 dependencies = [
  "quote",
  "wasm-bindgen-macro-support",
@@ -3869,9 +3845,9 @@ dependencies = [
 
 [[package]]
 name = "wasm-bindgen-macro-support"
-version = "0.2.114"
+version = "0.2.123"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "03ce4caeaac547cdf713d280eda22a730824dd11e6b8c3ca9e42247b25c631e3"
+checksum = "908f34bd9b9ce3d4caf07b72dfab63d61504d156856c6bd3cd87fa350cf3985b"
 dependencies = [
  "bumpalo",
  "proc-macro2",
@@ -3882,9 +3858,9 @@ dependencies = [
 
 [[package]]
 name = "wasm-bindgen-shared"
-version = "0.2.114"
+version = "0.2.123"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "75a326b8c223ee17883a4251907455a2431acc2791c98c26279376490c378c16"
+checksum = "7acbf7616c27b194bbb550bf77ed0c2c3e5b7fd1260a93082b95fb7f47959b92"
 dependencies = [
  "unicode-ident",
 ]
@@ -3896,20 +3872,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3f9dca005e69bf015e45577e415b9af8c67e8ee3c0e38b5b0add5aa92581ed5c"
 dependencies = [
  "leb128fmt",
- "wasmparser 0.245.1",
-]
-
-[[package]]
-name = "wasmparser"
-version = "0.240.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b722dcf61e0ea47440b53ff83ccb5df8efec57a69d150e4f24882e4eba7e24a4"
-dependencies = [
- "bitflags 2.9.1",
- "hashbrown 0.15.4",
- "indexmap",
- "semver",
- "serde",
+ "wasmparser",
 ]
 
 [[package]]
@@ -4036,9 +3999,9 @@ dependencies = [
 
 [[package]]
 name = "web-sys"
-version = "0.3.91"
+version = "0.3.100"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "854ba17bb104abfb26ba36da9729addc7ce7f06f5c0f90f3c391f8461cca21f9"
+checksum = "6e0871acf327f283dc6da28a1696cdc64fb355ba9f935d052021fa77f35cce69"
 dependencies = [
  "js-sys",
  "wasm-bindgen",
@@ -4220,7 +4183,6 @@ version = "0.1.0"
 dependencies = [
  "app-surface",
  "bytemuck",
- "cfg-if",
  "console_log",
  "env_logger",
  "flume",

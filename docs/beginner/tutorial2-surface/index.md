@@ -267,8 +267,8 @@ impl ApplicationHandler for WgpuAppHandler {
 
         let window_attributes = Window::default_attributes().with_title("tutorial2-surface");
         let window = Arc::new(event_loop.create_window(window_attributes).unwrap());
-        cfg_if::cfg_if! {
-            if #[cfg(target_arch = "wasm32")] {
+        std::cfg_select! {
+            target_arch = "wasm32" => {
                 let app = self.app.clone();
                 let missed_resize = self.missed_resize.clone();
 
@@ -285,7 +285,8 @@ impl ApplicationHandler for WgpuAppHandler {
                         window_cloned.request_redraw();
                     }
                 });
-            } else {
+            }
+            _ => {
                 // 使用 pollster 提供的 `block_on` 函数来等待异步任务执行完成
                 let wgpu_app = pollster::block_on(WgpuApp::new(window));
                 self.app.lock().replace(wgpu_app);
@@ -307,7 +308,6 @@ WASM 环境中不能在异步函数里使用 `block_on`。`Future`（异步函�
 
 ```toml
 [dependencies]
-cfg-if = "1"
 winit = "0.30"
 env_logger = "0.11"
 log = "0.4"
@@ -322,7 +322,7 @@ pollster = "0.3"
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 console_error_panic_hook = "0.1.7"
 console_log = "1.0"
-wasm-bindgen = "=0.2.105"
+wasm-bindgen = "=0.2.123"
 wasm-bindgen-futures = "0.4"
 web-sys = { version = "0.3", features = [
     "Document",

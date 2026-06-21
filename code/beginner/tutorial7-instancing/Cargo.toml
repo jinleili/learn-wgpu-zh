@@ -7,7 +7,6 @@ rust-version.workspace = true
 
 [dependencies]
 anyhow.workspace = true
-cfg-if.workspace = true
 glam.workspace = true
 instant.workspace = true
 winit.workspace = true

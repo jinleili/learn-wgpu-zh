@@ -225,8 +225,8 @@ impl ApplicationHandler for WgpuAppHandler {
 
         let window_attributes = Window::default_attributes().with_title("tutorial2-challenge");
         let window = Arc::new(event_loop.create_window(window_attributes).unwrap());
-        cfg_if::cfg_if! {
-            if #[cfg(target_arch = "wasm32")] {
+        std::cfg_select! {
+            target_arch = "wasm32" => {
                 let app = self.app.clone();
                 let missed_resize = self.missed_resize.clone();
                 let missed_request_redraw = self.missed_request_redraw.clone();
@@ -243,7 +243,8 @@ impl ApplicationHandler for WgpuAppHandler {
                         window_cloned.request_redraw();
                     }
                 });
-            } else {
+            }
+            _ => {
                 let wgpu_app = pollster::block_on(WgpuApp::new(window));
                 self.app.lock().replace(wgpu_app);
             }

@@ -296,11 +296,12 @@ impl WgpuAppAction for WgpuApp {
 
         const SPACE_BETWEEN: f32 = 3.0;
         let iter = {
-            cfg_if::cfg_if! {
-                if #[cfg(target_arch = "wasm32")] {
+            std::cfg_select! {
+                target_arch = "wasm32" => {
                     (0..NUM_INSTANCES_PER_ROW)
                     .into_iter()
-                } else {
+                }
+                _ => {
                     (0..NUM_INSTANCES_PER_ROW)
                     .into_par_iter()
                 }
@@ -405,7 +406,11 @@ impl WgpuAppAction for WgpuApp {
         let render_pipeline_layout =
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: Some("Render Pipeline Layout"),
-                bind_group_layouts: &[Some(&texture_bind_group_layout), Some(&camera_bind_group_layout), Some(&light_bind_group_layout)],
+                bind_group_layouts: &[
+                    Some(&texture_bind_group_layout),
+                    Some(&camera_bind_group_layout),
+                    Some(&light_bind_group_layout),
+                ],
                 immediate_size: 0,
             });
 
@@ -427,7 +432,10 @@ impl WgpuAppAction for WgpuApp {
         let light_render_pipeline = {
             let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: Some("Light Pipeline Layout"),
-                bind_group_layouts: &[Some(&camera_bind_group_layout), Some(&light_bind_group_layout)],
+                bind_group_layouts: &[
+                    Some(&camera_bind_group_layout),
+                    Some(&light_bind_group_layout),
+                ],
                 immediate_size: 0,
             });
             let shader = wgpu::ShaderModuleDescriptor {

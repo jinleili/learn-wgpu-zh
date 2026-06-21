@@ -11,7 +11,6 @@ crate-type = ["cdylib", "rlib"]
 app-surface.workspace = true
 anyhow.workspace = true
 bytemuck = { workspace = true, features = ["derive"] }
-cfg-if.workspace = true
 glam.workspace = true
 env_logger.workspace = true
 log.workspace = true

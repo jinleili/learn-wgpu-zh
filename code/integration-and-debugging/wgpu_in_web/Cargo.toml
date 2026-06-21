@@ -19,7 +19,6 @@ app-surface = { workspace = true, features = [
     # "web_rwh",
 ] }
 bytemuck.workspace = true
-cfg-if.workspace = true
 env_logger.workspace = true
 flume.workspace = true
 glam.workspace = true

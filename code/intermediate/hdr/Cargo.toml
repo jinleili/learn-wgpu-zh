@@ -13,7 +13,6 @@ winit.workspace = true
 wgpu = { workspace = true }
 glam.workspace = true
 utils.workspace = true
-cfg-if = "1"
 anyhow = "1.0"
 tobj = { version = "3.2", features = ["async"] }
 instant = "0.1"

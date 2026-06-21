@@ -69,15 +69,16 @@ impl ApplicationHandler for WgpuAppHandler {
         let window_attributes = Window::default_attributes().with_title("tutorial1-window");
         let window = Arc::new(event_loop.create_window(window_attributes).unwrap());
 
-        cfg_if::cfg_if! {
-            if #[cfg(target_arch = "wasm32")] {
+        std::cfg_select! {
+            target_arch = "wasm32" => {
                 let app = self.app.clone();
                 wasm_bindgen_futures::spawn_local(async move {
                     let wgpu_app = WgpuApp::new(window).await;
                     let mut app = app.lock();
                     *app = Some(wgpu_app);
                 });
-            } else {
+            }
+            _ => {
                 let wgpu_app = pollster::block_on(WgpuApp::new(window));
                 self.app.lock().replace(wgpu_app);
             }

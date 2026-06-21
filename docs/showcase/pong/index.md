@@ -262,7 +262,6 @@ In order for wasm-pack to work properly I first needed to add some dependencies:
 
 ```toml
 [dependencies]
-cfg-if = "1"
 env_logger = "0.11"
 winit = "0.28.7"
 anyhow = "1.0"
@@ -287,7 +286,7 @@ console_log = "1.0"
 getrandom = { version = "0.2", features = ["js"] }
 rodio = { version = "0.15", default-features = false, features = ["wasm-bindgen", "wav"] }
 wasm-bindgen-futures = "0.4"
-wasm-bindgen = "=0.2.105"
+wasm-bindgen = "=0.2.123"
 web-sys = { version = "0.3", features = [
     "Document",
     "Window",
@@ -309,7 +308,7 @@ I'll highlight a few of these:
 - rand: If you want to use rand on the web, you need to include getrandom directly and enable its `js` feature.
 - rodio: I had to disable all of the features for the WASM build, and then enabled them separately. The `mp3` feature specifically wasn't working for me. There might have been a workaround, but since I'm not using mp3 in this example I just elected to only use wav.
 - instant: This crate is basically just a wrapper around `std::time::Instant`. In a normal build, it's just a type alias. In web builds it uses the browser's time functions.
-- cfg-if: This is a convenient crate for making platform-specific code less horrible to write.
+- std::cfg_select!: This is a convenient standard-library macro for making platform-specific code less horrible to write.
 - env_logger and console_log: env_logger doesn't work on web assembly so we need to use a different logger. console_log is the one used in the web assembly tutorials, so I went with that one.
 - wasm-bindgen: This crate is the glue that makes Rust code work on the web. If you are building using the wasm-bindgen command you need to make sure that the command version of wasm-bindgen matches the version in Cargo.toml **exactly** otherwise you'll have problems. If you use wasm-pack it will download the appropriate wasm-bindgen binary to use for your crate.
 - web-sys: This has functions and types that allow you to use different methods available in js such as "getElementById()".
@@ -329,11 +328,12 @@ pub fn start() {
 The `wasm_bindgen(start)` tell's wasm-bindgen that this function should be started as soon as the web assembly module is loaded by javascript. Most of the code inside this function is the same as what you'd find in other examples on this site, but there is some specific stuff we need to do on the web.
 
 ```rust
-cfg_if::cfg_if! {
-    if #[cfg(target_arch = "wasm32")] {
+std::cfg_select! {
+    target_arch = "wasm32" => {
         console_log::init_with_level(log::Level::Warn).expect("Could't initialize logger");
         std::panic::set_hook(Box::new(console_error_panic_hook::hook));
-    } else {
+    }
+    _ => {
         env_logger::init();
     }
 }

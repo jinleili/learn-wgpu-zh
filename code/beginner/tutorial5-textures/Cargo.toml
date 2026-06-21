@@ -10,7 +10,6 @@ webgl = ["wgpu/webgl", "app-surface/webgl"]
 
 [dependencies]
 anyhow.workspace = true
-cfg-if.workspace = true
 winit.workspace = true
 env_logger.workspace = true
 log.workspace = true

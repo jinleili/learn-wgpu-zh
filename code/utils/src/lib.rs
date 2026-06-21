@@ -104,8 +104,8 @@ pub(crate) fn get_texture_file_path(name: &str) -> PathBuf {
 
 // 根据不同平台初始化日志。
 pub fn init_logger() {
-    cfg_if::cfg_if! {
-        if #[cfg(target_arch = "wasm32")] {
+    std::cfg_select! {
+        target_arch = "wasm32" => {
             // 使用查询字符串来获取日志级别。
             let query_string = web_sys::window().unwrap().location().search().unwrap();
             let query_level: Option<log::LevelFilter> = parse_url_query_string(&query_string, "RUST_LOG")
@@ -125,14 +125,16 @@ pub fn init_logger() {
                 .apply()
                 .unwrap();
             std::panic::set_hook(Box::new(console_error_panic_hook::hook));
-        } else if #[cfg(target_os = "android")] {
+        }
+        target_os = "android" => {
             // 添加 Android 平台的日志初始化
             android_logger::init_once(
                 android_logger::Config::default()
                     .with_max_level(log::LevelFilter::Info)
             );
             log_panics::init();
-        } else {
+        }
+        _ => {
             // parse_default_env 会读取 RUST_LOG 环境变量，并在这些默认过滤器之上应用它。
             env_logger::builder()
                 .filter_level(log::LevelFilter::Info)

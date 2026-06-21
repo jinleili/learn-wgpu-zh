@@ -8,7 +8,6 @@ rust-version.workspace = true
 [dependencies]
 app-surface.workspace = true
 bytemuck.workspace = true
-cfg-if.workspace = true
 env_logger.workspace = true
 log.workspace = true
 winit.workspace = true

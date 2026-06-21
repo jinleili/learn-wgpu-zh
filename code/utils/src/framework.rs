@@ -159,8 +159,8 @@ impl<A: WgpuAppAction + 'static> ApplicationHandler for WgpuAppHandler<A> {
         self.window = Some(window.clone());
         self.config_window();
 
-        cfg_if::cfg_if! {
-            if #[cfg(target_arch = "wasm32")] {
+        std::cfg_select! {
+            target_arch = "wasm32" => {
                 let app = self.app.clone();
                 let missed_resize = self.missed_resize.clone();
 
@@ -176,7 +176,8 @@ impl<A: WgpuAppAction + 'static> ApplicationHandler for WgpuAppHandler<A> {
                         window_cloned.request_redraw();
                     }
                 });
-            } else {
+            }
+            _ => {
                 let wgpu_app = pollster::block_on(A::new(window));
                 self.app.lock().replace(wgpu_app);
             }

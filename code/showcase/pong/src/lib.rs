@@ -18,11 +18,12 @@ use winit::window::WindowBuilder;
 
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen(start))]
 pub fn start() {
-    cfg_if::cfg_if! {
-        if #[cfg(target_arch = "wasm32")] {
+    std::cfg_select! {
+        target_arch = "wasm32" => {
             console_log::init_with_level(log::Level::Warn).expect("Could't initialize logger");
             std::panic::set_hook(Box::new(console_error_panic_hook::hook));
-        } else {
+        }
+        _ => {
             env_logger::init();
         }
     }

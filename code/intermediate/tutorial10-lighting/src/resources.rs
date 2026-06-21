@@ -1,6 +1,4 @@
 use std::io::{BufReader, Cursor};
-
-use cfg_if::cfg_if;
 use wgpu::util::DeviceExt;
 
 use crate::{model, texture};
@@ -19,14 +17,15 @@ fn format_url(file_name: &str) -> reqwest::Url {
 }
 
 pub async fn load_string(file_name: &str) -> anyhow::Result<String> {
-    cfg_if! {
-        if #[cfg(target_arch = "wasm32")] {
+    std::cfg_select! {
+        target_arch = "wasm32" => {
             let url = format_url(file_name);
             let txt = reqwest::get(url)
                 .await?
                 .text()
                 .await?;
-        } else {
+        }
+        _ => {
             let path = std::path::Path::new(env!("OUT_DIR"))
                 .join("res")
                 .join(file_name);
@@ -38,15 +37,16 @@ pub async fn load_string(file_name: &str) -> anyhow::Result<String> {
 }
 
 pub async fn load_binary(file_name: &str) -> anyhow::Result<Vec<u8>> {
-    cfg_if! {
-        if #[cfg(target_arch = "wasm32")] {
+    std::cfg_select! {
+        target_arch = "wasm32" => {
             let url = format_url(file_name);
             let data = reqwest::get(url)
                 .await?
                 .bytes()
                 .await?
                 .to_vec();
-        } else {
+        }
+        _ => {
             let path = std::path::Path::new(env!("OUT_DIR"))
                 .join("res")
                 .join(file_name);

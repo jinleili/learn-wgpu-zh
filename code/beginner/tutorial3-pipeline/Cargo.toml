@@ -9,7 +9,6 @@ rust-version.workspace = true
 webgl = ["wgpu/webgl", "app-surface/webgl"]
 
 [dependencies]
-cfg-if.workspace = true
 winit.workspace = true
 env_logger.workspace = true
 log.workspace = true
