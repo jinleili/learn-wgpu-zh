@@ -108,7 +108,7 @@ impl WgpuAppAction for WgpuApp {
                     module: &shader,
                     entry_point: Some("vs_main"),
                     compilation_options: Default::default(),
-                    buffers: &[Vertex::desc()],
+                    buffers: &[Some(Vertex::desc())],
                 },
                 fragment: Some(wgpu::FragmentState {
                     module: &shader,
@@ -231,7 +231,7 @@ impl WgpuAppAction for WgpuApp {
         }
 
         self.app.queue.submit(Some(encoder.finish()));
-        output.present();
+        self.app.queue.present(output);
 
         Ok(())
     }

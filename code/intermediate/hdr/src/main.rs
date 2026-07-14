@@ -193,7 +193,7 @@ fn create_render_pipeline(
     layout: &wgpu::PipelineLayout,
     color_format: wgpu::TextureFormat,
     depth_format: Option<wgpu::TextureFormat>,
-    vertex_layouts: &[wgpu::VertexBufferLayout],
+    vertex_layouts: &[Option<wgpu::VertexBufferLayout>],
     topology: wgpu::PrimitiveTopology, // NEW!
     shader: wgpu::ShaderModuleDescriptor,
 ) -> wgpu::RenderPipeline {
@@ -486,7 +486,7 @@ impl WgpuAppAction for WgpuApp {
                 &render_pipeline_layout,
                 hdr.format(),
                 Some(texture::Texture::DEPTH_FORMAT),
-                &[model::ModelVertex::desc(), InstanceRaw::desc()],
+                &[Some(model::ModelVertex::desc()), Some(InstanceRaw::desc())],
                 wgpu::PrimitiveTopology::TriangleList,
                 shader,
             )
@@ -495,7 +495,10 @@ impl WgpuAppAction for WgpuApp {
         let light_render_pipeline = {
             let layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: Some("Light Pipeline Layout"),
-                bind_group_layouts: &[Some(&camera_bind_group_layout), Some(&light_bind_group_layout)],
+                bind_group_layouts: &[
+                    Some(&camera_bind_group_layout),
+                    Some(&light_bind_group_layout),
+                ],
                 immediate_size: 0,
             });
             let shader = wgpu::ShaderModuleDescriptor {
@@ -507,7 +510,7 @@ impl WgpuAppAction for WgpuApp {
                 &layout,
                 hdr.format(),
                 Some(texture::Texture::DEPTH_FORMAT),
-                &[model::ModelVertex::desc()],
+                &[Some(model::ModelVertex::desc())],
                 wgpu::PrimitiveTopology::TriangleList,
                 shader,
             )
@@ -735,7 +738,7 @@ impl WgpuAppAction for WgpuApp {
         self.hdr.process(&mut encoder, &view);
 
         self.app.queue.submit(Some(encoder.finish()));
-        output.present();
+        self.app.queue.present(output);
 
         Ok(())
     }

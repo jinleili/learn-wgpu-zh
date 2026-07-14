@@ -434,7 +434,7 @@ glam = "0.32"
 winit = "0.30"
 env_logger = "0.11"
 log = "0.4"
-wgpu = "29"
+wgpu = "30"
 bytemuck = { version = "1.22", features = [ "extern_crate_alloc", "min_const_generics" ] }
 anyhow = "1.0" # NEW!
 ```

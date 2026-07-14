@@ -189,7 +189,7 @@ impl ParticleGen {
             .unwrap();
 
         if let Ok(Ok(())) = rx.recv_async().await {
-            let data = buffer_slice.get_mapped_range();
+            let data = buffer_slice.get_mapped_range().unwrap();
             let result = *bytemuck::from_bytes::<u32>(&data);
             log::info!("从 gpu 读回的粒子数量: {:?}", result);
             self.count = result;

@@ -26,6 +26,11 @@ impl WgpuAppAction for WgpuApp {
     async fn new(window: Arc<winit::window::Window>) -> Self {
         // 创建 wgpu 应用
         let app = AppSurface::new(window).await;
+        log::info!(
+            "wgpu backend: {:?}, features: {:?}",
+            app.adapter.get_info(),
+            app.adapter.features()
+        );
 
         // 创建着色器
         let shader = app
@@ -153,7 +158,7 @@ impl WgpuAppAction for WgpuApp {
         }
 
         self.app.queue.submit(Some(encoder.finish()));
-        output.present();
+        self.app.queue.present(output);
 
         Ok(())
     }

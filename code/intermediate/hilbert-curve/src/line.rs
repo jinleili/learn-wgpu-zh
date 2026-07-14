@@ -30,7 +30,10 @@ impl Line {
             .device
             .create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: None,
-                bind_group_layouts: &[Some(&bg_setting.bind_group_layout), Some(&dy_bg.bind_group_layout)],
+                bind_group_layouts: &[
+                    Some(&bg_setting.bind_group_layout),
+                    Some(&dy_bg.bind_group_layout),
+                ],
                 immediate_size: 0,
             });
         // 着色器
@@ -58,6 +61,7 @@ impl Line {
                 attributes: attri,
             })
         }
+        let buffers = buffers.into_iter().map(Some).collect::<Vec<_>>();
         let pipeline = app
             .device
             .create_render_pipeline(&wgpu::RenderPipelineDescriptor {

@@ -14,29 +14,13 @@
 
 <div class="note">
 
-这里有一些关于 wgpu 中实现 HDR 展示平面 (Surface) 纹理支持的讨论。如果你想为这块出力，可以参考 GitHub 问题链接：[https://github.com/gfx-rs/wgpu/issues/2920](https://github.com/gfx-rs/wgpu/issues/2920)
-
-</div>
-
-<div class="note">
-
 **译者注：**
 
-wgpu 中对 HDR 的支持起始于我提交的这几个 PR：
+wgpu v30 已经可以通过 `SurfaceConfiguration::color_space` 为展示平面显式选择色彩空间，并通过 `SurfaceCapabilities::format_capabilities` 查询当前设备支持的纹理格式与色彩空间组合。是否支持广色域或 HDR 仍取决于操作系统、图形后端、驱动和显示设备。
 
-[Metal backend ASTC HDR formats support](https://github.com/gfx-rs/wgpu/pull/2477)
-
-[vulkan: HDR ASTC formats support](https://github.com/gfx-rs/wgpu/pull/2496)
-
-[gl: add Rgba16Float format support for color attachments](https://github.com/gfx-rs/wgpu/pull/3045)。
-
-HDR 属于**广色域**（WCG，Wide Color Gamut）色彩空间的内容，但是 WebGPU 标准里目前[还没有支持 WCG](https://github.com/gpuweb/gpuweb/issues/4108), 而我试图率先在 [metal 后端引入色彩空间](https://github.com/gfx-rs/metal-rs/pull/242) 的尝试也失败了。
-
-虽然不能在 wgpu 中直接指定广色域色彩空间, 但给 `SurfaceConfiguration` 设置 `TextureFormat::Rgba16Float` 格式时，wgpu-hal 内部会开启对应图形后端的广色域支持：
+本章演示的是更通用的做法：先把场景渲染到 `Rgba16Float` HDR 中间纹理，再通过色调映射输出到普通展示平面。示例保持 `SurfaceColorSpace::Auto`，因此不要求显示器支持 HDR；如果要直接输出 HDR，应从展示平面报告的能力中选择受支持的格式和色彩空间组合，而不是只设置 `Rgba16Float`。
 
 <img src="./edr.png" />
-
-所以英文原文中说 “wgpu doesn't allow us to use a floating point format such as ...” 的说法是不对的，原文备注里给出的 GitHub 问题链接里讨论的点我也不认为是 wgpu 需要解决的。
 
 关于如何使用 `Rgba16Float`, 可以参考我的另一个开源项目：[wgpu-in-app/src/hdr_image_view](https://github.com/jinleili/wgpu-in-app)
 
@@ -67,7 +51,7 @@ impl HdrPipeline {
         let width = config.width;
         let height = config.height;
 
-        // 这是 WebGPU 标准中唯一可用于展示平面的**广色域**纹理格式
+        // 使用浮点纹理保存亮度可以超过 1.0 的 HDR 场景数据
         let format = wgpu::TextureFormat::Rgba16Float;
 
         let texture = texture::Texture::create_2d_texture(
@@ -218,7 +202,7 @@ fn create_render_pipeline(
     layout: &wgpu::PipelineLayout,
     color_format: wgpu::TextureFormat,
     depth_format: Option<wgpu::TextureFormat>,
-    vertex_layouts: &[wgpu::VertexBufferLayout],
+    vertex_layouts: &[Option<wgpu::VertexBufferLayout>],
     topology: wgpu::PrimitiveTopology, // NEW!
     shader: wgpu::ShaderModuleDescriptor,
 ) -> wgpu::RenderPipeline {
@@ -511,7 +495,7 @@ let (device, queue) = adapter
 因此，我们将从 `Cargo.toml` 中删除 WebGL 功能，就是下边这一行：
 
 ```toml
-wgpu = { version = "29", features = ["webgl"]}
+wgpu = { version = "30", features = ["webgl"]}
 ```
 
 </div>
@@ -887,7 +871,7 @@ fn create_render_pipeline(
     layout: &wgpu::PipelineLayout,
     color_format: wgpu::TextureFormat,
     depth_format: Option<wgpu::TextureFormat>,
-    vertex_layouts: &[wgpu::VertexBufferLayout],
+    vertex_layouts: &[Option<wgpu::VertexBufferLayout>],
     topology: wgpu::PrimitiveTopology, // 新增!
     shader: wgpu::ShaderModuleDescriptor,
 ) -> wgpu::RenderPipeline {

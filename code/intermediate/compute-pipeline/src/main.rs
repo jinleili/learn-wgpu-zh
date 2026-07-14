@@ -195,7 +195,7 @@ impl WgpuAppAction for WgpuApp {
         self.display_node.draw(&mut encoder, &view);
 
         self.app.queue.submit(Some(encoder.finish()));
-        output.present();
+        self.app.queue.present(output);
 
         self.frame_count += 1;
         Ok(())

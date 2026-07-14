@@ -20,7 +20,7 @@ version = "0.25"
 default-features = false
 
 [workspace.dependencies]
-app-surface = "1.12.0"
+app-surface = "1.13.0"
 # app-surface = { path = "../wgpu-in-app/app-surface" }
 bytemuck = { version = "1.22", features = [
     "extern_crate_alloc",
@@ -36,7 +36,7 @@ parking_lot = "0.12"
 rayon = "1.8"
 tobj = "3.2"
 winit = "0.30"
-wgpu = { version = "29" }
+wgpu = { version = "30" }
 utils = { path = "code/utils" }
 
 # wasm32 dependencies

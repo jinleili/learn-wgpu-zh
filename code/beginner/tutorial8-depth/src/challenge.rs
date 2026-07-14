@@ -346,7 +346,7 @@ impl DepthPass {
                 module: &shader,
                 entry_point: Some("vs_main"),
                 compilation_options: Default::default(),
-                buffers: &[Vertex::desc()],
+                buffers: &[Some(Vertex::desc())],
             },
             fragment: Some(wgpu::FragmentState {
                 module: &shader,
@@ -610,7 +610,10 @@ impl WgpuAppAction for WgpuApp {
             app.device
                 .create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                     label: Some("Render Pipeline Layout"),
-                    bind_group_layouts: &[Some(&texture_bind_group_layout), Some(&camera_bind_group_layout)],
+                    bind_group_layouts: &[
+                        Some(&texture_bind_group_layout),
+                        Some(&camera_bind_group_layout),
+                    ],
                     immediate_size: 0,
                 });
 
@@ -623,7 +626,7 @@ impl WgpuAppAction for WgpuApp {
                     module: &shader,
                     entry_point: Some("vs_main"),
                     compilation_options: Default::default(),
-                    buffers: &[Vertex::desc(), InstanceRaw::desc()],
+                    buffers: &[Some(Vertex::desc()), Some(InstanceRaw::desc())],
                 },
                 fragment: Some(wgpu::FragmentState {
                     module: &shader,
@@ -790,7 +793,7 @@ impl WgpuAppAction for WgpuApp {
         self.depth_pass.render(&view, &mut encoder);
 
         self.app.queue.submit(Some(encoder.finish()));
-        output.present();
+        self.app.queue.present(output);
 
         Ok(())
     }

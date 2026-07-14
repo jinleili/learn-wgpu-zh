@@ -145,7 +145,7 @@ impl TerrainPipeline {
             &render_pipeline_layout,
             color_format,
             depth_format,
-            &[wgpu::VertexBufferLayout {
+            &[Some(wgpu::VertexBufferLayout {
                 array_stride: 32,
                 step_mode: wgpu::VertexStepMode::Vertex,
                 attributes: &[
@@ -160,7 +160,7 @@ impl TerrainPipeline {
                         shader_location: 1,
                     },
                 ],
-            }],
+            })],
             &shader,
         );
 
@@ -209,9 +209,7 @@ impl GenerateChunk for TerrainPipeline {
             let vertex_buffer = device.create_buffer(&wgpu::BufferDescriptor {
                 label: Some(&format!("{chunk_name}: Vertices")),
                 size: (num_vertices * 8 * core::mem::size_of::<f32>() as u32) as _,
-                usage: wgpu::BufferUsages::STORAGE
-                    | wgpu::BufferUsages::VERTEX
-                    | wgpu::BufferUsages::MAP_READ,
+                usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::VERTEX,
                 mapped_at_creation: false,
             });
             let num_elements = self.chunk_size.x * self.chunk_size.y * 6;
@@ -219,9 +217,7 @@ impl GenerateChunk for TerrainPipeline {
             let index_buffer = device.create_buffer(&wgpu::BufferDescriptor {
                 label: Some(&format!("{chunk_name}: Indices")),
                 size: (num_elements * core::mem::size_of::<u32>() as u32) as _,
-                usage: wgpu::BufferUsages::STORAGE
-                    | wgpu::BufferUsages::INDEX
-                    | wgpu::BufferUsages::MAP_READ,
+                usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::INDEX,
                 mapped_at_creation: false,
             });
             Chunk {
@@ -245,9 +241,7 @@ impl GenerateChunk for TerrainPipeline {
         let gen_buffer = device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("TerrainPipeline: ChunkData"),
             size: size_of_val(&data) as _,
-            usage: wgpu::BufferUsages::UNIFORM
-                | wgpu::BufferUsages::MAP_READ
-                | wgpu::BufferUsages::COPY_DST,
+            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
             mapped_at_creation: false,
         });
         queue.write_buffer(&gen_buffer, 0, bytemuck::bytes_of(&data));
@@ -392,7 +386,7 @@ impl TerrainHackPipeline {
             &render_pipeline_layout,
             color_format,
             depth_format,
-            &[wgpu::VertexBufferLayout {
+            &[Some(wgpu::VertexBufferLayout {
                 array_stride: 24,
                 step_mode: wgpu::VertexStepMode::Vertex,
                 attributes: &[
@@ -407,7 +401,7 @@ impl TerrainHackPipeline {
                         shader_location: 1,
                     },
                 ],
-            }],
+            })],
             &shader,
         );
 
@@ -478,9 +472,7 @@ impl GenerateChunk for TerrainHackPipeline {
             let vertex_buffer = device.create_buffer(&wgpu::BufferDescriptor {
                 label: Some(&format!("{chunk_name}: Vertices")),
                 size: (num_vertices * 8 * core::mem::size_of::<f32>() as u32) as _,
-                usage: wgpu::BufferUsages::COPY_DST
-                    | wgpu::BufferUsages::VERTEX
-                    | wgpu::BufferUsages::MAP_READ,
+                usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::VERTEX,
                 mapped_at_creation: false,
             });
             let num_elements = self.chunk_size.x * self.chunk_size.y * 6;
@@ -488,8 +480,8 @@ impl GenerateChunk for TerrainHackPipeline {
                 label: Some(&format!("{chunk_name}: Indices")),
                 size: (num_elements * core::mem::size_of::<u32>() as u32) as _,
                 usage: wgpu::BufferUsages::COPY_DST
-                    | wgpu::BufferUsages::INDEX
-                    | wgpu::BufferUsages::MAP_READ,
+                    | wgpu::BufferUsages::COPY_SRC
+                    | wgpu::BufferUsages::INDEX,
                 mapped_at_creation: false,
             });
             Chunk {
@@ -527,9 +519,7 @@ impl GenerateChunk for TerrainHackPipeline {
         let gen_buffer = device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("HackTerrainPipeline: GenData"),
             size: size_of_val(&data) as _,
-            usage: wgpu::BufferUsages::UNIFORM
-                | wgpu::BufferUsages::MAP_READ
-                | wgpu::BufferUsages::COPY_DST,
+            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
             mapped_at_creation: false,
         });
         queue.write_buffer(&gen_buffer, 0, bytemuck::bytes_of(&data));
@@ -540,6 +530,13 @@ impl GenerateChunk for TerrainHackPipeline {
                 binding: 0,
                 resource: gen_buffer.as_entire_binding(),
             }],
+        });
+
+        let index_readback = device.create_buffer(&wgpu::BufferDescriptor {
+            label: Some("HackTerrainPipeline: index_readback"),
+            size: chunk.mesh.index_buffer.size(),
+            usage: wgpu::BufferUsages::MAP_READ | wgpu::BufferUsages::COPY_DST,
+            mapped_at_creation: false,
         });
 
         let mut encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
@@ -611,18 +608,25 @@ impl GenerateChunk for TerrainHackPipeline {
                 depth_or_array_layers: 1,
             },
         );
+        encoder.copy_buffer_to_buffer(
+            &chunk.mesh.index_buffer,
+            0,
+            &index_readback,
+            0,
+            chunk.mesh.index_buffer.size(),
+        );
 
         queue.submit(Some(encoder.finish()));
         {
             device.poll(wgpu::PollType::wait_indefinitely()).unwrap();
-            let bs = chunk.mesh.index_buffer.slice(..);
+            let bs = index_readback.slice(..);
             let (tx, rx) = std::sync::mpsc::channel();
             bs.map_async(wgpu::MapMode::Read, move |result| {
                 tx.send(result).unwrap();
             });
             device.poll(wgpu::PollType::wait_indefinitely()).unwrap();
             rx.recv().unwrap().unwrap();
-            let data = bs.get_mapped_range();
+            let data = bs.get_mapped_range().unwrap();
 
             let indices: &[u32] = bytemuck::cast_slice(&data);
             let mut f = std::fs::File::create(format!(
@@ -648,7 +652,7 @@ impl GenerateChunk for TerrainHackPipeline {
             ))
             .unwrap();
         }
-        chunk.mesh.index_buffer.unmap();
+        index_readback.unmap();
 
         chunk
     }

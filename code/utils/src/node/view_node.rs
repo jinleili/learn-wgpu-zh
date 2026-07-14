@@ -188,6 +188,10 @@ impl ViewNode {
         } else {
             vec![]
         };
+        let vertex_buffer_layouts = vertex_buffer_layouts
+            .into_iter()
+            .map(Some)
+            .collect::<Vec<_>>();
         let (dy_uniform_bg, pipeline_layout) = if !attributes.bg_data.dynamic_uniforms.is_empty() {
             let uniforms = attributes
                 .bg_data

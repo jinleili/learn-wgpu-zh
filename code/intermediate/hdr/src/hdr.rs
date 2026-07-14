@@ -18,7 +18,7 @@ impl HdrPipeline {
         let width = config.width;
         let height = config.height;
 
-        // 这是 WebGPU 标准中唯一可用于展示平面的**广色域**纹理格式
+        // 使用浮点纹理保存亮度可以超过 1.0 的 HDR 场景数据
         let format = wgpu::TextureFormat::Rgba16Float;
 
         let texture = texture::Texture::create_2d_texture(

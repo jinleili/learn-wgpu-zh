@@ -137,7 +137,7 @@ async fn run() {
         device.poll(wgpu::PollType::wait_indefinitely()).unwrap();
 
         if let Ok(Ok(())) = rx.recv_async().await {
-            let padded_data = buffer_slice.get_mapped_range();
+            let padded_data = buffer_slice.get_mapped_range().unwrap();
             let data = padded_data
                 .chunks(padded_bytes_per_row as _)
                 .flat_map(|chunk| &chunk[..unpadded_bytes_per_row as _])

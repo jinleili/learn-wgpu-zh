@@ -216,7 +216,7 @@ queue.submit(Some(encoder.finish()));
 
 ## 从缓冲区中读取数据
 
-为了从**缓冲区**中读取数据，首先需要对它进行**映射**（Map），然后执行 `get_mapped_range()` 就可以得到一个**缓冲区视图** （`BufferView`）实例，它实质上就是一个 `&[u8]` 类型数据的容器：
+为了从**缓冲区**中读取数据，首先需要对它进行**映射**（Map）。在 wgpu v30 中，执行 `get_mapped_range()` 会返回一个结果；读取成功后就可以得到一个**缓冲区视图** （`BufferView`）实例，它实质上就是一个 `&[u8]` 类型数据的容器：
 
 ```rust
 // 需要对映射变量设置范围，以便我们能够解除缓冲区的映射
@@ -231,7 +231,7 @@ queue.submit(Some(encoder.finish()));
     });
     device.poll(wgpu::PollType::wait_indefinitely()).unwrap();
     if let Ok(Ok(())) = rx.recv_async().await {
-        let data = buffer_slice.get_mapped_range();
+        let data = buffer_slice.get_mapped_range().unwrap();
 
         use image::{ImageBuffer, Rgba};
         let buffer =

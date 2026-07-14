@@ -178,7 +178,7 @@ let render_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescrip
     vertex: wgpu::VertexState {
         // ...
         // 更新!
-        buffers: &[Vertex::desc(), InstanceRaw::desc()],
+        buffers: &[Some(Vertex::desc()), Some(InstanceRaw::desc())],
     },
     // ...
 });

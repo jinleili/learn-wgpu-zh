@@ -174,7 +174,7 @@ fn create_render_pipeline(
     layout: &wgpu::PipelineLayout,
     color_format: wgpu::TextureFormat,
     depth_format: Option<wgpu::TextureFormat>,
-    vertex_layouts: &[wgpu::VertexBufferLayout],
+    vertex_layouts: &[Option<wgpu::VertexBufferLayout>],
     shader: wgpu::ShaderModuleDescriptor,
 ) -> wgpu::RenderPipeline {
     let shader = device.create_shader_module(shader);
@@ -424,7 +424,7 @@ impl WgpuAppAction for WgpuApp {
                 &render_pipeline_layout,
                 config.format,
                 Some(texture::Texture::DEPTH_FORMAT),
-                &[model::ModelVertex::desc(), InstanceRaw::desc()],
+                &[Some(model::ModelVertex::desc()), Some(InstanceRaw::desc())],
                 shader,
             )
         };
@@ -447,7 +447,7 @@ impl WgpuAppAction for WgpuApp {
                 &layout,
                 config.format,
                 Some(texture::Texture::DEPTH_FORMAT),
-                &[model::ModelVertex::desc()],
+                &[Some(model::ModelVertex::desc())],
                 shader,
             )
         };
@@ -636,7 +636,7 @@ impl WgpuAppAction for WgpuApp {
             );
         }
         self.app.queue.submit(Some(encoder.finish()));
-        output.present();
+        self.app.queue.present(output);
 
         Ok(())
     }

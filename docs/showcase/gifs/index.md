@@ -137,7 +137,7 @@ for c in &colors {
 
     match result {
         Ok(()) => {
-            let padded_data = buffer_slice.get_mapped_range();
+            let padded_data = buffer_slice.get_mapped_range().unwrap();
             let data = padded_data
                 .chunks(padded_bytes_per_row as _)
                 .map(|chunk| { &chunk[..unpadded_bytes_per_row as _]})

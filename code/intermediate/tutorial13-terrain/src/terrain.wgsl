@@ -147,7 +147,7 @@ struct GenData {
 var<uniform> gen_data: GenData;
 
 struct GenVertexOutput {
-    @location(0)
+    @location(0) @interpolate(flat)
     index: u32,
     @builtin(position)
     position: vec4f,
@@ -218,8 +218,8 @@ fn gen_terrain_fragment(in: GenVertexOutput) -> GenFragmentOutput {
     // indices.data[start_index + 4u] = v11;
     // indices.data[start_index + 5u] = v10;
 
-    let vert_component = bitcast<u32>(vert_component);
-    return GenFragmentOutput(vert_component, index);
+    let vert_component_bits = bitcast<u32>(vert_component);
+    return GenFragmentOutput(vert_component_bits, index);
 }
 
 // ============================

@@ -280,7 +280,7 @@ fn create_render_pipeline(
     layout: &wgpu::PipelineLayout,
     color_format: wgpu::TextureFormat,
     depth_format: Option<wgpu::TextureFormat>,
-    vertex_layouts: &[wgpu::VertexBufferLayout],
+    vertex_layouts: &[Option<wgpu::VertexBufferLayout>],
     shader: wgpu::ShaderModuleDescriptor,
 ) -> wgpu::RenderPipeline {
     let shader = device.create_shader_module(shader);
@@ -500,7 +500,11 @@ impl WgpuAppAction for WgpuApp {
             app.device
                 .create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                     label: Some("Render Pipeline Layout"),
-                    bind_group_layouts: &[Some(&texture_bind_group_layout), Some(&camera_bind_group_layout), Some(&light_bind_group_layout)],
+                    bind_group_layouts: &[
+                        Some(&texture_bind_group_layout),
+                        Some(&camera_bind_group_layout),
+                        Some(&light_bind_group_layout),
+                    ],
                     immediate_size: 0,
                 });
 
@@ -514,7 +518,7 @@ impl WgpuAppAction for WgpuApp {
                 &render_pipeline_layout,
                 app.config.format,
                 Some(texture::Texture::DEPTH_FORMAT),
-                &[model::ModelVertex::desc(), InstanceRaw::desc()],
+                &[Some(model::ModelVertex::desc()), Some(InstanceRaw::desc())],
                 shader,
             )
         };
@@ -524,7 +528,10 @@ impl WgpuAppAction for WgpuApp {
                 .device
                 .create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                     label: Some("Light Pipeline Layout"),
-                    bind_group_layouts: &[Some(&camera_bind_group_layout), Some(&light_bind_group_layout)],
+                    bind_group_layouts: &[
+                        Some(&camera_bind_group_layout),
+                        Some(&light_bind_group_layout),
+                    ],
                     immediate_size: 0,
                 });
             let shader = wgpu::ShaderModuleDescriptor {
@@ -536,7 +543,7 @@ impl WgpuAppAction for WgpuApp {
                 &layout,
                 app.config.format,
                 Some(texture::Texture::DEPTH_FORMAT),
-                &[model::ModelVertex::desc()],
+                &[Some(model::ModelVertex::desc())],
                 shader,
             )
         };
@@ -658,7 +665,7 @@ impl WgpuAppAction for WgpuApp {
         }
 
         self.app.queue.submit(Some(encoder.finish()));
-        output.present();
+        self.app.queue.present(output);
 
         Ok(())
     }

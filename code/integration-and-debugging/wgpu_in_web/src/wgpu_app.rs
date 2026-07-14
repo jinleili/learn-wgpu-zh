@@ -106,7 +106,7 @@ impl WgpuApp {
         }
 
         self.app.queue.submit(Some(encoder.finish()));
-        output.present();
+        self.app.queue.present(output);
 
         Ok(())
     }

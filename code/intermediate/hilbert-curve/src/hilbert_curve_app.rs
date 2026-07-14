@@ -260,7 +260,7 @@ impl WgpuAppAction for HilbertCurveApp {
 
         // 提交并呈现
         self.app.queue.submit(Some(encoder.finish()));
-        output.present();
+        self.app.queue.present(output);
 
         Ok(())
     }
