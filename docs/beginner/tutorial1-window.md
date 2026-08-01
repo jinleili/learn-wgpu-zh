@@ -110,7 +110,7 @@ impl ApplicationHandler for WgpuAppHandler {
 
 ```rust
 fn main() -> Result<(), impl std::error::Error> {
-    utils::init_logger();
+    env_logger::init();
 
     let events_loop = EventLoop::new().unwrap();
     let mut app = WgpuAppHandler::default();
